@@ -1,0 +1,20 @@
+{
+  "name": "survey-system",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "pnpm --parallel -r dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.5.3",
+      "onFail": "download"
+    }
+  },
+  "type": "module"
+}

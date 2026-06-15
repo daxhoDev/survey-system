@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model answers {
+  id         String    @id @db.Uuid
+  survey_id  String?   @db.Uuid
+  responses  Json
+  origin_ip  String    @unique @db.Inet
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at DateTime? @db.Timestamptz(6)
+  surveys    surveys?  @relation(fields: [survey_id], references: [id])
+}
+
+model surveys {
+  id           String    @id @db.Uuid
+  name         String
+  questions    Json
+  is_active    Boolean   @default(false)
+  created_at   DateTime  @default(now()) @db.Timestamptz(6)
+  deleted_at   DateTime? @db.Timestamptz(6)
+  slug         String    @unique(map: "is_unique")
+  updated_at   DateTime? @db.Timestamptz(6)
+  activated_at DateTime? @db.Timestamptz(6)
+  answers      answers[]
+}
+
+model users {
+  id             String          @id @db.Uuid
+  username       String          @db.VarChar(50)
+  email          String
+  password       String
+  created_at     DateTime        @default(now()) @db.Timestamptz(6)
+  deleted_at     DateTime?       @db.Timestamptz(6)
+  refresh_tokens refresh_tokens?
+}
+
+model refresh_tokens {
+  id         String   @id @db.Uuid
+  user_id    String   @unique @db.Uuid
+  token_hash String   @unique
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  expires_at DateTime @db.Timestamptz(6)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
+
+enum answer_type {
+  TEXT_RESPONSE
+  SINGLE_SELECT
+  MULTI_SELECT
+}
