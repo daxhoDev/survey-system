@@ -97,6 +97,7 @@ registry.registerPath({
   method: "post",
   path: "/api/v1/users/signup",
   summary: "Register a new user",
+  operationId: "registerUser",
   request: {
     body: {
       content: {
@@ -126,6 +127,7 @@ registry.registerPath({
   method: "post",
   path: "/api/v1/users/login",
   summary: "Login a user",
+  operationId: "loginUser",
   request: {
     body: {
       content: {
@@ -155,6 +157,7 @@ registry.registerPath({
   method: "post",
   path: "/api/v1/users/logout",
   summary: "Logout a user",
+  operationId: "logoutUser",
   security: [{ bearerAuth: [] }],
   responses: {
     204: {
@@ -169,6 +172,7 @@ registry.registerPath({
   method: "post",
   path: "/api/v1/users/refresh",
   summary: "Refresh auth token",
+  operationId: "refreshAuthToken",
   responses: {
     204: {
       description: "Token refreshed successfully",
@@ -182,6 +186,7 @@ registry.registerPath({
   method: "get",
   path: "/api/v1/users/me",
   summary: "Get current user",
+  operationId: "getCurrentUser",
   security: [{ bearerAuth: [] }],
   responses: {
     200: {
@@ -202,6 +207,7 @@ registry.registerPath({
   method: "get",
   path: "/api/v1/surveys",
   summary: "Get all surveys",
+  operationId: "getAllSurveys",
   security: [{ bearerAuth: [] }],
   request: {
     query: z.object({
@@ -229,6 +235,7 @@ registry.registerPath({
   method: "post",
   path: "/api/v1/surveys",
   summary: "Create a new survey",
+  operationId: "createSurvey",
   security: [{ bearerAuth: [] }],
   request: {
     body: {
@@ -257,6 +264,7 @@ registry.registerPath({
   method: "get",
   path: "/api/v1/surveys/{slug}",
   summary: "Get survey by slug",
+  operationId: "getSurveyBySlug",
   request: {
     params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
   },
@@ -278,6 +286,7 @@ registry.registerPath({
   method: "patch",
   path: "/api/v1/surveys/{slug}",
   summary: "Update survey by slug",
+  operationId: "updateSurveyBySlug",
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
@@ -307,6 +316,7 @@ registry.registerPath({
   method: "delete",
   path: "/api/v1/surveys/{slug}",
   summary: "Delete survey by slug",
+  operationId: "deleteSurveyBySlug",
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
@@ -324,6 +334,7 @@ registry.registerPath({
   method: "get",
   path: "/api/v1/surveys/{slug}/stats",
   summary: "Get survey stats by slug",
+  operationId: "getSurveyStatsBySlug",
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
@@ -347,6 +358,7 @@ registry.registerPath({
   method: "post",
   path: "/api/v1/surveys/{slug}/answers",
   summary: "Create an answer for a survey",
+  operationId: "createSurveyAnswer",
   request: {
     params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
     body: {
@@ -370,6 +382,7 @@ registry.registerPath({
   method: "get",
   path: "/api/v1/surveys/{slug}/answers",
   summary: "Get all answers for a survey",
+  operationId: "getAllSurveyAnswers",
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
@@ -397,6 +410,7 @@ registry.registerPath({
   method: "get",
   path: "/api/v1/surveys/{slug}/answers/{id}",
   summary: "Get answer by ID",
+  operationId: "getSurveyAnswerById",
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
@@ -427,6 +441,7 @@ registry.registerPath({
   method: "delete",
   path: "/api/v1/surveys/{slug}/answers/{id}",
   summary: "Delete answer by ID",
+  operationId: "deleteSurveyAnswerById",
   security: [{ bearerAuth: [] }],
   request: {
     params: z.object({
