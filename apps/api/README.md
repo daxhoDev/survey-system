@@ -117,7 +117,7 @@ Required environment variables should be set in `.env`:
 - `NODE_ENV`: Environment (development/production)
 - `JWT_SECRET`: Secret string to sign JWTs
 - `JWT_EXPIRES_IN`: JWT lifetime, given in minutes
-- `JWT_COOKIE_EXPIRES_IN`: JWT cookie lifetime, given in {{minutes_amount}}min format
+- `JWT_COOKIE_EXPIRES_IN`: JWT cookie lifetime, given in `{{minutes_amount}}min` format
 - `REFRESH_EXPIRES_IN`: Refresh token lifetime, given in days
 - `REFRESH_COOKIE_EXPIRES_IN`: Refresh token cookie lifetime, given in days
 
