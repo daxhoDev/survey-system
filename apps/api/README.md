@@ -38,7 +38,6 @@ src/
 ├── lib/              # Utilities and configurations
 ├── utils/            # General helpers
 ├── generated/        # Prisma client (auto-generated)
-└── docs/             # OpenAPI documentation
 ```
 
 ## Prerequisites
@@ -81,8 +80,14 @@ pnpm test
 
 Access the interactive Swagger documentation:
 
-``` http
+```http
 GET http://localhost:8000/api/v1/docs
+```
+
+Access the raw OpenApi file:
+
+```http
+GET http://localhost:8000/api/v1/docs-raw
 ```
 
 ## Data Models
