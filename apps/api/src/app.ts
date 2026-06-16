@@ -26,21 +26,7 @@ app.use(
     origin: "http://localhost:5173",
   }),
 );
-app.use(
-  helmet({
-    contentSecurityPolicy: {
-      directives: {
-        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        // 1. Permitimos que se descarguen scripts desde el CDN de Scalar y scripts inline necesarios
-        "script-src": ["'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
-        // 2. Permitimos que se descarguen los estilos CSS de Scalar
-        "style-src": ["'self'", "https://cdn.jsdelivr.net", "'unsafe-inline'"],
-        // 3. Si Scalar necesita fuentes externas, las permitimos también
-        "font-src": ["'self'", "https://cdn.jsdelivr.net"],
-      },
-    },
-  }),
-);
+app.use(helmet());
 
 app.use("/api/", limiter(false));
 
