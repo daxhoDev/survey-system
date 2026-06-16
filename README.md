@@ -13,3 +13,5 @@ University project which consists of a enterprise system to manage employee surv
 - **Technologies:** React
 
 Please, navigate to any of the projects to get started.
+
+---> **Frontend project still in it's initial phase**
