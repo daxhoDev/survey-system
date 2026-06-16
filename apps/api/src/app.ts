@@ -55,6 +55,8 @@ app.use(
   }),
 );
 
+app.use("/api/v1/docs-raw", (req, res) => res.send(generateOpenApiDocument()));
+
 app.all("/*splat", (req: Request, res: Response) => {
   throw new AppError(
     "Method not allowed for this path",
