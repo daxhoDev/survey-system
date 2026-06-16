@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { json } from "../utils/json.js";
 import type { ISurveyService, ProtectedRequest } from "../types.js";
-import { queryStringSchema } from "../schemas/queryStringsSchema.js";
+import { queryStringSchema } from "@survey-system/schemas";
 import z from "zod";
 import { getLogger } from "../context/requestContext.js";
 

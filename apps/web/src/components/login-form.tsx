@@ -15,11 +15,20 @@ import {
   FieldSeparator,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { useForm } from "react-hook-form";
+import type { UserLogin } from "@/lib/api/surveySystemAPI.schemas";
+import { loginUser } from "@/lib/api/users/users";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<UserLogin>();
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -33,7 +42,7 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form>
+          <form onSubmit={handleSubmit((data) => loginUser(data))}>
             <FieldGroup>
               {/* <Field>
                 <Button variant="outline" type="button">
@@ -64,7 +73,7 @@ export function LoginForm({
                   id="email"
                   type="email"
                   placeholder="mail@example.com"
-                  required
+                  {...register("email", { required: true })}
                 />
               </Field>
               <Field>
@@ -77,7 +86,11 @@ export function LoginForm({
                     Forgot your password?
                   </a> */}
                 </div>
-                <Input id="password" type="password" required />
+                <Input
+                  id="password"
+                  type="password"
+                  {...register("password", { required: true })}
+                />
               </Field>
               <Field>
                 <Button type="submit">Login</Button>

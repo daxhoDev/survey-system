@@ -206,6 +206,13 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@asteasolutions/zod-to-openapi':
+        specifier: ^8.5.0
+        version: 8.5.0(zod@4.4.3)
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       orval:
         specifier: ^8.17.0
@@ -225,6 +232,9 @@ importers:
       '@scalar/express-api-reference':
         specifier: ^0.9.20
         version: 0.9.20
+      '@survey-system/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
       '@tsoa/runtime':
         specifier: 7.0.0-alpha.0
         version: 7.0.0-alpha.0
@@ -425,6 +435,8 @@ importers:
       vite:
         specifier: ^8.0.12
         version: 8.0.16(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.22.4)(yaml@2.9.0)
+
+  packages/schemas: {}
 
 packages:
 

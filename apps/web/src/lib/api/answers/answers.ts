@@ -78,7 +78,7 @@ export const getCreateSurveyAnswerUrl = (slug: string,) => {
 
 
 
-  return `/api/v1/surveys/${slug}/answers`
+  return `http://localhost:3000/api/v1/surveys/${slug}/answers`
 }
 
 /**
@@ -194,7 +194,7 @@ export const getGetAllSurveyAnswersUrl = (slug: string,) => {
 
 
 
-  return `/api/v1/surveys/${slug}/answers`
+  return `http://localhost:3000/api/v1/surveys/${slug}/answers`
 }
 
 /**
@@ -224,7 +224,7 @@ export const getAllSurveyAnswers = async (slug: string, options?: RequestInit): 
 
 export const getGetAllSurveyAnswersQueryKey = (slug: string,) => {
     return [
-    `/api/v1/surveys/${slug}/answers`
+    `http://localhost:3000/api/v1/surveys/${slug}/answers`
     ] as const;
     }
 
@@ -317,7 +317,7 @@ export const getGetSurveyAnswerByIdUrl = (slug: string,
 
 
 
-  return `/api/v1/surveys/${slug}/answers/${id}`
+  return `http://localhost:3000/api/v1/surveys/${slug}/answers/${id}`
 }
 
 /**
@@ -349,7 +349,7 @@ export const getSurveyAnswerById = async (slug: string,
 export const getGetSurveyAnswerByIdQueryKey = (slug: string,
     id: string,) => {
     return [
-    `/api/v1/surveys/${slug}/answers/${id}`
+    `http://localhost:3000/api/v1/surveys/${slug}/answers/${id}`
     ] as const;
     }
 
@@ -444,7 +444,7 @@ export const getDeleteSurveyAnswerByIdUrl = (slug: string,
 
 
 
-  return `/api/v1/surveys/${slug}/answers/${id}`
+  return `http://localhost:3000/api/v1/surveys/${slug}/answers/${id}`
 }
 
 /**

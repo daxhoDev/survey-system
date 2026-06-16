@@ -8,6 +8,7 @@ export default defineConfig({
       target: "./apps/web/src/lib/api",
       client: "react-query",
       httpClient: "fetch",
+      baseUrl: "http://localhost:3000",
     },
   },
 });

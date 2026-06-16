@@ -20,5 +20,9 @@
   "type": "module",
   "devDependencies": {
     "orval": "^8.17.0"
+  },
+  "dependencies": {
+    "@asteasolutions/zod-to-openapi": "^8.5.0",
+    "zod": "^4.4.3"
   }
 }

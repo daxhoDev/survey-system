@@ -87,7 +87,7 @@ export const getGetAllSurveysUrl = (params?: GetAllSurveysParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `/api/v1/surveys?${stringifiedParams}` : `/api/v1/surveys`
+  return stringifiedParams.length > 0 ? `http://localhost:3000/api/v1/surveys?${stringifiedParams}` : `http://localhost:3000/api/v1/surveys`
 }
 
 /**
@@ -117,7 +117,7 @@ export const getAllSurveys = async (params?: GetAllSurveysParams, options?: Requ
 
 export const getGetAllSurveysQueryKey = (params?: GetAllSurveysParams,) => {
     return [
-    `/api/v1/surveys`, ...(params ? [params] : [])
+    `http://localhost:3000/api/v1/surveys`, ...(params ? [params] : [])
     ] as const;
     }
 
@@ -209,7 +209,7 @@ export const getCreateSurveyUrl = () => {
 
 
 
-  return `/api/v1/surveys`
+  return `http://localhost:3000/api/v1/surveys`
 }
 
 /**
@@ -324,7 +324,7 @@ export const getGetSurveyBySlugUrl = (slug: string,) => {
 
 
 
-  return `/api/v1/surveys/${slug}`
+  return `http://localhost:3000/api/v1/surveys/${slug}`
 }
 
 /**
@@ -354,7 +354,7 @@ export const getSurveyBySlug = async (slug: string, options?: RequestInit): Prom
 
 export const getGetSurveyBySlugQueryKey = (slug: string,) => {
     return [
-    `/api/v1/surveys/${slug}`
+    `http://localhost:3000/api/v1/surveys/${slug}`
     ] as const;
     }
 
@@ -446,7 +446,7 @@ export const getUpdateSurveyBySlugUrl = (slug: string,) => {
 
 
 
-  return `/api/v1/surveys/${slug}`
+  return `http://localhost:3000/api/v1/surveys/${slug}`
 }
 
 /**
@@ -562,7 +562,7 @@ export const getDeleteSurveyBySlugUrl = (slug: string,) => {
 
 
 
-  return `/api/v1/surveys/${slug}`
+  return `http://localhost:3000/api/v1/surveys/${slug}`
 }
 
 /**
@@ -677,7 +677,7 @@ export const getGetSurveyStatsBySlugUrl = (slug: string,) => {
 
 
 
-  return `/api/v1/surveys/${slug}/stats`
+  return `http://localhost:3000/api/v1/surveys/${slug}/stats`
 }
 
 /**
@@ -707,7 +707,7 @@ export const getSurveyStatsBySlug = async (slug: string, options?: RequestInit):
 
 export const getGetSurveyStatsBySlugQueryKey = (slug: string,) => {
     return [
-    `/api/v1/surveys/${slug}/stats`
+    `http://localhost:3000/api/v1/surveys/${slug}/stats`
     ] as const;
     }
 

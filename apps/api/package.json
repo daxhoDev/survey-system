@@ -20,6 +20,7 @@
   "author": "Daxho",
   "license": "MIT",
   "dependencies": {
+    "@survey-system/schemas": "workspace:*",
     "@asteasolutions/zod-to-openapi": "^8.5.0",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",

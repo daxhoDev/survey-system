@@ -1,6 +1,6 @@
 import z from "zod";
 import type { answersCreateInput } from "../generated/prisma/models.js";
-import { createAnswerSchema } from "../schemas/answerSchema.js";
+import { createAnswerSchema } from "@survey-system/schemas";
 import AppError from "../utils/appError.js";
 import {
   type Answer,
@@ -133,7 +133,7 @@ export default class AnswerService implements IAnswerService {
       );
     }
 
-    // // Validate diferent question types are correctly responded
+    // Validate diferent question types are correctly responded
     let message = "";
     if (
       !responses.every((response) => {
@@ -142,19 +142,21 @@ export default class AnswerService implements IAnswerService {
         if (matchingQuestion?.type === "SINGLE_SELECT") {
           if (
             !(response.content instanceof Array) ||
-            !(matchingQuestion?.options?.map(o => o.id) ?? []).includes(response.content?.at(0) as any)
+            !(matchingQuestion?.options?.map((o) => o.id) ?? []).includes(
+              response.content?.at(0) as any,
+            )
           ) {
-            message = 
+            message =
               "The response content for a single selection question must be an array with it's option id";
             return false;
           }
         }
 
-        if (matchingQuestion?.type === 'MULTI_SELECT') {
+        if (matchingQuestion?.type === "MULTI_SELECT") {
           if (
             !(response.content instanceof Array) ||
             !response.content.every((responseId) =>
-              matchingQuestion?.options?.map((o) => o.id).includes(responseId)
+              matchingQuestion?.options?.map((o) => o.id).includes(responseId),
             )
           ) {
             message =

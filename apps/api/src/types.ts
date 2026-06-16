@@ -1,18 +1,15 @@
 import z from "zod";
-import type { queryStringSchema } from "./schemas/queryStringsSchema.js";
+import type { queryStringSchema } from "@survey-system/schemas";
 import type { Request } from "express";
 import {
   questionSchema,
   type createSurveySchema,
-} from "./schemas/surveySchema.js";
+} from "@survey-system/schemas";
 import type {
   createAnswerSchema,
   responseSchema,
-} from "./schemas/answerSchema.js";
-import type {
-  createUserSchema,
-  loginDataSchema,
-} from "./schemas/userSchema.js";
+} from "@survey-system/schemas";
+import type { createUserSchema, loginDataSchema } from "@survey-system/schemas";
 import type { Logger } from "pino";
 
 //////////////////////////////////////////////////////////////////////////////////////////////

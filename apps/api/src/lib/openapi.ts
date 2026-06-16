@@ -7,15 +7,14 @@ import {
   createUserSchema,
   loginDataSchema,
   userSchema,
-} from "../schemas/userSchema.js";
+} from "@survey-system/schemas";
 import {
   createSurveySchema,
   updateSurveySchema,
   surveySchema,
   surveyStatsSchema,
-} from "../schemas/surveySchema.js";
-import { createAnswerSchema } from "../schemas/answerSchema.js";
-import type { OpenAPIObject } from "@asteasolutions/zod-to-openapi/dist/types.js";
+} from "@survey-system/schemas";
+import { createAnswerSchema } from "@survey-system/schemas";
 
 export const registry = new OpenAPIRegistry();
 

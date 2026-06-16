@@ -9,7 +9,7 @@ import type {
   IRefreshTokenRepository,
   FreshTokens,
 } from "../types.js";
-import { createUserSchema, loginDataSchema } from "../schemas/userSchema.js";
+import { createUserSchema, loginDataSchema } from "@survey-system/schemas";
 import bcrypt from "bcrypt";
 import { v7 } from "uuid";
 import AppError from "../utils/appError.js";

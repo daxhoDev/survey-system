@@ -1,9 +1,6 @@
 import z from "zod";
 import type { surveysCreateInput } from "../generated/prisma/models.js";
-import {
-  createSurveySchema,
-  updateSurveySchema,
-} from "../schemas/surveySchema.js";
+import { createSurveySchema, updateSurveySchema } from "@survey-system/schemas";
 import type {
   CreateSurveyData,
   ISurveyRepository,

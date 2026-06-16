@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import AppError from "../utils/appError.js";
 import jwt from "jsonwebtoken";
 import z from "zod";
-import { jwtSchema } from "../schemas/authSchema.js";
+import { jwtSchema } from "@survey-system/schemas";
 import type { ProtectedRequest, UserPayload } from "../types.js";
 import { getLogger, requestContext } from "../context/requestContext.js";
 
