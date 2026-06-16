@@ -1,20 +1,20 @@
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
   FieldSeparator,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
 
 export function LoginForm({
   className,
@@ -28,7 +28,9 @@ export function LoginForm({
           {/* <CardDescription>
             Login with your Apple or Google account
           </CardDescription> */}
-          <CardDescription>Login to access te survey management system</CardDescription>
+          <CardDescription>
+            Login to access te survey management system
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form>
@@ -92,5 +94,5 @@ export function LoginForm({
         and <a href="#">Privacy Policy</a>.
       </FieldDescription> */}
     </div>
-  )
+  );
 }
