@@ -13,8 +13,23 @@ export interface Error {
   extensions?: unknown | null;
 }
 
+export type OptionStatsOptionsItem = {
+  optionContent: string;
+  responseCount: number;
+};
+
+export interface OptionStats {
+  questionId: number;
+  questionName: string;
+  options: OptionStatsOptionsItem[];
+}
+
 export interface SurveyStats {
   totalAnswers: number;
+  completedAnswers: number;
+  incompleteAnswers: number;
+  questionCount: number;
+  optionStats: OptionStats[];
 }
 
 export interface User {

@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "./zod-setup";
 
 export const queryStringSchema = z.object({
   active: z

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "./zod-setup";
 
 export const responseSchema = z.strictObject(
   {

@@ -85,9 +85,7 @@ const defaultResponses = {
 
 registry.register(
   "SurveyStats",
-  z.object({
-    totalAnswers: z.number().openapi({ example: 42 }),
-  }),
+  surveyStatsSchema,
 );
 
 // User Routes

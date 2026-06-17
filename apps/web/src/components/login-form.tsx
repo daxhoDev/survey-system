@@ -9,15 +9,23 @@ import {
 } from "@/components/ui/card";
 import {
   Field,
-  FieldDescription,
   FieldGroup,
   FieldLabel,
-  FieldSeparator,
+  FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import type { UserLogin } from "@/lib/api/surveySystemAPI.schemas";
-import { loginUser } from "@/lib/api/users/users";
+import {
+  useLoginUser,
+  getGetCurrentUserQueryKey,
+} from "@/lib/api/users/users";
+import { loginDataSchema } from "@survey-system/schemas";
+import { zodResolver } from "@hookform/resolvers/zod";
+import logo from "@/assets/logo.png";
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -27,22 +35,45 @@ export function LoginForm({
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<UserLogin>();
+  } = useForm<UserLogin>({
+    reValidateMode: "onChange",
+    resolver: zodResolver(loginDataSchema),
+  });
+
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  const login = useLoginUser({
+    mutation: {
+      onSuccess(data) {
+        queryClient.setQueryData(getGetCurrentUserQueryKey(), data.data);
+        navigate("/dashboard");
+      },
+      onError(error) {
+        toast.error(<p className="text-destructive">{error.detail}</p>);
+      },
+    },
+  });
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
-        <CardHeader className="text-center">
+        <CardHeader className="text-center flex flex-col items-center">
+          <img src={logo} className="w-15 mb-5"></img>
           <CardTitle className="text-xl">Welcome back</CardTitle>
           {/* <CardDescription>
             Login with your Apple or Google account
           </CardDescription> */}
           <CardDescription>
-            Login to access te survey management system
+            Login to access the survey management system
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit((data) => loginUser(data))}>
+          <form
+            onSubmit={handleSubmit((data) => {
+              login.mutate({ data });
+            })}
+          >
             <FieldGroup>
               {/* <Field>
                 <Button variant="outline" type="button">
@@ -75,6 +106,9 @@ export function LoginForm({
                   placeholder="mail@example.com"
                   {...register("email", { required: true })}
                 />
+                {errors.email && (
+                  <FieldError>{errors.email.message}</FieldError>
+                )}
               </Field>
               <Field>
                 <div className="flex items-center">
@@ -91,6 +125,9 @@ export function LoginForm({
                   type="password"
                   {...register("password", { required: true })}
                 />
+                {errors.password && (
+                  <FieldError>{errors.password.message}</FieldError>
+                )}
               </Field>
               <Field>
                 <Button type="submit">Login</Button>

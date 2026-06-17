@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "./zod-setup";
 
 export const createUserSchema = z
   .strictObject({
@@ -23,8 +23,10 @@ export const createUserSchema = z
 export const loginDataSchema = z
   .strictObject(
     {
-      email: z.string().email("email must be a valid email"),
-      password: z.string().min(5, "password must be a string"),
+      email: z.email("Must be a valid email"),
+      password: z
+        .string("Must be a string")
+        .min(5, "Must have at least 5 characters"),
     },
     "Invalid input",
   )

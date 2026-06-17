@@ -1,13 +1,9 @@
-import type { ReactNode } from "react";
+import { Outlet } from "react-router";
 
-interface Props {
-  children: ReactNode;
-}
-
-export default function AuthPage({ children }: Props) {
+export default function AuthPage() {
   return (
-    <div className="w-full min-h-dvh flex items-center justify-center">
-      {children}
+    <div className="w-full min-h-dvh flex flex-col items-center justify-center">
+      <Outlet />
     </div>
   );
 }

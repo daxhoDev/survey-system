@@ -28,11 +28,14 @@ import type {
   UpdateSurveyBySlugBody
 } from '../surveySystemAPI.schemas';
 
+import { customInstance } from '.././mutator/customInstance';
 
 type AwaitedInput<T> = PromiseLike<T> | T;
 
       type Awaited<O> = O extends AwaitedInput<infer T> ? T : never;
 
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
@@ -95,21 +98,14 @@ export const getGetAllSurveysUrl = (params?: GetAllSurveysParams,) => {
  */
 export const getAllSurveys = async (params?: GetAllSurveysParams, options?: RequestInit): Promise<getAllSurveysResponse> => {
 
-  const res = await fetch(getGetAllSurveysUrl(params),
+  return customInstance<getAllSurveysResponse>(getGetAllSurveysUrl(params),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getAllSurveysResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getAllSurveysResponse
-}
+);}
 
 
 
@@ -122,16 +118,16 @@ export const getGetAllSurveysQueryKey = (params?: GetAllSurveysParams,) => {
     }
 
 
-export const getGetAllSurveysQueryOptions = <TData = Awaited<ReturnType<typeof getAllSurveys>>, TError = Error>(params?: GetAllSurveysParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllSurveys>>, TError, TData>, fetch?: RequestInit}
+export const getGetAllSurveysQueryOptions = <TData = Awaited<ReturnType<typeof getAllSurveys>>, TError = Error>(params?: GetAllSurveysParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllSurveys>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetAllSurveysQueryKey(params);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllSurveys>>> = ({ signal }) => getAllSurveys(params, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllSurveys>>> = ({ signal }) => getAllSurveys(params, { signal, ...requestOptions });
 
 
 
@@ -149,7 +145,7 @@ export type GetAllSurveysQueryError = Error
  */
 
 export function useGetAllSurveys<TData = Awaited<ReturnType<typeof getAllSurveys>>, TError = Error>(
- params?: GetAllSurveysParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllSurveys>>, TError, TData>, fetch?: RequestInit}
+ params?: GetAllSurveysParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllSurveys>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
@@ -217,35 +213,28 @@ export const getCreateSurveyUrl = () => {
  */
 export const createSurvey = async (createSurvey?: CreateSurvey, options?: RequestInit): Promise<createSurveyResponse> => {
 
-  const res = await fetch(getCreateSurveyUrl(),
+  return customInstance<createSurveyResponse>(getCreateSurveyUrl(),
   {
     ...options,
     method: 'POST',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(createSurvey)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: createSurveyResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as createSurveyResponse
-}
+);}
 
 
 
 
 export const getCreateSurveyMutationOptions = <TError = Error,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSurvey>>, TError,{data?: CreateSurvey}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSurvey>>, TError,{data?: CreateSurvey}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createSurvey>>, TError,{data?: CreateSurvey}, TContext> => {
 
 const mutationKey = ['createSurvey'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -253,7 +242,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof createSurvey>>, {data?: CreateSurvey}> = (props) => {
           const {data} = props ?? {};
 
-          return  createSurvey(data,fetchOptions)
+          return  createSurvey(data,requestOptions)
         }
 
 
@@ -271,7 +260,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Create a new survey
  */
 export const useCreateSurvey = <TError = Error,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSurvey>>, TError,{data?: CreateSurvey}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSurvey>>, TError,{data?: CreateSurvey}, TContext>, request?: SecondParameter<typeof customInstance>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof createSurvey>>,
         TError,
@@ -332,21 +321,14 @@ export const getGetSurveyBySlugUrl = (slug: string,) => {
  */
 export const getSurveyBySlug = async (slug: string, options?: RequestInit): Promise<getSurveyBySlugResponse> => {
 
-  const res = await fetch(getGetSurveyBySlugUrl(slug),
+  return customInstance<getSurveyBySlugResponse>(getGetSurveyBySlugUrl(slug),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getSurveyBySlugResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getSurveyBySlugResponse
-}
+);}
 
 
 
@@ -359,16 +341,16 @@ export const getGetSurveyBySlugQueryKey = (slug: string,) => {
     }
 
 
-export const getGetSurveyBySlugQueryOptions = <TData = Awaited<ReturnType<typeof getSurveyBySlug>>, TError = Error>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyBySlug>>, TError, TData>, fetch?: RequestInit}
+export const getGetSurveyBySlugQueryOptions = <TData = Awaited<ReturnType<typeof getSurveyBySlug>>, TError = Error>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyBySlug>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetSurveyBySlugQueryKey(slug);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSurveyBySlug>>> = ({ signal }) => getSurveyBySlug(slug, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSurveyBySlug>>> = ({ signal }) => getSurveyBySlug(slug, { signal, ...requestOptions });
 
 
 
@@ -386,7 +368,7 @@ export type GetSurveyBySlugQueryError = Error
  */
 
 export function useGetSurveyBySlug<TData = Awaited<ReturnType<typeof getSurveyBySlug>>, TError = Error>(
- slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyBySlug>>, TError, TData>, fetch?: RequestInit}
+ slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyBySlug>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
@@ -455,35 +437,28 @@ export const getUpdateSurveyBySlugUrl = (slug: string,) => {
 export const updateSurveyBySlug = async (slug: string,
     updateSurveyBySlugBody?: UpdateSurveyBySlugBody, options?: RequestInit): Promise<updateSurveyBySlugResponse> => {
 
-  const res = await fetch(getUpdateSurveyBySlugUrl(slug),
+  return customInstance<updateSurveyBySlugResponse>(getUpdateSurveyBySlugUrl(slug),
   {
     ...options,
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json', ...options?.headers },
     body: JSON.stringify(updateSurveyBySlugBody)
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: updateSurveyBySlugResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as updateSurveyBySlugResponse
-}
+);}
 
 
 
 
 export const getUpdateSurveyBySlugMutationOptions = <TError = Error,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSurveyBySlug>>, TError,{slug: string;data?: UpdateSurveyBySlugBody}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSurveyBySlug>>, TError,{slug: string;data?: UpdateSurveyBySlugBody}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateSurveyBySlug>>, TError,{slug: string;data?: UpdateSurveyBySlugBody}, TContext> => {
 
 const mutationKey = ['updateSurveyBySlug'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -491,7 +466,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSurveyBySlug>>, {slug: string;data?: UpdateSurveyBySlugBody}> = (props) => {
           const {slug,data} = props ?? {};
 
-          return  updateSurveyBySlug(slug,data,fetchOptions)
+          return  updateSurveyBySlug(slug,data,requestOptions)
         }
 
 
@@ -509,7 +484,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Update survey by slug
  */
 export const useUpdateSurveyBySlug = <TError = Error,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSurveyBySlug>>, TError,{slug: string;data?: UpdateSurveyBySlugBody}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSurveyBySlug>>, TError,{slug: string;data?: UpdateSurveyBySlugBody}, TContext>, request?: SecondParameter<typeof customInstance>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof updateSurveyBySlug>>,
         TError,
@@ -570,35 +545,28 @@ export const getDeleteSurveyBySlugUrl = (slug: string,) => {
  */
 export const deleteSurveyBySlug = async (slug: string, options?: RequestInit): Promise<deleteSurveyBySlugResponse> => {
 
-  const res = await fetch(getDeleteSurveyBySlugUrl(slug),
+  return customInstance<deleteSurveyBySlugResponse>(getDeleteSurveyBySlugUrl(slug),
   {
     ...options,
     method: 'DELETE'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: deleteSurveyBySlugResponse['data'] = body ? JSON.parse(body) : undefined
-  return { data, status: res.status, headers: res.headers } as deleteSurveyBySlugResponse
-}
+);}
 
 
 
 
 export const getDeleteSurveyBySlugMutationOptions = <TError = Error,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSurveyBySlug>>, TError,{slug: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSurveyBySlug>>, TError,{slug: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteSurveyBySlug>>, TError,{slug: string}, TContext> => {
 
 const mutationKey = ['deleteSurveyBySlug'];
-const {mutation: mutationOptions, fetch: fetchOptions} = options ?
+const {mutation: mutationOptions, request: requestOptions} = options ?
       options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
       options
       : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, fetch: undefined};
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
@@ -606,7 +574,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
       const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteSurveyBySlug>>, {slug: string}> = (props) => {
           const {slug} = props ?? {};
 
-          return  deleteSurveyBySlug(slug,fetchOptions)
+          return  deleteSurveyBySlug(slug,requestOptions)
         }
 
 
@@ -624,7 +592,7 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
  * @summary Delete survey by slug
  */
 export const useDeleteSurveyBySlug = <TError = Error,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSurveyBySlug>>, TError,{slug: string}, TContext>, fetch?: RequestInit}
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSurveyBySlug>>, TError,{slug: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof deleteSurveyBySlug>>,
         TError,
@@ -634,7 +602,7 @@ export const useDeleteSurveyBySlug = <TError = Error,
       return useMutation(getDeleteSurveyBySlugMutationOptions(options));
     }
     export type getSurveyStatsBySlugResponse200 = {
-  data: SurveyStats & unknown
+  data: SurveyStats
   status: 200
 }
 
@@ -685,21 +653,14 @@ export const getGetSurveyStatsBySlugUrl = (slug: string,) => {
  */
 export const getSurveyStatsBySlug = async (slug: string, options?: RequestInit): Promise<getSurveyStatsBySlugResponse> => {
 
-  const res = await fetch(getGetSurveyStatsBySlugUrl(slug),
+  return customInstance<getSurveyStatsBySlugResponse>(getGetSurveyStatsBySlugUrl(slug),
   {
     ...options,
     method: 'GET'
 
 
   }
-)
-
-
-  const body = [204, 205, 304].includes(res.status) ? null : await res.text();
-
-  const data: getSurveyStatsBySlugResponse['data'] = body ? JSON.parse(body) : {}
-  return { data, status: res.status, headers: res.headers } as getSurveyStatsBySlugResponse
-}
+);}
 
 
 
@@ -712,16 +673,16 @@ export const getGetSurveyStatsBySlugQueryKey = (slug: string,) => {
     }
 
 
-export const getGetSurveyStatsBySlugQueryOptions = <TData = Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError = Error>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError, TData>, fetch?: RequestInit}
+export const getGetSurveyStatsBySlugQueryOptions = <TData = Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError = Error>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
-const {query: queryOptions, fetch: fetchOptions} = options ?? {};
+const {query: queryOptions, request: requestOptions} = options ?? {};
 
   const queryKey =  queryOptions?.queryKey ?? getGetSurveyStatsBySlugQueryKey(slug);
 
 
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSurveyStatsBySlug>>> = ({ signal }) => getSurveyStatsBySlug(slug, { signal, ...fetchOptions });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSurveyStatsBySlug>>> = ({ signal }) => getSurveyStatsBySlug(slug, { signal, ...requestOptions });
 
 
 
@@ -739,7 +700,7 @@ export type GetSurveyStatsBySlugQueryError = Error
  */
 
 export function useGetSurveyStatsBySlug<TData = Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError = Error>(
- slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError, TData>, fetch?: RequestInit}
+ slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 

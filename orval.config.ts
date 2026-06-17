@@ -9,6 +9,12 @@ export default defineConfig({
       client: "react-query",
       httpClient: "fetch",
       baseUrl: "http://localhost:3000",
+      override: {
+        mutator: {
+          path: "./apps/web/src/lib/api/mutator/customInstance.ts",
+          name: "customInstance",
+        },
+      },
     },
   },
 });
