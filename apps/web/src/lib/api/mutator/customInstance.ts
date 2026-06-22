@@ -27,7 +27,7 @@ export const customInstance = async <T>(
     method,
     body,
     headers,
-    credentials: 'include'
+    credentials: "include",
   });
 
   if (!response.ok) {
@@ -59,7 +59,7 @@ export const customInstance = async <T>(
             method,
             body,
             headers,
-            credentials: 'include'
+            credentials: "include",
           });
 
           if (retryResponse.ok) {
@@ -77,6 +77,9 @@ export const customInstance = async <T>(
     throw errorData;
   }
 
+  if (response.status === 204) {
+    return null as unknown as T;
+  }
   return response.json();
 };
 

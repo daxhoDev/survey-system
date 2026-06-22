@@ -1,13 +1,17 @@
-import { SidebarTrigger } from "./ui/sidebar";
-import { useGetCurrentUser, useLogoutUser } from "@/lib/api/users/users";
+import {
+  getGetCurrentUserQueryKey,
+  useGetCurrentUser,
+  useLogoutUser,
+} from "@/lib/api/users/users";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "react-router";
+// import { useNavigate, useRevalidator } from "react-router";
 import { LogOut, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "./ui/skeleton";
 import type { User } from "@/lib/api/surveySystemAPI.schemas";
+import { useNavigate } from "react-router";
 
 export default function DashboardHeader() {
   const { data: rawData, isLoading, isRefetching } = useGetCurrentUser({});
@@ -19,20 +23,20 @@ export default function DashboardHeader() {
   const logout = useLogoutUser({
     mutation: {
       onSuccess() {
-        navigate("/auth/login");
-        toast.success("Logged out successfully");
         queryClient.clear();
+        navigate("/auth/login");
       },
       onError(error) {
         toast.error(<p className="text-destructive">{error.detail}</p>);
       },
+      mutationKey: [getGetCurrentUserQueryKey],
     },
   });
 
   const showLoading = isLoading || isRefetching;
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 w-full bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="flex items-center gap-2">
         {/* <SidebarTrigger className="-ml-1" /> */}
         {/* <Separator orientation="vertical" /> */}

@@ -16,10 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
 import type { UserLogin } from "@/lib/api/surveySystemAPI.schemas";
-import {
-  useLoginUser,
-  getGetCurrentUserQueryKey,
-} from "@/lib/api/users/users";
+import { useLoginUser, getGetCurrentUserQueryKey } from "@/lib/api/users/users";
 import { loginDataSchema } from "@survey-system/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import logo from "@/assets/logo.png";
