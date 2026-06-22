@@ -13,6 +13,7 @@ import type {
   Survey,
   SurveyStats,
   UpdateSurveyData,
+  UpdateSurveyDataWithMetadata,
 } from "../types.js";
 
 export default class SurveyRepository implements ISurveyRepository {
@@ -154,7 +155,7 @@ export default class SurveyRepository implements ISurveyRepository {
 
   async updateOneBySlug(
     slug: string,
-    data: UpdateSurveyData,
+    data: UpdateSurveyDataWithMetadata,
   ): Promise<Survey | null> {
     const dbData = {
       name: data.name,

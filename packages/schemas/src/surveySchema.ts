@@ -1,4 +1,4 @@
-import { z } from "./zod-setup";
+import { z } from "./zod-setup.js";
 
 const surveyNameSchema = z
   .string("Survey name must be a string")

@@ -1,4 +1,4 @@
-import { z } from "./zod-setup";
+import { z } from "./zod-setup.js";
 
 export const createUserSchema = z
   .strictObject({

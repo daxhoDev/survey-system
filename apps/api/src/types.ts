@@ -121,6 +121,12 @@ export interface IAuthService {
 
 export type CreateSurveyData = z.infer<typeof createSurveySchema>;
 export type UpdateSurveyData = z.infer<typeof updateSurveySchema>;
+export type UpdateSurveyDataWithMetadata = UpdateSurveyData & {
+  slug: string;
+  updatedAt: Date;
+  activatedAt: Date;
+};
+
 export type Survey = CreateSurveyData & {
   id: string;
   isActive: boolean;

@@ -7,6 +7,7 @@ import type {
   ISurveyService,
   QueryString,
   Survey,
+  UpdateSurveyData,
 } from "../types.js";
 import AppError from "../utils/appError.js";
 import slugify from "slugify";
@@ -76,7 +77,6 @@ export default class SurveyService implements ISurveyService {
 
   async deleteOneBySlug(slug: string): Promise<void> {
     const surveyExists = await this.repo.getSlugBySlug(slug);
-    console.log(surveyExists);
 
     if (!surveyExists)
       throw new AppError(
@@ -88,8 +88,12 @@ export default class SurveyService implements ISurveyService {
     await this.repo.deleteOneBySlug(slug);
   }
 
-  async updateOneBySlug(slug: string, data: any): Promise<Survey | null> {
+  async updateOneBySlug(
+    slug: string,
+    data: UpdateSurveyData,
+  ): Promise<Survey | null> {
     const existingSurvey = await this.repo.getActivatedAtBySlug(slug);
+    console.log(data);
 
     if (!existingSurvey) {
       throw new AppError(
@@ -99,7 +103,11 @@ export default class SurveyService implements ISurveyService {
       );
     }
 
-    if (existingSurvey.activatedAt) {
+    if (
+      existingSurvey.activatedAt &&
+      Object.keys(data).length > 1 &&
+      Object.keys(data).at(0) !== "isActive"
+    ) {
       throw new AppError(
         "Survey already activated",
         "This survey was already activated, it can't be modified anymore",
