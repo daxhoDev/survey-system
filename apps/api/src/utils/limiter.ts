@@ -4,7 +4,7 @@ import AppError from "./appError.js";
 export default function limiter(isAuth: boolean) {
   return rateLimit({
     windowMs: 1000 * 60,
-    limit: isAuth ? 10 : 20,
+    limit: isAuth ? 20 : 40,
     legacyHeaders: false,
     standardHeaders: true,
     handler: () => {
