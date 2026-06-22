@@ -62,6 +62,16 @@ import {
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Survey, SurveyStats } from "@/lib/api/surveySystemAPI.schemas";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 interface AnswerItem {
   id: string;
@@ -94,15 +104,13 @@ export default function SurveyDetailsPage() {
     },
   });
 
-  const {
-    data: statsData,
-    isLoading: isStatsLoading,
-  } = useGetSurveyStatsBySlug(slug || "", {
-    query: {
-      enabled: !!slug && activeTab === "stats",
-      queryKey: getGetSurveyStatsBySlugQueryKey(slug || ""),
-    },
-  });
+  const { data: statsData, isLoading: isStatsLoading } =
+    useGetSurveyStatsBySlug(slug || "", {
+      query: {
+        enabled: !!slug && activeTab === "stats",
+        queryKey: getGetSurveyStatsBySlugQueryKey(slug || ""),
+      },
+    });
 
   const {
     data: answersData,
@@ -175,9 +183,7 @@ export default function SurveyDetailsPage() {
 
   const handleDeleteSurvey = () => {
     if (!survey) return;
-    if (confirm(`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`)) {
-      deleteSurvey.mutate({ slug: survey.slug });
-    }
+    deleteSurvey.mutate({ slug: survey.slug });
   };
 
   const handleCopyLink = () => {
@@ -212,11 +218,16 @@ export default function SurveyDetailsPage() {
     return (
       <div className="p-6">
         <Card className="border-destructive/20 bg-destructive/5 text-center p-8">
-          <CardTitle className="text-destructive">Error al cargar detalles</CardTitle>
+          <CardTitle className="text-destructive">
+            Error al cargar detalles
+          </CardTitle>
           <CardDescription className="mt-2">
             No pudimos encontrar la encuesta seleccionada.
           </CardDescription>
-          <Button onClick={() => navigate("/dashboard")} className="mt-4 cursor-pointer">
+          <Button
+            onClick={() => navigate("/dashboard")}
+            className="mt-4 cursor-pointer"
+          >
             Volver al panel
           </Button>
         </Card>
@@ -229,52 +240,73 @@ export default function SurveyDetailsPage() {
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
-        <div className="flex gap-3 items-center">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => navigate("/dashboard")}
-            className="cursor-pointer"
-          >
-            <ArrowLeft className="size-4" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{survey.name}</h1>
-            <p className="text-xs text-muted-foreground">slug: {survey.slug}</p>
+      <Dialog>
+        <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
+          <div className="flex gap-3 items-center">
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => navigate("/dashboard")}
+              className="cursor-pointer"
+            >
+              <ArrowLeft className="size-4" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">
+                {survey.name}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                slug: {survey.slug}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={handleToggleActive}
+              disabled={updateSurvey.isPending}
+              className="cursor-pointer gap-2"
+            >
+              {survey.isActive ? (
+                <>
+                  <Lock className="size-4" />
+                  <span>Desactivar</span>
+                </>
+              ) : (
+                <>
+                  <Unlock className="size-4" />
+                  <span>Activar</span>
+                </>
+              )}
+            </Button>
+            <DialogTrigger asChild>
+              <Button
+                variant="destructive"
+                disabled={deleteSurvey.isPending}
+                className="cursor-pointer gap-2"
+              >
+                <Trash2 className="size-4" />
+                <span>Eliminar</span>
+              </Button>
+            </DialogTrigger>
           </div>
         </div>
-
-        <div className="flex items-center gap-3">
-          <Button
-            variant="outline"
-            onClick={handleToggleActive}
-            disabled={updateSurvey.isPending}
-            className="cursor-pointer gap-2"
-          >
-            {survey.isActive ? (
-              <>
-                <Lock className="size-4" />
-                <span>Desactivar</span>
-              </>
-            ) : (
-              <>
-                <Unlock className="size-4" />
-                <span>Activar</span>
-              </>
-            )}
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDeleteSurvey}
-            disabled={deleteSurvey.isPending}
-            className="cursor-pointer gap-2"
-          >
-            <Trash2 className="size-4" />
-            <span>Eliminar</span>
-          </Button>
-        </div>
-      </div>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirma tu acción</DialogTitle>
+            <DialogDescription>{`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="destructive" onClick={handleDeleteSurvey}>
+              Eliminar
+            </Button>
+            <DialogClose asChild>
+              <Button variant="secondary">Cancelar</Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 max-w-md bg-muted/60">
@@ -313,7 +345,11 @@ export default function SurveyDetailsPage() {
                   className="cursor-pointer"
                   title="Copiar enlace"
                 >
-                  {copied ? <Check className="size-4 text-emerald-500" /> : <Copy className="size-4" />}
+                  {copied ? (
+                    <Check className="size-4 text-emerald-500" />
+                  ) : (
+                    <Copy className="size-4" />
+                  )}
                 </Button>
                 <Button
                   variant="outline"
@@ -330,9 +366,12 @@ export default function SurveyDetailsPage() {
 
           <Card className="border-border/60 bg-card/60 backdrop-blur shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg">Preguntas de la Encuesta</CardTitle>
+              <CardTitle className="text-lg">
+                Preguntas de la Encuesta
+              </CardTitle>
               <CardDescription>
-                Esta encuesta contiene {survey.questions.length} preguntas en total.
+                Esta encuesta contiene {survey.questions.length} preguntas en
+                total.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -358,7 +397,8 @@ export default function SurveyDetailsPage() {
                     </span>
                   </div>
 
-                  {(question.type === "SINGLE_SELECT" || question.type === "MULTI_SELECT") && (
+                  {(question.type === "SINGLE_SELECT" ||
+                    question.type === "MULTI_SELECT") && (
                     <div className="pl-8 space-y-1">
                       <p className="text-[10px] font-bold text-muted-foreground uppercase">
                         Opciones:
@@ -447,7 +487,9 @@ export default function SurveyDetailsPage() {
               <Skeleton className="h-64 w-full" />
             </div>
           ) : !stats ? (
-            <p className="text-sm text-muted-foreground">No hay estadísticas disponibles.</p>
+            <p className="text-sm text-muted-foreground">
+              No hay estadísticas disponibles.
+            </p>
           ) : (
             <>
               {/* Summary Cards */}
@@ -459,7 +501,9 @@ export default function SurveyDetailsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <span className="text-3xl font-bold tracking-tight">{stats.totalAnswers}</span>
+                    <span className="text-3xl font-bold tracking-tight">
+                      {stats.totalAnswers}
+                    </span>
                   </CardContent>
                 </Card>
                 <Card className="py-4 px-6 border-border/60 bg-card/60 backdrop-blur shadow-xs">
@@ -504,20 +548,38 @@ export default function SurveyDetailsPage() {
                   };
 
                   return (
-                    <Card key={optStat.questionId} className="border-border/60 bg-card/60 backdrop-blur shadow-sm">
+                    <Card
+                      key={optStat.questionId}
+                      className="border-border/60 bg-card/60 backdrop-blur shadow-sm"
+                    >
                       <CardHeader>
-                        <CardTitle className="text-sm font-semibold">{optStat.questionName}</CardTitle>
-                        <CardDescription>Frecuencia de las respuestas de los usuarios</CardDescription>
+                        <CardTitle className="text-sm font-semibold">
+                          {optStat.questionName}
+                        </CardTitle>
+                        <CardDescription>
+                          Frecuencia de las respuestas de los usuarios
+                        </CardDescription>
                       </CardHeader>
                       <CardContent>
                         {chartData.length > 0 ? (
-                          <ChartContainer config={chartConfig} className="min-h-[180px] w-full max-h-[260px]">
+                          <ChartContainer
+                            config={chartConfig}
+                            className="min-h-[180px] w-full max-h-[260px]"
+                          >
                             <BarChart
                               data={chartData}
                               layout="vertical"
-                              margin={{ left: 30, right: 20, top: 10, bottom: 10 }}
+                              margin={{
+                                left: 30,
+                                right: 20,
+                                top: 10,
+                                bottom: 10,
+                              }}
                             >
-                              <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                              <CartesianGrid
+                                strokeDasharray="3 3"
+                                horizontal={false}
+                              />
                               <YAxis
                                 dataKey="option"
                                 type="category"
@@ -527,12 +589,18 @@ export default function SurveyDetailsPage() {
                                 className="text-[10px]"
                               />
                               <XAxis type="number" hide />
-                              <Bar dataKey="respuestas" fill="oklch(var(--primary))" radius={4} />
+                              <Bar
+                                dataKey="respuestas"
+                                fill="oklch(var(--primary))"
+                                radius={4}
+                              />
                               <ChartTooltip content={<ChartTooltipContent />} />
                             </BarChart>
                           </ChartContainer>
                         ) : (
-                          <p className="text-xs text-muted-foreground">Sin datos de opciones para graficar.</p>
+                          <p className="text-xs text-muted-foreground">
+                            Sin datos de opciones para graficar.
+                          </p>
                         )}
                       </CardContent>
                     </Card>
@@ -545,7 +613,10 @@ export default function SurveyDetailsPage() {
       </Tabs>
 
       {/* Answer detail slide drawer Sheet */}
-      <Sheet open={!!selectedAnswer} onOpenChange={(open) => !open && setSelectedAnswer(null)}>
+      <Sheet
+        open={!!selectedAnswer}
+        onOpenChange={(open) => !open && setSelectedAnswer(null)}
+      >
         <SheetContent className="sm:max-w-lg overflow-y-auto">
           <SheetHeader className="border-b border-border/40 pb-4">
             <SheetTitle>Detalle de Respuesta</SheetTitle>
@@ -558,7 +629,9 @@ export default function SurveyDetailsPage() {
             <div className="py-6 space-y-6">
               <div className="flex justify-between items-center bg-muted/30 border border-border/20 p-3 rounded text-xs text-muted-foreground">
                 <p>IP: {selectedAnswer.originIp}</p>
-                <p>{new Date(selectedAnswer.createdAt).toLocaleString("es-CU")}</p>
+                <p>
+                  {new Date(selectedAnswer.createdAt).toLocaleString("es-CU")}
+                </p>
               </div>
 
               <div className="space-y-4">
@@ -576,20 +649,25 @@ export default function SurveyDetailsPage() {
                       question.type === "SINGLE_SELECT" ||
                       question.type === "MULTI_SELECT"
                     ) {
-                      const selectedIds = (matchingResponse.content as number[]) || [];
+                      const selectedIds =
+                        (matchingResponse.content as number[]) || [];
                       const matchingOptionContents = question.options
                         ?.filter((opt) => selectedIds.includes(opt.id))
                         .map((opt) => opt.content);
 
                       responseText =
-                        matchingOptionContents && matchingOptionContents.length > 0
+                        matchingOptionContents &&
+                        matchingOptionContents.length > 0
                           ? matchingOptionContents.join(", ")
                           : "Opción no encontrada";
                     }
                   }
 
                   return (
-                    <div key={question.id} className="space-y-1.5 p-3.5 rounded border border-border/30 bg-card">
+                    <div
+                      key={question.id}
+                      className="space-y-1.5 p-3.5 rounded border border-border/30 bg-card"
+                    >
                       <Label className="text-xs font-semibold text-foreground">
                         {question.name}
                       </Label>
@@ -606,7 +684,9 @@ export default function SurveyDetailsPage() {
                   variant="destructive"
                   size="sm"
                   onClick={() => {
-                    if (confirm("¿Seguro que deseas eliminar esta respuesta?")) {
+                    if (
+                      confirm("¿Seguro que deseas eliminar esta respuesta?")
+                    ) {
                       deleteAnswer.mutate({
                         slug: survey.slug,
                         id: selectedAnswer.id,

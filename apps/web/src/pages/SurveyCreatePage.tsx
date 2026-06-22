@@ -1,6 +1,9 @@
 import { useForm, useFieldArray, Controller } from "react-hook-form";
 import type { Control } from "react-hook-form";
-import { useCreateSurvey, getGetAllSurveysQueryKey } from "@/lib/api/surveys/surveys";
+import {
+  useCreateSurvey,
+  getGetAllSurveysQueryKey,
+} from "@/lib/api/surveys/surveys";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +41,10 @@ interface QuestionOptionsProps {
   questionIndex: number;
 }
 
-function QuestionOptionsFields({ control, questionIndex }: QuestionOptionsProps) {
+function QuestionOptionsFields({
+  control,
+  questionIndex,
+}: QuestionOptionsProps) {
   const { fields, append, remove } = useFieldArray({
     control,
     name: `questions.${questionIndex}.options`,
@@ -63,7 +69,9 @@ function QuestionOptionsFields({ control, questionIndex }: QuestionOptionsProps)
       </div>
 
       {fields.length === 0 && (
-        <p className="text-xs text-destructive">Debes añadir al menos una opción para esta pregunta.</p>
+        <p className="text-xs text-destructive">
+          Debes añadir al menos una opción para esta pregunta.
+        </p>
       )}
 
       <div className="space-y-2">
@@ -153,7 +161,9 @@ export default function SurveyCreatePage() {
       { data: payload },
       {
         onSuccess() {
-          queryClient.invalidateQueries({ queryKey: getGetAllSurveysQueryKey() });
+          queryClient.invalidateQueries({
+            queryKey: getGetAllSurveysQueryKey(),
+          });
           toast.success("Encuesta creada correctamente");
           navigate("/dashboard");
         },
@@ -187,7 +197,9 @@ export default function SurveyCreatePage() {
         <Card className="border-border/60 bg-card/60 backdrop-blur shadow-md">
           <CardHeader>
             <CardTitle className="text-lg">Configuración General</CardTitle>
-            <CardDescription>Establece el nombre general de la encuesta.</CardDescription>
+            <CardDescription>
+              Establece el nombre general de la encuesta.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
@@ -197,11 +209,16 @@ export default function SurveyCreatePage() {
                 placeholder="Ej. Encuesta de Clima Laboral"
                 {...register("name", {
                   required: "El nombre de la encuesta es obligatorio",
-                  minLength: { value: 5, message: "Debe tener al menos 5 caracteres" },
+                  minLength: {
+                    value: 5,
+                    message: "Debe tener al menos 5 caracteres",
+                  },
                 })}
               />
               {errors.name && (
-                <p className="text-xs text-destructive">{errors.name.message}</p>
+                <p className="text-xs text-destructive">
+                  {errors.name.message}
+                </p>
               )}
             </div>
           </CardContent>
@@ -212,7 +229,9 @@ export default function SurveyCreatePage() {
             <h2 className="text-lg font-semibold text-foreground">Preguntas</h2>
             <Button
               type="button"
-              onClick={() => append({ name: "", type: "TEXT_ANSWER", isRequired: false })}
+              onClick={() =>
+                append({ name: "", type: "TEXT_ANSWER", isRequired: false })
+              }
               className="cursor-pointer gap-1.5"
             >
               <Plus className="size-4" />
@@ -222,7 +241,10 @@ export default function SurveyCreatePage() {
 
           {fields.length === 0 && (
             <Card className="p-6 text-center border-dashed">
-              <p className="text-sm text-muted-foreground">No hay preguntas creadas. Haz clic en "Añadir pregunta" para comenzar.</p>
+              <p className="text-sm text-muted-foreground">
+                No hay preguntas creadas. Haz clic en "Añadir pregunta" para
+                comenzar.
+              </p>
             </Card>
           )}
 
@@ -231,7 +253,10 @@ export default function SurveyCreatePage() {
               const questionType = watch(`questions.${index}.type`);
 
               return (
-                <Card key={field.id} className="border-border/60 bg-card/60 backdrop-blur shadow-sm relative">
+                <Card
+                  key={field.id}
+                  className="border-border/60 bg-card/60 backdrop-blur shadow-sm relative"
+                >
                   <div className="absolute right-4 top-4">
                     <Button
                       type="button"
@@ -253,7 +278,10 @@ export default function SurveyCreatePage() {
                           placeholder="Ej. ¿Qué opinas sobre el nuevo horario de trabajo?"
                           {...register(`questions.${index}.name` as const, {
                             required: "La pregunta es obligatoria",
-                            minLength: { value: 5, message: "Debe tener al menos 5 caracteres" },
+                            minLength: {
+                              value: 5,
+                              message: "Debe tener al menos 5 caracteres",
+                            },
                           })}
                         />
                         {errors.questions?.[index]?.name && (
@@ -270,9 +298,13 @@ export default function SurveyCreatePage() {
                           className="flex h-8 w-full border border-input bg-transparent px-3 py-1 text-xs shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 rounded-none bg-background/50 border-border/80 focus:border-primary outline-hidden"
                           {...register(`questions.${index}.type` as const)}
                         >
-                          <option value="TEXT_ANSWER">Respuesta de Texto</option>
+                          <option value="TEXT_ANSWER">
+                            Respuesta de Texto
+                          </option>
                           <option value="SINGLE_SELECT">Selección Única</option>
-                          <option value="MULTI_SELECT">Selección Múltiple</option>
+                          <option value="MULTI_SELECT">
+                            Selección Múltiple
+                          </option>
                         </select>
                       </div>
                     </div>
@@ -291,14 +323,21 @@ export default function SurveyCreatePage() {
                           />
                         )}
                       />
-                      <Label htmlFor={`q-${index}-required`} className="text-xs font-normal cursor-pointer select-none">
+                      <Label
+                        htmlFor={`q-${index}-required`}
+                        className="text-xs font-normal cursor-pointer select-none"
+                      >
                         Pregunta obligatoria (requerida)
                       </Label>
                     </div>
 
                     {/* Options (Conditional on type selection) */}
-                    {(questionType === "SINGLE_SELECT" || questionType === "MULTI_SELECT") && (
-                      <QuestionOptionsFields control={control} questionIndex={index} />
+                    {(questionType === "SINGLE_SELECT" ||
+                      questionType === "MULTI_SELECT") && (
+                      <QuestionOptionsFields
+                        control={control}
+                        questionIndex={index}
+                      />
                     )}
                   </CardContent>
                 </Card>

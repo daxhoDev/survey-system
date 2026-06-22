@@ -12,6 +12,17 @@ import { toast } from "sonner";
 import { Skeleton } from "./ui/skeleton";
 import type { User } from "@/lib/api/surveySystemAPI.schemas";
 import { useNavigate } from "react-router";
+import logo from "@/assets/logo.png";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "./ui/dialog";
 
 export default function DashboardHeader() {
   const { data: rawData, isLoading, isRefetching } = useGetCurrentUser({});
@@ -40,6 +51,7 @@ export default function DashboardHeader() {
       <div className="flex items-center gap-2">
         {/* <SidebarTrigger className="-ml-1" /> */}
         {/* <Separator orientation="vertical" /> */}
+        <img src={logo} className="w-7" />
         <span className="font-semibold text-sm tracking-tight text-foreground">
           Dashboard
         </span>
@@ -54,33 +66,51 @@ export default function DashboardHeader() {
         ) : !user ? (
           <span className="text-xs text-destructive">Redirecting...</span>
         ) : (
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20">
-                {user.username ? (
-                  <span className="text-xs font-semibold uppercase">
-                    {user.username.charAt(0)}
-                  </span>
-                ) : (
-                  <UserIcon className="size-4" />
-                )}
+          <Dialog>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20">
+                  {user.username ? (
+                    <span className="text-xs font-semibold uppercase">
+                      {user.username.charAt(0)}
+                    </span>
+                  ) : (
+                    <UserIcon className="size-4" />
+                  )}
+                </div>
+                <span className="hidden sm:inline text-xs font-medium text-muted-foreground">
+                  {user.username}
+                </span>
               </div>
-              <span className="hidden sm:inline text-xs font-medium text-muted-foreground">
-                {user.username}
-              </span>
+              <Separator orientation="vertical" />
+
+              <DialogTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled={logout.isPending}
+                  title="Logout"
+                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                >
+                  <LogOut className="size-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Confirma tu acción</DialogTitle>
+                  <DialogDescription>{`Estás seguro de que deseas cerrar la sesión como ${user.username}?`}</DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button onClick={() => logout.mutate()} variant="destructive">
+                    Cerrar sesión
+                  </Button>
+                  <DialogClose asChild>
+                    <Button variant="secondary">Cancelar</Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
             </div>
-            <Separator orientation="vertical" />
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => logout.mutate()}
-              disabled={logout.isPending}
-              title="Logout"
-              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-            >
-              <LogOut className="size-4" />
-            </Button>
-          </div>
+          </Dialog>
         )}
       </div>
     </header>
