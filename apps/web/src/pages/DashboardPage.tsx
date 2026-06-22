@@ -31,15 +31,15 @@ export default function DashboardPage() {
 
   return (
     <>
-      <SidebarProvider>
-        <DashboardSidebar />
-        <div className="w-full">
-          <DashboardHeader />
-          <div className="max-w-6xl mx-auto">
-            <Outlet />
-          </div>
+      {/* <SidebarProvider> */}
+      {/* <DashboardSidebar /> */}
+      <div className="w-full">
+        <DashboardHeader />
+        <div className="max-w-6xl mx-auto">
+          <Outlet />
         </div>
-      </SidebarProvider>
+      </div>
+      {/* </SidebarProvider> */}
     </>
   );
 }

@@ -1,5 +1,8 @@
 import z from "zod";
-import type { queryStringSchema } from "@survey-system/schemas";
+import type {
+  queryStringSchema,
+  updateSurveySchema,
+} from "@survey-system/schemas";
 import type { Request } from "express";
 import {
   questionSchema,
@@ -117,6 +120,7 @@ export interface IAuthService {
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 export type CreateSurveyData = z.infer<typeof createSurveySchema>;
+export type UpdateSurveyData = z.infer<typeof updateSurveySchema>;
 export type Survey = CreateSurveyData & {
   id: string;
   isActive: boolean;

@@ -110,27 +110,7 @@ export const createSurveySchema = z
 export const updateSurveySchema = z.object({
   name: surveyNameSchema.optional(),
   questions: questionArrSchema.optional(),
-  isActive: z
-    .boolean("is_active must be a boolean")
-    .optional()
-    .openapi("UpdateSurvey", {
-      example: {
-        name: "Employee Satisfaction Survey",
-        questions: [
-          {
-            id: 1,
-            name: "Are you happy at our company?",
-            type: "SINGLE_SELECT",
-            options: [
-              { id: 1, content: "Yes" },
-              { id: 2, content: "No" },
-            ],
-            isRequired: true,
-          },
-        ],
-        isActive: true,
-      },
-    }),
+  isActive: z.boolean("is_active must be a boolean").optional(),
 });
 
 export const surveySchema = z

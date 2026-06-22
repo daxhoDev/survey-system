@@ -12,6 +12,7 @@ import type {
   Question,
   Survey,
   SurveyStats,
+  UpdateSurveyData,
 } from "../types.js";
 
 export default class SurveyRepository implements ISurveyRepository {
@@ -151,10 +152,22 @@ export default class SurveyRepository implements ISurveyRepository {
     });
   }
 
-  async updateOneBySlug(slug: string, data: any): Promise<Survey | null> {
+  async updateOneBySlug(
+    slug: string,
+    data: UpdateSurveyData,
+  ): Promise<Survey | null> {
+    const dbData = {
+      name: data.name,
+      slug: data.slug,
+      questions: data.questions as Question[],
+      is_active: data.isActive,
+      updated_at: data.updatedAt,
+      activated_at: data.activatedAt,
+    };
+
     const result = await prisma.surveys.update({
       where: { slug },
-      data,
+      data: dbData,
     });
 
     const serializedData = {

@@ -128,11 +128,14 @@ export default class SurveyService implements ISurveyService {
       throw new AppError("Conflict", "This survey name is not avaliable", 400);
     }
 
-    return await this.repo.updateOneBySlug(slug, {
+    const updatedSurvey = await this.repo.updateOneBySlug(slug, {
       ...serializedData,
       slug: newSlug,
       updatedAt: new Date(),
       activatedAt: serializedData.isActive ? new Date() : null,
     });
+
+    getLogger().info(updatedSurvey, "Survey updated successfully");
+    return updatedSurvey;
   }
 }
