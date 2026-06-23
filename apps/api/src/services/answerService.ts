@@ -40,8 +40,11 @@ export default class AnswerService implements IAnswerService {
     const { success, error, data } = z.safeParse(createAnswerSchema, answer);
     if (!success) throw error;
 
-    const existingIp = await this.answerRepo.getIpByOriginIp(originIp);
-    if (existingIp) {
+    const existingIp = await this.answerRepo.getIpAndSlugByIpAndSlug(
+      originIp,
+      slug,
+    );
+    if (existingIp?.slug === slug) {
       throw new AppError(
         "You already submitted an answer",
         "Your IP already submitted an answer for this survey",

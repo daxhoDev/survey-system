@@ -23,6 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "./ui/dialog";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 export default function DashboardHeader() {
   const { data: rawData, isLoading, isRefetching } = useGetCurrentUser({});
@@ -95,20 +96,11 @@ export default function DashboardHeader() {
                   <LogOut className="size-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirma tu acción</DialogTitle>
-                  <DialogDescription>{`Estás seguro de que deseas cerrar la sesión como ${user.username}?`}</DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button onClick={() => logout.mutate()} variant="destructive">
-                    Cerrar sesión
-                  </Button>
-                  <DialogClose asChild>
-                    <Button variant="secondary">Cancelar</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
+              <ConfirmationDialog
+                description={`Estás seguro de que deseas cerrar la sesión como ${user.username}?`}
+                confirmText="Cerrar sesión"
+                onConfirm={() => logout.mutate()}
+              />
             </div>
           </Dialog>
         )}

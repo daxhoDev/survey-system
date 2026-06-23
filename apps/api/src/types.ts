@@ -54,7 +54,10 @@ export interface IAnswerRepository {
     },
   ): Promise<Answer>;
   deleteById(id: string): Promise<void>;
-  getIpByOriginIp(ip: string): Promise<Pick<Answer, "originIp"> | null>;
+  getIpAndSlugByIpAndSlug(
+    ip: string,
+    slug: string,
+  ): Promise<AnswerWithSlugAndIp | null>;
 }
 
 export interface IUserRepository {
@@ -145,6 +148,10 @@ export type Answer = CreateAnswerData & {
   createdAt: Date;
   deletedAt: Date | null;
   originIp: string;
+};
+export type AnswerWithSlugAndIp = {
+  originIp: string;
+  slug: string | undefined;
 };
 export type Response = z.infer<typeof responseSchema>;
 

@@ -72,6 +72,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
 
 interface AnswerItem {
   id: string;
@@ -292,7 +293,7 @@ export default function SurveyDetailsPage() {
             </DialogTrigger>
           </div>
         </div>
-        <DialogContent>
+        {/*<DialogContent>
           <DialogHeader>
             <DialogTitle>Confirma tu acción</DialogTitle>
             <DialogDescription>{`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}</DialogDescription>
@@ -305,7 +306,12 @@ export default function SurveyDetailsPage() {
               <Button variant="secondary">Cancelar</Button>
             </DialogClose>
           </DialogFooter>
-        </DialogContent>
+        </DialogContent>*/}
+        <ConfirmationDialog
+          confirmText="Eliminar"
+          description={`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}
+          onConfirm={handleDeleteSurvey}
+        />
       </Dialog>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

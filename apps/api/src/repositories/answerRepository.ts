@@ -1,7 +1,9 @@
+import { tr } from "zod/v4/locales";
 import type { answersCreateInput } from "../generated/prisma/models.js";
 import { prisma } from "../lib/prisma.js";
 import type {
   Answer,
+  AnswerWithSlugAndIp,
   CreateAnswerData,
   IAnswerRepository,
   Response,
@@ -110,13 +112,24 @@ export default class AnswerRepository implements IAnswerRepository {
     });
   }
 
-  async getIpByOriginIp(ip: string): Promise<Pick<Answer, "originIp"> | null> {
+  async getIpAndSlugByIpAndSlug(
+    ip: string,
+    slug: string,
+  ): Promise<AnswerWithSlugAndIp | null> {
     const result = await prisma.answers.findUnique({
       where: {
         origin_ip: ip,
+        surveys: {
+          slug,
+        },
       },
       select: {
         origin_ip: true,
+        surveys: {
+          select: {
+            slug: true,
+          },
+        },
       },
     });
 
@@ -124,6 +137,7 @@ export default class AnswerRepository implements IAnswerRepository {
 
     const serializedData = {
       originIp: result.origin_ip,
+      slug: result.surveys?.slug,
     };
 
     return serializedData;

@@ -192,7 +192,7 @@ export default function SurveyAnsweringPage() {
                         <span className="text-destructive">*</span>
                       )}
                     </Label>
-                    <span className="text-[10px] bg-primary/10 text-primary-foreground/85 border border-primary/20 px-2 py-0.5 rounded font-medium">
+                    <span className="text-[10px] bg-primary/100 text-primary-foreground/85 border border-primary/20 px-2 py-0.5 rounded font-medium">
                       {question.type === "TEXT_ANSWER" && "Texto"}
                       {question.type === "SINGLE_SELECT" && "Única opción"}
                       {question.type === "MULTI_SELECT" && "Múltiple opción"}
