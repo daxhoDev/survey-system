@@ -23,7 +23,10 @@ export default class AnswerController {
   async getById(req: Request, res: Response) {
     const id = req.params.id;
     getLogger().info({ id }, `Fetching answer by ID...`);
-    const answer = await this.service.getById(id as string);
+    const answer = await this.service.getById(
+      req.params.slug as string,
+      id as string,
+    );
 
     res
       .type("json")
@@ -47,7 +50,7 @@ export default class AnswerController {
   async deleteById(req: Request, res: Response) {
     const id = req.params.id;
     getLogger().info({ id }, `Deleting answer...`);
-    await this.service.deleteById(id as string);
+    await this.service.deleteById(req.params.slug as string, id as string);
 
     res.type("json").status(204).send();
   }

@@ -32,7 +32,7 @@ Processing order (target):
 - **ANS-02** `[implemented]` Unknown or deleted survey → `404 Not found`.
 - **ANS-03** `[implemented]` If an answer from the same IP already exists **for this survey** → `403 You already submitted an answer` ("Your IP already submitted an answer for this survey"). Answers from the same IP to other surveys are allowed. Enforced both in the service and by the DB composite unique `(survey_id, origin_ip)` (DATA-07). The check runs after resolving the survey (ANS-02).
 - **ANS-04** `[open: OQ-12]` Whether soft-deleted answers still count for the IP uniqueness check (currently they do, since the DB unique index includes them).
-- **ANS-05** `[pending: BL-07]` Inactive surveys (`isActive = false`) reject answers with `404`, **identical** to the not-found response of ANS-02: for a respondent an inactive survey does not exist (consistent with SURV-12). (Currently accepted.)
+- **ANS-05** `[implemented]` Inactive surveys (`isActive = false`) reject answers with `404`, **identical** to the not-found response of ANS-02: for a respondent an inactive survey does not exist (consistent with SURV-12).
 - **ANS-06** `[implemented]` Semantic validation against the survey (`AnswerService.validateAnswerCreation`), each failing with `400 Validation error`:
   1. `required ≤ responses.length ≤ questions.length` — "There are missing or exceeding responses".
   2. Every response `id` matches a question id — "Each response id must match a question id".
@@ -59,4 +59,4 @@ Processing order (target):
 
 ## 3. Survey scoping
 
-- **ANS-08** `[pending: BL-13]` Every answer route resolves the survey by `:slug` among **non-deleted** surveys first → `404` if not found. For `/:id` routes, the answer must exist, be non-deleted **and belong to that survey**; otherwise `404`. Details: survey not found → `Not found` / "The requested survey doesn't exist"; answer not found → `Not found` / "The requested answer doesn't exist". (Currently `GET /:id` and `DELETE /:id` ignore `:slug` entirely — `answerController.ts` passes only `id`, `answerRepository.getById`/`deleteById` query by `id` only; `GET /:id` of a missing answer returns `200 { data: null }`, and `DELETE` of a missing id throws a Prisma error → `500`. `GET /` does not check the survey's `deleted_at`.)
+- **ANS-08** `[implemented]` Every answer route resolves the survey by `:slug` among **non-deleted** surveys first → `404` if not found. For `/:id` routes, the answer must exist, be non-deleted **and belong to that survey**; otherwise `404`. Details: survey not found → `Not found` / "The requested survey doesn't exist"; answer not found → `Not found` / "The requested answer doesn't exist".

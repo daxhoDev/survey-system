@@ -15,6 +15,10 @@ import AppError from "../utils/appError.js";
 import jwt from "jsonwebtoken";
 import crypto, { randomUUID } from "crypto";
 
+// Compared against when the email is unknown, so login takes the same time
+// whether or not the user exists (AUTH-14).
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(randomUUID(), 10);
+
 export default class AuthService implements IAuthService {
   constructor(
     private userRepo: IUserRepository,
@@ -88,19 +92,15 @@ export default class AuthService implements IAuthService {
 
     const user = await this.userRepo.getByEmail(validData.email);
 
-    if (!user) {
-      throw new AppError("Not found", "This email is not registered", 404);
-    }
-
     const passwordIsCorrect = await this.comparePassword(
       validData.password,
-      user.password,
+      user?.password ?? DUMMY_PASSWORD_HASH,
     );
 
-    if (!passwordIsCorrect) {
+    if (!user || !passwordIsCorrect) {
       throw new AppError(
-        "Incorrect credentials",
-        "Your password is incorrect, try again",
+        "Invalid credentials",
+        "Invalid email or password",
         401,
       );
     }
