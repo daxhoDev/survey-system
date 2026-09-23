@@ -17,6 +17,7 @@
 | root | `pnpm test` | Run the tests of every workspace (`pnpm -r test`) |
 | root | `pnpm generate:api` | Run Orval: regenerate `apps/web/src/lib/api` from `http://localhost:3000/api/v1/docs-raw` (API must be running) |
 | `apps/api` | `pnpm exec prisma migrate dev` | Create/apply migrations |
+| `apps/api` | `pnpm seed` | Load the demo data into the development database (DEV-WF-01) |
 | `apps/api` | `pnpm exec prisma generate` | Regenerate the Prisma client in `src/generated/prisma` |
 | `apps/api` | `pnpm build` / `pnpm start` | `tsc` → `dist/`, run `node dist/server.js` |
 | `apps/api` | `pnpm test` / `pnpm test:watch` / `pnpm test:coverage` | Vitest: one run / watch mode / one run with a v8 coverage report (`coverage/`) |
@@ -25,7 +26,7 @@
 
 Dev URLs: API `http://localhost:3000` (Swagger at `/api/v1/docs`), web `http://localhost:5173`.
 
-- **DEV-WF-01** `[pending: BL-17]` `apps/api` script `seed` (`tsx src/scripts/seed.ts`) and Prisma's seed (`tsx prisma/seed.ts`) point to files that do not exist. `apps/web` script `generate:api` uses `openapi-typescript`, which is not installed and is superseded by the root Orval command.
+- **DEV-WF-01** `[implemented]` `pnpm seed` in `apps/api` (`prisma db seed`, which runs `apps/api/prisma/seed.ts`) fills the **development** database with demo data: the user `demo@example.com` / `demo12345` (username `demo`), three surveys (an active one with a few answers, an inactive locked one, and an unlocked draft). It is idempotent (running it again changes nothing), uses the same validated configuration as the API (`DATABASE_URL`) and refuses to run with `NODE_ENV=production`. There is no `generate:api` script in `apps/web`: the client is generated with the root `pnpm generate:api` (Orval).
 
 - **DEV-WF-04** `[implemented]` `pnpm build` in `apps/api` must typecheck with zero errors (it also compiles `packages/schemas`).
 

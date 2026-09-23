@@ -80,7 +80,7 @@
 - **API-26** `[implemented]` `development`: pretty-printed to stdout. Otherwise: JSON to `logs/app.log` (relative to the API working directory, created if missing).
 - **API-27** `[implemented]` Redaction: `*.password`, `req.headers.cookie`, `res.headers.set-cookie` → `[REDACTED]`.
 - **API-28** `[implemented]` Each request gets a UUID v4 `requestId` included in all its log lines (ARCH-11).
-- **API-33** `[implemented]` The API does not write to the console directly (`console.*`); every log line, including the startup message in `apps/api/src/server.ts`, goes through pino (`getLogger()` or the base logger). Only exception: `apps/api/src/config/env.ts` writes the configuration validation errors to stderr with `console.error` before exiting (CFG-02), because the logger itself depends on the validated configuration.
+- **API-33** `[implemented]` The API server code (`apps/api/src`) does not write to the console directly (`console.*`); command-line scripts such as the seed (`apps/api/prisma/seed.ts`) print their output normally; every log line, including the startup message in `apps/api/src/server.ts`, goes through pino (`getLogger()` or the base logger). Only exception: `apps/api/src/config/env.ts` writes the configuration validation errors to stderr with `console.error` before exiting (CFG-02), because the logger itself depends on the validated configuration.
 
 ## 8. OpenAPI
 

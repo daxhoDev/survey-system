@@ -15,7 +15,6 @@
 |----|------|-------|
 | BL-02 | **Dockerfile / containerized deployment** (design agreed 2026-09-23, specified with the change): not built yet. Must install pnpm, handle the workspace (`packages/schemas`), not bake `.env` into the image, fix `CMD`, pin Node version. Design to be agreed. | DEV-WF-03, ANS-07 |
 | BL-03 | **Invitation-based account creation flow** replacing public `POST /users/signup`, plus its UI (design agreed 2026-09-23, specified with the change). | AUTH-13, FE-14 |
-| BL-17 | **Seed and scripts**: create the seed script (or remove `seed` script and Prisma seed config); remove the broken `generate:api` script in `apps/web`. | DEV-WF-01 |
 
 ## Open questions
 
