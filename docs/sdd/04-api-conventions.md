@@ -53,7 +53,7 @@
   - anything else without `status` → `500 Internal Error`.
 - **API-12** `[implemented]` Errors with status ≥ 500 are logged at `error`, the rest at `warn`.
 - **API-13** `[implemented]` In `development`, the response also includes `error` and `stack`.
-- **API-14** `[pending: BL-12]` In `production`, operational errors are returned with their own status and fields; non-operational errors return exactly one generic `500 { title: "Unexpected error", detail: "Something went wrong" }`. The handler must send exactly one response. (Currently it attempts to send twice for operational errors.)
+- **API-14** `[implemented]` In `production`, operational errors are returned with their own status and fields; non-operational errors return exactly one generic `500 { title: "Unexpected error", detail: "Something went wrong" }`. The handler must send exactly one response.
 - **API-15** `[pending: BL-05]` `NODE_ENV` is always `development` or `production` (validated at startup), so the error handler always responds. (Currently any other value produces no response.)
 - **API-16** `[open: OQ-03]` Malformed/invalid access tokens: a cookie that is not a JWT currently yields `422` (Zod `jwtSchema`), and an invalid signature yields a non-operational `500`.
 - **API-17** `[open: OQ-04]` Conflict status codes are inconsistent: duplicated email/username → `400`; duplicated survey name on create → `409`, on update → `400`.

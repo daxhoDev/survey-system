@@ -22,7 +22,6 @@
 | BL-07 | **Reject answers to inactive surveys** with the same `404` as a non-existent survey. | ANS-05, FE-24 |
 | BL-08 | **Hide inactive surveys from anonymous users** on `GET /surveys/:slug` (optional-auth middleware; `404` without session). | SURV-12, FE-24 |
 | BL-09 | **Login without user enumeration**: single `401 Invalid credentials`, constant-time-ish bcrypt check. | AUTH-14 |
-| BL-12 | **Production error handler sends exactly one response**. | API-14 |
 | BL-13 | **Scope answer routes by survey slug**: `404` for missing/deleted survey, and for answers that don't exist, are deleted or belong to another survey. | ANS-08, SURV-18 |
 | BL-14 | **Configurable URLs**: `CORS_ORIGIN` in the API, `VITE_API_URL` in the web (generated client + mutator), replace hardcoded query key in `SurveyDetailsPage`. | API-24, CFG-06, CFG-07, FE-12 |
 | BL-15 | **Remove unused dependencies** from `apps/api`: `@tsoa/runtime`, `drizzle-kit`, `swagger-jsdoc` (+ `@types/swagger-jsdoc`), `@scalar/express-api-reference`, `ts-node` (verify each before removal). | — |

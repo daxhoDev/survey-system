@@ -83,6 +83,7 @@ export class ErrorMiddleware {
           detail: err.detail,
           ...err.extensions,
         });
+      return;
     }
     res.status(500).type("application/problem+json").json({
       type: err.type,
