@@ -1,5 +1,4 @@
 import z from "zod";
-import type { surveysCreateInput } from "../generated/prisma/models.js";
 import { createSurveySchema, updateSurveySchema } from "@survey-system/schemas";
 import type {
   CreateSurveyData,
@@ -93,7 +92,6 @@ export default class SurveyService implements ISurveyService {
     data: UpdateSurveyData,
   ): Promise<Survey | null> {
     const existingSurvey = await this.repo.getActivatedAtBySlug(slug);
-    console.log(data);
 
     if (!existingSurvey) {
       throw new AppError(

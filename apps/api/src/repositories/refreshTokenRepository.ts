@@ -1,14 +1,10 @@
-import { id } from "zod/locales";
 import { prisma } from "../lib/prisma.js";
 import type {
   CreateRefreshTokenData,
   IRefreshTokenRepository,
   RefreshToken,
   RefreshTokenWithUser,
-  User,
-  UserWithoutPassword,
 } from "../types.js";
-import { email } from "zod";
 
 export default class RefreshTokenRepository implements IRefreshTokenRepository {
   async getByUserId(userId: string): Promise<RefreshToken | null> {

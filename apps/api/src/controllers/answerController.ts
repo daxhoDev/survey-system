@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
+import type { Request, Response } from "express";
 import { getLogger } from "../context/requestContext.js";
 import { json } from "../utils/json.js";
 import type { IAnswerService } from "../types.js";
@@ -38,7 +38,7 @@ export default class AnswerController {
       req.params.slug as string,
       req.ip || "",
     );
-    ~res
+    res
       .status(200)
       .type("json")
       .send(json({ data: createdAnswer }));

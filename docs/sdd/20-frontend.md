@@ -36,7 +36,7 @@
 | `/dashboard/surveys/:slug` | `DashboardPage` › `SurveyDetailsPage` | session |
 | `/surveys/:slug` | `SurveyAnsweringPage` | public |
 
-- **FE-13** `[implemented]` `DashboardPage` is the session guard: it calls `useGetCurrentUser`; while loading shows "Loading dashboard...", on error navigates to `/auth/login`. Layout: `DashboardHeader` + centered `<Outlet />` (max width 6xl). The sidebar (`DashboardSidebar`) is a commented-out placeholder (BL-19).
+- **FE-13** `[implemented]` `DashboardPage` is the session guard: it calls `useGetCurrentUser`; while loading shows "Loading dashboard...", on error navigates to `/auth/login`. Layout: `DashboardHeader` + centered `<Outlet />` (max width 6xl).
 - **FE-14** `[pending: BL-03]` There is no account creation UI; it will come with the invitation flow.
 
 ## 4. Pages
@@ -64,7 +64,7 @@
 - **FE-21** `[implemented]` Header with name, slug, activate/deactivate button and delete button (confirmation dialog; on success navigates to `/dashboard`).
 - **FE-22** `[implemented]` Tabs, each loading its data lazily when opened:
   - **Detalles**: public link `${window.location.origin}/surveys/${slug}` with copy/open buttons; list of questions with type, required badge and options.
-  - **Respuestas**: table (short id, date, IP, "Ver respuestas"); a side sheet shows each question with the resolved response text and allows deleting the answer (uses `window.confirm`, BL-19).
+  - **Respuestas**: table (short id, date, IP, "Ver respuestas"); a side sheet shows each question with the resolved response text and allows deleting the answer after a confirmation dialog.
   - **Estadísticas**: total/completed/incomplete cards and one horizontal bar chart per select question.
 
 ### Answering — `pages/SurveyAnsweringPage.tsx` (`/surveys/:slug`, public)

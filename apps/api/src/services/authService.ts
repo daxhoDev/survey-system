@@ -3,7 +3,6 @@ import type {
   IUserRepository,
   IAuthService,
   LoginData,
-  UserWithoutPassword,
   CreateUserData,
   UserWithTokens,
   IRefreshTokenRepository,

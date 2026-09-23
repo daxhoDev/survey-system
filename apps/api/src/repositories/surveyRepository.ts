@@ -1,6 +1,4 @@
-import { sl } from "zod/locales";
 import type {
-  surveysCreateInput,
   surveysOrderByWithRelationInput,
 } from "../generated/prisma/models.js";
 import { prisma } from "../lib/prisma.js";
@@ -12,7 +10,6 @@ import type {
   Question,
   Survey,
   SurveyStats,
-  UpdateSurveyData,
   UpdateSurveyDataWithMetadata,
 } from "../types.js";
 
