@@ -11,7 +11,7 @@
 - **FE-05** `[implemented]` Import alias `@` → `apps/web/src`.
 - **FE-06** `[implemented]` UI copy is in Spanish; dates are formatted with locale `es-CU`. Exception: the login form is in English — `[open: OQ-13]`.
 - **FE-07** `[implemented]` `React.StrictMode` is disabled in `main.tsx`.
-- **FE-25** `[pending: BL-21]` Every confirmation of a destructive action (logout, survey deletion, answer deletion) uses the single shared component `components/ConfirmationDialog.tsx` (title "Confirma tu acción", description, destructive confirm button, "Cancelar"). Pages must not build their own confirmation `DialogContent`. (Currently answer deletion builds its own dialog and `SurveyDetailsPage` keeps the old survey-deletion dialog commented out.)
+- **FE-25** `[implemented]` Every confirmation of a destructive action (logout, survey deletion, answer deletion) uses the single shared component `components/ConfirmationDialog.tsx` (title "Confirma tu acción", description, destructive confirm button, "Cancelar"). Pages must not build their own confirmation `DialogContent`.
 
 ## 2. API client
 
