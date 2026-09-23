@@ -46,7 +46,7 @@ model; differences with the current schema are tagged.
 | `slug` | TEXT UNIQUE (`is_unique`) | derived from name |
 | `questions` | JSONB | array of Question documents (§3) |
 | `is_active` | BOOLEAN | default false |
-| `is_locked` | BOOLEAN | default false. `[pending: BL-04]` — column does not exist yet |
+| `is_locked` | BOOLEAN | NOT NULL, default false; set on first activation, never reset (SURV-02). Migration `20260923220000_survey_is_locked` |
 | `activated_at` | TIMESTAMPTZ? | time of the **latest** activation; null while inactive (SURV-14) |
 | `created_at` | TIMESTAMPTZ | default now |
 | `updated_at` | TIMESTAMPTZ? | set on every update |

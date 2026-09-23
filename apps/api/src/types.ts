@@ -25,11 +25,14 @@ export interface ISurveyRepository {
     survey: CreateSurveyData & { id: string; slug: string },
   ): Promise<Survey>;
   deleteOneBySlug(slug: string): Promise<void>;
-  updateOneBySlug(slug: string, data: any): Promise<Survey | null>;
-  getSlugBySlug(slug: string): Promise<Pick<Survey, "slug"> | null>;
-  getActivatedAtBySlug(
+  updateOneBySlug(
     slug: string,
-  ): Promise<Pick<Survey, "activatedAt"> | null>;
+    changes: SurveyChanges,
+  ): Promise<Survey | null>;
+  getSlugBySlug(slug: string): Promise<Pick<Survey, "slug"> | null>;
+  getIsLockedBySlug(
+    slug: string,
+  ): Promise<Pick<Survey, "isLocked"> | null>;
   getSurveyStatsBySlug(
     slug: string,
   ): Promise<Pick<
@@ -88,7 +91,7 @@ export interface ISurveyService extends Omit<
   ISurveyRepository,
   | "getBySlug"
   | "getSlugBySlug"
-  | "getActivatedAtBySlug"
+  | "getIsLockedBySlug"
   | "getResponsesOptionsStatsBySlug"
   | "getSurveyStatsBySlug"
 > {
@@ -130,10 +133,15 @@ export interface IAuthService {
 
 export type CreateSurveyData = z.infer<typeof createSurveySchema>;
 export type UpdateSurveyData = z.infer<typeof updateSurveySchema>;
-export type UpdateSurveyDataWithMetadata = UpdateSurveyData & {
+// Columns an update writes; absent keys are left unchanged (SURV-14).
+export type SurveyChanges = {
+  name?: string;
+  questions?: Question[];
   slug: string;
   updatedAt: Date;
-  activatedAt: Date;
+  isActive?: boolean;
+  activatedAt?: Date | null;
+  isLocked?: true;
 };
 
 export type Survey = CreateSurveyData & {
@@ -144,6 +152,7 @@ export type Survey = CreateSurveyData & {
   updatedAt: Date | null;
   deletedAt: Date | null;
   activatedAt: Date | null;
+  isLocked: boolean;
 };
 export type Question = z.infer<typeof questionSchema>;
 

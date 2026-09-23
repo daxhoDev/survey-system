@@ -53,6 +53,8 @@ export interface Survey {
   /** @minItems 1 */
   questions: SurveyQuestionsItem[];
   isActive: boolean;
+  /** Set on first activation; name and questions become immutable */
+  isLocked: boolean;
   /** @nullable */
   deletedAt: string | null;
   createdAt: string;

@@ -64,6 +64,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { Answer } from "@/lib/api/surveySystemAPI.schemas";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
+import LockedBadge from "@/components/LockedBadge";
 
 export default function SurveyDetailsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -234,9 +235,12 @@ export default function SurveyDetailsPage() {
               <ArrowLeft className="size-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                {survey.name}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold tracking-tight">
+                  {survey.name}
+                </h1>
+                {survey.isLocked && <LockedBadge />}
+              </div>
               <p className="text-xs text-muted-foreground">
                 slug: {survey.slug}
               </p>

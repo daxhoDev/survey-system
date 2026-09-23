@@ -120,6 +120,9 @@ export const surveySchema = z
       name: surveyNameSchema,
       questions: questionArrSchema,
       isActive: z.boolean("is_active must be a boolean"),
+      isLocked: z.boolean().openapi({
+        description: "Set on first activation; name and questions become immutable",
+      }),
       deletedAt: z.date().nullable(),
       createdAt: z.date(),
       updatedAt: z.date().nullable(),
@@ -145,6 +148,7 @@ export const surveySchema = z
         },
       ],
       isActive: true,
+      isLocked: true,
       slug: "employee-satisfaction-survey",
       activatedAt: new Date("2024-01-02T00:00:00Z"),
       deletedAt: null,

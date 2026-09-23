@@ -12,6 +12,7 @@ import type {
   QueryString,
   RefreshToken,
   Survey,
+  SurveyChanges,
   User,
 } from "../../src/types.js";
 
@@ -91,6 +92,7 @@ export class FakeSurveyRepository implements ISurveyRepository {
     const survey: Survey = {
       ...data,
       isActive: false,
+      isLocked: false,
       createdAt: new Date(),
       updatedAt: null,
       deletedAt: null,
@@ -103,7 +105,7 @@ export class FakeSurveyRepository implements ISurveyRepository {
     const survey = liveSurvey(slug);
     if (survey) survey.deletedAt = new Date();
   }
-  async updateOneBySlug(slug: string, data: Partial<Survey>) {
+  async updateOneBySlug(slug: string, data: SurveyChanges) {
     const survey = liveSurvey(slug);
     if (!survey) return null;
     Object.assign(survey, data);
@@ -113,9 +115,9 @@ export class FakeSurveyRepository implements ISurveyRepository {
     const survey = liveSurvey(slug);
     return survey ? { slug: survey.slug } : null;
   }
-  async getActivatedAtBySlug(slug: string) {
+  async getIsLockedBySlug(slug: string) {
     const survey = liveSurvey(slug);
-    return survey ? { activatedAt: survey.activatedAt } : null;
+    return survey ? { isLocked: survey.isLocked } : null;
   }
   async getSurveyStatsBySlug() {
     return null;
