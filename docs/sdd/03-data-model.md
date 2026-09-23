@@ -35,7 +35,7 @@ model; differences with the current schema are tagged.
 | `user_id` | UUID UNIQUE FK → users.id | `ON DELETE CASCADE`. Unique ⇒ at most one active refresh token (session) per user |
 | `token_hash` | TEXT UNIQUE | SHA-256 hex of the raw token; the raw token is only sent in the cookie |
 | `created_at` | TIMESTAMPTZ | default now |
-| `expires_at` | TIMESTAMPTZ | now + `REFRESH_TOKEN_TTL_DAYS` days (currently `REFRESH_EXPIRES_IN`, see BL-05) |
+| `expires_at` | TIMESTAMPTZ | now + `REFRESH_TOKEN_TTL_DAYS` days |
 
 ### `surveys`
 

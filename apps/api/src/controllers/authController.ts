@@ -7,16 +7,17 @@ import type {
 import { json } from "../utils/json.js";
 import AppError from "../utils/appError.js";
 import { getLogger } from "../context/requestContext.js";
+import { env } from "../config/env.js";
 
 const jwtCookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production" ? true : false,
-  maxAge: Number(process.env.JWT_COOKIE_EXPIRES_IN) * 60 * 1000, // minutes,
+  secure: env.NODE_ENV === "production",
+  maxAge: env.ACCESS_TOKEN_TTL_MINUTES * 60 * 1000,
 };
 const refreshCookieOptions: CookieOptions = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === "production" ? true : false,
-  maxAge: Number(process.env.REFRESH_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000, //days,
+  secure: env.NODE_ENV === "production",
+  maxAge: env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
   path: "/api/v1/users/refresh",
 };
 

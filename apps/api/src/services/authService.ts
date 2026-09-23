@@ -12,6 +12,7 @@ import { createUserSchema, loginDataSchema } from "@survey-system/schemas";
 import bcrypt from "bcrypt";
 import { v7 } from "uuid";
 import AppError from "../utils/appError.js";
+import { env } from "../config/env.js";
 import jwt from "jsonwebtoken";
 import crypto, { randomUUID } from "crypto";
 
@@ -181,10 +182,8 @@ export default class AuthService implements IAuthService {
         username,
         email,
       },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: process.env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"],
-      } as jwt.SignOptions,
+      env.JWT_SECRET,
+      { expiresIn: env.ACCESS_TOKEN_TTL_MINUTES * 60 },
     );
     return token;
   }
@@ -194,8 +193,7 @@ export default class AuthService implements IAuthService {
     const token = randomUUID();
     const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const expiresAt = new Date(
-      Date.now() +
-        Number(process.env.REFRESH_EXPIRES_IN /* days */) * 24 * 60 * 60 * 1000,
+      Date.now() + env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
     );
 
     await this.refreshRepo.createOne({

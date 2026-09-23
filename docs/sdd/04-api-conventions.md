@@ -54,7 +54,7 @@
 - **API-12** `[implemented]` Errors with status ≥ 500 are logged at `error`, the rest at `warn`.
 - **API-13** `[implemented]` In `development`, the response also includes `error` and `stack`.
 - **API-14** `[implemented]` In `production`, operational errors are returned with their own status and fields; non-operational errors return exactly one generic `500 { title: "Unexpected error", detail: "Something went wrong" }`. The handler must send exactly one response.
-- **API-15** `[pending: BL-05]` `NODE_ENV` is always `development` or `production` (validated at startup), so the error handler always responds. (Currently any other value produces no response.)
+- **API-15** `[implemented]` `NODE_ENV` is always `development` or `production` (validated at startup), so the error handler always responds.
 - **API-16** `[open: OQ-03]` Malformed/invalid access tokens: a cookie that is not a JWT currently yields `422` (Zod `jwtSchema`), and an invalid signature yields a non-operational `500`.
 - **API-17** `[open: OQ-04]` Conflict status codes are inconsistent: duplicated email/username → `400`; duplicated survey name on create → `409`, on update → `400`.
 
@@ -72,15 +72,15 @@
 ## 6. Security headers and CORS
 
 - **API-23** `[implemented]` `helmet()` defaults are applied to all responses.
-- **API-24** `[pending: BL-14]` CORS allows credentials and exactly one origin taken from `CORS_ORIGIN`. (Currently hardcoded `http://localhost:5173`.)
+- **API-24** `[implemented]` CORS allows credentials and exactly one origin taken from `CORS_ORIGIN`.
 
 ## 7. Logging (`apps/api/src/config/logger.ts`)
 
-- **API-25** `[implemented]` pino with ISO timestamps and base field `enviroment` (sic) = `NODE_ENV`. Level: `LOG_LEVEL` (default `info`) `[pending: BL-05]`; currently hardcoded `info`.
+- **API-25** `[implemented]` pino with ISO timestamps and base field `enviroment` (sic) = `NODE_ENV`. Level: `LOG_LEVEL` (default `info`).
 - **API-26** `[implemented]` `development`: pretty-printed to stdout. Otherwise: JSON to `logs/app.log` (relative to the API working directory, created if missing).
 - **API-27** `[implemented]` Redaction: `*.password`, `req.headers.cookie`, `res.headers.set-cookie` → `[REDACTED]`.
 - **API-28** `[implemented]` Each request gets a UUID v4 `requestId` included in all its log lines (ARCH-11).
-- **API-33** `[implemented]` The API does not write to the console directly (`console.*`); every log line, including the startup message in `apps/api/src/server.ts`, goes through pino (`getLogger()` or the base logger).
+- **API-33** `[implemented]` The API does not write to the console directly (`console.*`); every log line, including the startup message in `apps/api/src/server.ts`, goes through pino (`getLogger()` or the base logger). Only exception: `apps/api/src/config/env.ts` writes the configuration validation errors to stderr with `console.error` before exiting (CFG-02), because the logger itself depends on the validated configuration.
 
 ## 8. OpenAPI
 

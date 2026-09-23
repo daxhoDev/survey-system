@@ -37,8 +37,9 @@ Prerequisites: Node.js, [pnpm](https://pnpm.io) and a PostgreSQL database.
 ```bash
 pnpm install
 
-# API configuration: create apps/api/.env
+# API configuration: copy apps/api/.env.example to apps/api/.env and adjust it
 # (variables documented in docs/sdd/05-configuration.md)
+cp apps/api/.env.example apps/api/.env
 
 # Database
 cd apps/api
@@ -57,15 +58,12 @@ After changing the API contract, regenerate the web client with `pnpm generate:a
 
 ## Configuration
 
-The API reads its configuration from `apps/api/.env`. Currently required:
-`DATABASE_URL`, `NODE_ENV` (`development` | `production`), `JWT_SECRET`,
-`JWT_EXPIRES_IN` (jsonwebtoken format, e.g. `15m`), `JWT_COOKIE_EXPIRES_IN`
-(minutes), `REFRESH_EXPIRES_IN` (days), `REFRESH_COOKIE_EXPIRES_IN` (days);
-optional `PORT` (default `3000`).
-
-Planned: startup validation with Zod, token lifetimes simplified to
-`ACCESS_TOKEN_TTL_MINUTES` and `REFRESH_TOKEN_TTL_DAYS`, plus `CORS_ORIGIN` and
-`LOG_LEVEL`. See [`docs/sdd/05-configuration.md`](docs/sdd/05-configuration.md).
+The API reads its configuration from `apps/api/.env` (template: `apps/api/.env.example`)
+and validates it at startup: if anything is missing or invalid it lists every problem
+and exits. Required: `DATABASE_URL`, `NODE_ENV` (`development` | `production`),
+`JWT_SECRET` (≥ 32 characters), `ACCESS_TOKEN_TTL_MINUTES`, `REFRESH_TOKEN_TTL_DAYS`,
+and `CORS_ORIGIN` in production. Optional: `PORT` (default `3000`), `LOG_LEVEL`
+(default `info`). See [`docs/sdd/05-configuration.md`](docs/sdd/05-configuration.md).
 
 ## Documentation
 

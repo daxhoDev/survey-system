@@ -1,5 +1,4 @@
 import express, { type Express, type Request, type Response } from "express";
-import "dotenv/config";
 import surveyRouter from "./routes/surveyRouter.js";
 import userRouter from "./routes/userRouter.js";
 import { ErrorMiddleware } from "./middlewares/errorMiddleware.js";
@@ -12,6 +11,7 @@ import swaggerUi from "swagger-ui-express";
 import { generateOpenApiDocument } from "./lib/openapi.js";
 import loggingMiddleware from "./middlewares/loggingMiddleware.js";
 import requestContextMiddleware from "./middlewares/requestContextMiddleware.js";
+import { env } from "./config/env.js";
 
 const app: Express = express();
 const errorMiddleware = new ErrorMiddleware();
@@ -23,7 +23,7 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:5173",
+    origin: env.CORS_ORIGIN,
   }),
 );
 app.use(helmet());

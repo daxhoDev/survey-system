@@ -16,7 +16,7 @@ Schemas: `packages/schemas/src/userSchema.ts`, `authSchema.ts`.
 | `jwt` | Access JWT (HS256, `JWT_SECRET`), payload `{ id, username, email }`, expires after `ACCESS_TOKEN_TTL_MINUTES` | `ACCESS_TOKEN_TTL_MINUTES` minutes | `/` | only in `production` |
 | `refresh` | Random UUID v4 (opaque) | `REFRESH_TOKEN_TTL_DAYS` days | `/api/v1/users/refresh` | only in `production` |
 
-  `[pending: BL-05]` Token and cookie lifetimes come from the two TTL variables of [05-configuration.md](05-configuration.md) §1.1. Today they come from four separate variables (`JWT_EXPIRES_IN`, `JWT_COOKIE_EXPIRES_IN`, `REFRESH_EXPIRES_IN`, `REFRESH_COOKIE_EXPIRES_IN`), see §1.2 there.
+  Token and cookie lifetimes come from the two TTL variables of [05-configuration.md](05-configuration.md) §1.1.
 
 - **AUTH-02** `[implemented]` Only the SHA-256 hex hash of the refresh token is stored (`refresh_tokens.token_hash`), with `expires_at = now + REFRESH_TOKEN_TTL_DAYS days`.
 - **AUTH-03** `[implemented]` A user has at most one refresh token (DB unique `user_id`). Logging in again replaces it, so a new login invalidates the previous session's ability to refresh. `[open: OQ-09]` whether single-session is the intended behavior.

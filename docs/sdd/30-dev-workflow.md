@@ -29,7 +29,7 @@ Dev URLs: API `http://localhost:3000` (Swagger at `/api/v1/docs`), web `http://l
 
 - **API contract change**: update Zod schemas in `packages/schemas` → service/controller → `apps/api/src/lib/openapi.ts` → run the API → `pnpm generate:api` → adapt the web → update specs [04](04-api-conventions.md) and the domain spec.
 - **Schema change**: edit `apps/api/prisma/schema.prisma` → `prisma migrate dev --name <name>` → `prisma generate` → update repositories' mapping → update [03-data-model.md](03-data-model.md).
-- **Environment variable**: update the env schema (BL-05), `.env.example`, [05-configuration.md](05-configuration.md) and the README.
+- **Environment variable**: update the env schema (`apps/api/src/config/env.ts`), `apps/api/.env.example`, [05-configuration.md](05-configuration.md) and the README.
 - Never edit `apps/api/src/generated/prisma` or the Orval output (except `mutator/customInstance.ts`).
 
 ## 4. Testing
