@@ -10,8 +10,7 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "preview": "vite preview",
-    "generate:api": "openapi-typescript http://localhost:3000/api/v1/docs-raw -o src/lib/api/schema.d.ts"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@fontsource-variable/inter": "^5.2.8",

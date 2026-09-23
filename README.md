@@ -46,6 +46,7 @@ docker compose up -d
 cd apps/api
 pnpm exec prisma migrate dev
 pnpm exec prisma generate
+pnpm seed   # optional demo data: log in as demo@example.com / demo12345
 cd ../..
 
 # Run API (http://localhost:3000) and web (http://localhost:5173)
