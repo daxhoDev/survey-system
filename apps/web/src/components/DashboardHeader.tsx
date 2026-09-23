@@ -13,16 +13,7 @@ import { Skeleton } from "./ui/skeleton";
 import type { User } from "@/lib/api/surveySystemAPI.schemas";
 import { useNavigate } from "react-router";
 import logo from "@/assets/logo.png";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
+import { Dialog, DialogTrigger } from "./ui/dialog";
 import ConfirmationDialog from "./ConfirmationDialog";
 
 export default function DashboardHeader() {

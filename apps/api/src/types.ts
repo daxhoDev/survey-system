@@ -94,7 +94,7 @@ export interface ISurveyService extends Omit<
 }
 export interface IAnswerService extends Omit<
   IAnswerRepository,
-  "createOne" | "getIpByOriginIp"
+  "createOne" | "getIpAndSlugByIpAndSlug"
 > {
   createOne(
     answer: CreateAnswerData,
