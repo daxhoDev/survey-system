@@ -31,7 +31,7 @@
 | BL-16 | **Regenerate the web client after BL-01 and remove response casts** in pages. | FE-11 |
 | BL-17 | **Seed and scripts**: create the seed script (or remove `seed` script and Prisma seed config); remove the broken `generate:api` script in `apps/web`. | DEV-WF-01 |
 | BL-18 | **Testing strategy**: choose framework(s), scope and minimum coverage with the owner; specify in 30-dev-workflow. | DEV-WF-02 |
-| BL-19 | **Debug leftovers and dead code**: `console.log` in `errorMiddleware.ts` ("FAAAH"), `surveyService.ts`, `answerService.ts`; unused imports (`zod/locales` in repositories, `email` from zod, unused Prisma types); stray `~` before `res` in `answerController.createOne`; `DashboardSidebar` placeholder ("Fahh"); `window.confirm` in answer deletion (other confirmations use dialogs); unused imports of `SidebarProvider`/`DashboardSidebar` in `DashboardPage`. | FE-13, FE-22 |
+| BL-19 | **Debug leftovers and dead code**: `console.log` in `errorMiddleware.ts` ("FAAAH"), `surveyService.ts`, `answerService.ts`; unused imports (`zod/locales` in repositories, `email` from zod, unused Prisma types); stray `~` before `res` in `answerController.createOne`; remove the `DashboardSidebar` placeholder component, its unused imports and the commented-out `SidebarProvider` code in `DashboardPage`; replace `window.confirm` with a `Dialog` like the survey deletion; startup `console.log` in `server.ts` → pino logger. | FE-13, FE-22, API-33 |
 
 ## Open questions
 
