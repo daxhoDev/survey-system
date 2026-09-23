@@ -42,7 +42,7 @@ export default class AnswerController {
       req.ip || "",
     );
     res
-      .status(200)
+      .status(201)
       .type("json")
       .send(json({ data: createdAnswer }));
   }

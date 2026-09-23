@@ -10,18 +10,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "./ui/skeleton";
-import type { User } from "@/lib/api/surveySystemAPI.schemas";
 import { useNavigate } from "react-router";
 import logo from "@/assets/logo.png";
 import { Dialog, DialogTrigger } from "./ui/dialog";
 import ConfirmationDialog from "./ConfirmationDialog";
 
 export default function DashboardHeader() {
-  const { data: rawData, isLoading, isRefetching } = useGetCurrentUser({});
+  const { data, isLoading, isRefetching } = useGetCurrentUser({});
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const user = rawData as unknown as User | undefined;
+  const user = data?.data;
 
   const logout = useLogoutUser({
     mutation: {

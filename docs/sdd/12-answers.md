@@ -42,8 +42,8 @@ Processing order (target):
      - `SINGLE_SELECT`: `content` is an array whose **first** element is a valid option id. (Extra elements are not rejected.)
      - `MULTI_SELECT`: `content` is an array and every element is a valid option id.
      - `TEXT_ANSWER`: `content` is a string.
-- **ANS-07** `[implemented]` The origin IP is `req.ip` (empty string if unavailable). `[pending: BL-02]` Behind a reverse proxy, `app.set('trust proxy', TRUST_PROXY)` makes `req.ip` the client IP from `X-Forwarded-For`; `TRUST_PROXY` is the number of trusted proxy hops (default `0`, never trust the header), `1` in the production compose file. This also keys the rate limiters (API-20, API-21) per real client. (Currently `trust proxy` is not configured, so behind a proxy all respondents would share its IP.)
-- **ANS-12** `[pending: BL-22]` Response `201 { data: Answer }`. (Currently `200`.)
+- **ANS-07** `[implemented]` The origin IP is `req.ip` (empty string if unavailable). `[pending: BL-02]` Behind a reverse proxy, `app.set('trust proxy', TRUST_PROXY)` makes `req.ip` the client IP from `X-Forwarded-For`; `TRUST_PROXY` is the number of trusted proxy hops (default `0`, never trust the header), `1` in the production compose file. This also keys the rate limiters (API-20, API-21) per real client.
+- **ANS-12** `[implemented]` Response `201 { data: Answer }`.
 
 ### GET `/api/v1/surveys/:slug/answers` — authenticated
 

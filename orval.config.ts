@@ -8,11 +8,15 @@ export default defineConfig({
       target: "./apps/web/src/lib/api",
       client: "react-query",
       httpClient: "fetch",
-      baseUrl: "http://localhost:3000",
+      // Paths are relative; customInstance prefixes VITE_API_URL (CFG-09).
       override: {
         mutator: {
           path: "./apps/web/src/lib/api/mutator/customInstance.ts",
           name: "customInstance",
+        },
+        // customInstance returns the response body, so types are the body (FE-11).
+        fetch: {
+          includeHttpResponseReturnType: false,
         },
       },
     },

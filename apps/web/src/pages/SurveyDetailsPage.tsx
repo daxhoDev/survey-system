@@ -61,19 +61,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Survey, SurveyStats } from "@/lib/api/surveySystemAPI.schemas";
+import type { Answer } from "@/lib/api/surveySystemAPI.schemas";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
-
-interface AnswerItem {
-  id: string;
-  createdAt: string;
-  originIp: string;
-  responses: Array<{
-    id: number;
-    content: string | number[];
-  }>;
-}
 
 export default function SurveyDetailsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -82,7 +72,7 @@ export default function SurveyDetailsPage() {
 
   const [activeTab, setActiveTab] = useState("overview");
   const [copied, setCopied] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<AnswerItem | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<Answer | null>(null);
 
   // Queries
   const {
@@ -115,16 +105,16 @@ export default function SurveyDetailsPage() {
     },
   });
 
-  const survey = (surveyData as any)?.data as Survey | undefined;
-  const stats = (statsData as any)?.data as SurveyStats | undefined;
-  const answers = (answersData as any)?.data as AnswerItem[] | undefined;
+  const survey = surveyData?.data;
+  const stats = statsData?.data;
+  const answers = answersData?.data;
 
   // Mutations
   const updateSurvey = useUpdateSurveyBySlug({
     mutation: {
       onSuccess() {
         queryClient.invalidateQueries({
-          queryKey: [`http://localhost:3000/api/v1/surveys/${slug}`],
+          queryKey: getGetSurveyBySlugQueryKey(slug || ""),
         });
         queryClient.invalidateQueries({
           queryKey: getGetAllSurveysQueryKey(),

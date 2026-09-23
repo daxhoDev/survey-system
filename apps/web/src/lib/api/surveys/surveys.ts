@@ -21,10 +21,13 @@ import type {
 
 import type {
   CreateSurvey,
-  Error,
+  CreateSurvey201,
+  GetAllSurveys200,
   GetAllSurveysParams,
-  Survey,
-  SurveyStats,
+  GetSurveyBySlug200,
+  GetSurveyStatsBySlug200,
+  Problem,
+  UpdateSurveyBySlug200,
   UpdateSurveyBySlugBody
 } from '../surveySystemAPI.schemas';
 
@@ -39,45 +42,6 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
-export type getAllSurveysResponse200 = {
-  data: Survey[]
-  status: 200
-}
-
-export type getAllSurveysResponse400 = {
-  data: Error
-  status: 400
-}
-
-export type getAllSurveysResponse401 = {
-  data: Error
-  status: 401
-}
-
-export type getAllSurveysResponse404 = {
-  data: Error
-  status: 404
-}
-
-export type getAllSurveysResponse422 = {
-  data: Error
-  status: 422
-}
-
-export type getAllSurveysResponse500 = {
-  data: Error
-  status: 500
-}
-
-export type getAllSurveysResponseSuccess = (getAllSurveysResponse200) & {
-  headers: Headers;
-};
-export type getAllSurveysResponseError = (getAllSurveysResponse400 | getAllSurveysResponse401 | getAllSurveysResponse404 | getAllSurveysResponse422 | getAllSurveysResponse500) & {
-  headers: Headers;
-};
-
-export type getAllSurveysResponse = (getAllSurveysResponseSuccess | getAllSurveysResponseError)
-
 export const getGetAllSurveysUrl = (params?: GetAllSurveysParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -90,15 +54,15 @@ export const getGetAllSurveysUrl = (params?: GetAllSurveysParams,) => {
 
   const stringifiedParams = normalizedParams.toString();
 
-  return stringifiedParams.length > 0 ? `http://localhost:3000/api/v1/surveys?${stringifiedParams}` : `http://localhost:3000/api/v1/surveys`
+  return stringifiedParams.length > 0 ? `/api/v1/surveys?${stringifiedParams}` : `/api/v1/surveys`
 }
 
 /**
  * @summary Get all surveys
  */
-export const getAllSurveys = async (params?: GetAllSurveysParams, options?: RequestInit): Promise<getAllSurveysResponse> => {
+export const getAllSurveys = async (params?: GetAllSurveysParams, options?: RequestInit): Promise<GetAllSurveys200> => {
 
-  return customInstance<getAllSurveysResponse>(getGetAllSurveysUrl(params),
+  return customInstance<GetAllSurveys200>(getGetAllSurveysUrl(params),
   {
     ...options,
     method: 'GET'
@@ -113,12 +77,12 @@ export const getAllSurveys = async (params?: GetAllSurveysParams, options?: Requ
 
 export const getGetAllSurveysQueryKey = (params?: GetAllSurveysParams,) => {
     return [
-    `http://localhost:3000/api/v1/surveys`, ...(params ? [params] : [])
+    `/api/v1/surveys`, ...(params ? [params] : [])
     ] as const;
     }
 
 
-export const getGetAllSurveysQueryOptions = <TData = Awaited<ReturnType<typeof getAllSurveys>>, TError = Error>(params?: GetAllSurveysParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllSurveys>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
+export const getGetAllSurveysQueryOptions = <TData = Awaited<ReturnType<typeof getAllSurveys>>, TError = Problem>(params?: GetAllSurveysParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllSurveys>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -137,14 +101,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetAllSurveysQueryResult = NonNullable<Awaited<ReturnType<typeof getAllSurveys>>>
-export type GetAllSurveysQueryError = Error
+export type GetAllSurveysQueryError = Problem
 
 
 /**
  * @summary Get all surveys
  */
 
-export function useGetAllSurveys<TData = Awaited<ReturnType<typeof getAllSurveys>>, TError = Error>(
+export function useGetAllSurveys<TData = Awaited<ReturnType<typeof getAllSurveys>>, TError = Problem>(
  params?: GetAllSurveysParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getAllSurveys>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
@@ -161,59 +125,20 @@ export function useGetAllSurveys<TData = Awaited<ReturnType<typeof getAllSurveys
 
 
 
-export type createSurveyResponse201 = {
-  data: Survey
-  status: 201
-}
-
-export type createSurveyResponse400 = {
-  data: Error
-  status: 400
-}
-
-export type createSurveyResponse401 = {
-  data: Error
-  status: 401
-}
-
-export type createSurveyResponse404 = {
-  data: Error
-  status: 404
-}
-
-export type createSurveyResponse422 = {
-  data: Error
-  status: 422
-}
-
-export type createSurveyResponse500 = {
-  data: Error
-  status: 500
-}
-
-export type createSurveyResponseSuccess = (createSurveyResponse201) & {
-  headers: Headers;
-};
-export type createSurveyResponseError = (createSurveyResponse400 | createSurveyResponse401 | createSurveyResponse404 | createSurveyResponse422 | createSurveyResponse500) & {
-  headers: Headers;
-};
-
-export type createSurveyResponse = (createSurveyResponseSuccess | createSurveyResponseError)
-
 export const getCreateSurveyUrl = () => {
 
 
 
 
-  return `http://localhost:3000/api/v1/surveys`
+  return `/api/v1/surveys`
 }
 
 /**
  * @summary Create a new survey
  */
-export const createSurvey = async (createSurvey?: CreateSurvey, options?: RequestInit): Promise<createSurveyResponse> => {
+export const createSurvey = async (createSurvey?: CreateSurvey, options?: RequestInit): Promise<CreateSurvey201> => {
 
-  return customInstance<createSurveyResponse>(getCreateSurveyUrl(),
+  return customInstance<CreateSurvey201>(getCreateSurveyUrl(),
   {
     ...options,
     method: 'POST',
@@ -225,7 +150,7 @@ export const createSurvey = async (createSurvey?: CreateSurvey, options?: Reques
 
 
 
-export const getCreateSurveyMutationOptions = <TError = Error,
+export const getCreateSurveyMutationOptions = <TError = Problem,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSurvey>>, TError,{data?: CreateSurvey}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof createSurvey>>, TError,{data?: CreateSurvey}, TContext> => {
 
@@ -254,12 +179,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type CreateSurveyMutationResult = NonNullable<Awaited<ReturnType<typeof createSurvey>>>
     export type CreateSurveyMutationBody = CreateSurvey | undefined
-    export type CreateSurveyMutationError = Error
+    export type CreateSurveyMutationError = Problem
 
     /**
  * @summary Create a new survey
  */
-export const useCreateSurvey = <TError = Error,
+export const useCreateSurvey = <TError = Problem,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createSurvey>>, TError,{data?: CreateSurvey}, TContext>, request?: SecondParameter<typeof customInstance>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof createSurvey>>,
@@ -269,59 +194,21 @@ export const useCreateSurvey = <TError = Error,
       > => {
       return useMutation(getCreateSurveyMutationOptions(options));
     }
-    export type getSurveyBySlugResponse200 = {
-  data: Survey
-  status: 200
-}
-
-export type getSurveyBySlugResponse400 = {
-  data: Error
-  status: 400
-}
-
-export type getSurveyBySlugResponse401 = {
-  data: Error
-  status: 401
-}
-
-export type getSurveyBySlugResponse404 = {
-  data: Error
-  status: 404
-}
-
-export type getSurveyBySlugResponse422 = {
-  data: Error
-  status: 422
-}
-
-export type getSurveyBySlugResponse500 = {
-  data: Error
-  status: 500
-}
-
-export type getSurveyBySlugResponseSuccess = (getSurveyBySlugResponse200) & {
-  headers: Headers;
-};
-export type getSurveyBySlugResponseError = (getSurveyBySlugResponse400 | getSurveyBySlugResponse401 | getSurveyBySlugResponse404 | getSurveyBySlugResponse422 | getSurveyBySlugResponse500) & {
-  headers: Headers;
-};
-
-export type getSurveyBySlugResponse = (getSurveyBySlugResponseSuccess | getSurveyBySlugResponseError)
-
-export const getGetSurveyBySlugUrl = (slug: string,) => {
+    export const getGetSurveyBySlugUrl = (slug: string,) => {
 
 
 
 
-  return `http://localhost:3000/api/v1/surveys/${slug}`
+  return `/api/v1/surveys/${slug}`
 }
 
 /**
+ * Public. Inactive surveys are only returned with a session; an expired session on an inactive survey gets 401 so the client can refresh (SURV-12).
  * @summary Get survey by slug
  */
-export const getSurveyBySlug = async (slug: string, options?: RequestInit): Promise<getSurveyBySlugResponse> => {
+export const getSurveyBySlug = async (slug: string, options?: RequestInit): Promise<GetSurveyBySlug200> => {
 
-  return customInstance<getSurveyBySlugResponse>(getGetSurveyBySlugUrl(slug),
+  return customInstance<GetSurveyBySlug200>(getGetSurveyBySlugUrl(slug),
   {
     ...options,
     method: 'GET'
@@ -336,12 +223,12 @@ export const getSurveyBySlug = async (slug: string, options?: RequestInit): Prom
 
 export const getGetSurveyBySlugQueryKey = (slug: string,) => {
     return [
-    `http://localhost:3000/api/v1/surveys/${slug}`
+    `/api/v1/surveys/${slug}`
     ] as const;
     }
 
 
-export const getGetSurveyBySlugQueryOptions = <TData = Awaited<ReturnType<typeof getSurveyBySlug>>, TError = Error>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyBySlug>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
+export const getGetSurveyBySlugQueryOptions = <TData = Awaited<ReturnType<typeof getSurveyBySlug>>, TError = Problem>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyBySlug>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -360,14 +247,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetSurveyBySlugQueryResult = NonNullable<Awaited<ReturnType<typeof getSurveyBySlug>>>
-export type GetSurveyBySlugQueryError = Error
+export type GetSurveyBySlugQueryError = Problem
 
 
 /**
  * @summary Get survey by slug
  */
 
-export function useGetSurveyBySlug<TData = Awaited<ReturnType<typeof getSurveyBySlug>>, TError = Error>(
+export function useGetSurveyBySlug<TData = Awaited<ReturnType<typeof getSurveyBySlug>>, TError = Problem>(
  slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyBySlug>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
@@ -384,60 +271,21 @@ export function useGetSurveyBySlug<TData = Awaited<ReturnType<typeof getSurveyBy
 
 
 
-export type updateSurveyBySlugResponse200 = {
-  data: Survey
-  status: 200
-}
-
-export type updateSurveyBySlugResponse400 = {
-  data: Error
-  status: 400
-}
-
-export type updateSurveyBySlugResponse401 = {
-  data: Error
-  status: 401
-}
-
-export type updateSurveyBySlugResponse404 = {
-  data: Error
-  status: 404
-}
-
-export type updateSurveyBySlugResponse422 = {
-  data: Error
-  status: 422
-}
-
-export type updateSurveyBySlugResponse500 = {
-  data: Error
-  status: 500
-}
-
-export type updateSurveyBySlugResponseSuccess = (updateSurveyBySlugResponse200) & {
-  headers: Headers;
-};
-export type updateSurveyBySlugResponseError = (updateSurveyBySlugResponse400 | updateSurveyBySlugResponse401 | updateSurveyBySlugResponse404 | updateSurveyBySlugResponse422 | updateSurveyBySlugResponse500) & {
-  headers: Headers;
-};
-
-export type updateSurveyBySlugResponse = (updateSurveyBySlugResponseSuccess | updateSurveyBySlugResponseError)
-
 export const getUpdateSurveyBySlugUrl = (slug: string,) => {
 
 
 
 
-  return `http://localhost:3000/api/v1/surveys/${slug}`
+  return `/api/v1/surveys/${slug}`
 }
 
 /**
  * @summary Update survey by slug
  */
 export const updateSurveyBySlug = async (slug: string,
-    updateSurveyBySlugBody?: UpdateSurveyBySlugBody, options?: RequestInit): Promise<updateSurveyBySlugResponse> => {
+    updateSurveyBySlugBody?: UpdateSurveyBySlugBody, options?: RequestInit): Promise<UpdateSurveyBySlug200> => {
 
-  return customInstance<updateSurveyBySlugResponse>(getUpdateSurveyBySlugUrl(slug),
+  return customInstance<UpdateSurveyBySlug200>(getUpdateSurveyBySlugUrl(slug),
   {
     ...options,
     method: 'PATCH',
@@ -449,7 +297,7 @@ export const updateSurveyBySlug = async (slug: string,
 
 
 
-export const getUpdateSurveyBySlugMutationOptions = <TError = Error,
+export const getUpdateSurveyBySlugMutationOptions = <TError = Problem,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSurveyBySlug>>, TError,{slug: string;data?: UpdateSurveyBySlugBody}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateSurveyBySlug>>, TError,{slug: string;data?: UpdateSurveyBySlugBody}, TContext> => {
 
@@ -478,12 +326,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type UpdateSurveyBySlugMutationResult = NonNullable<Awaited<ReturnType<typeof updateSurveyBySlug>>>
     export type UpdateSurveyBySlugMutationBody = UpdateSurveyBySlugBody | undefined
-    export type UpdateSurveyBySlugMutationError = Error
+    export type UpdateSurveyBySlugMutationError = Problem
 
     /**
  * @summary Update survey by slug
  */
-export const useUpdateSurveyBySlug = <TError = Error,
+export const useUpdateSurveyBySlug = <TError = Problem,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSurveyBySlug>>, TError,{slug: string;data?: UpdateSurveyBySlugBody}, TContext>, request?: SecondParameter<typeof customInstance>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof updateSurveyBySlug>>,
@@ -493,59 +341,20 @@ export const useUpdateSurveyBySlug = <TError = Error,
       > => {
       return useMutation(getUpdateSurveyBySlugMutationOptions(options));
     }
-    export type deleteSurveyBySlugResponse204 = {
-  data: void
-  status: 204
-}
-
-export type deleteSurveyBySlugResponse400 = {
-  data: Error
-  status: 400
-}
-
-export type deleteSurveyBySlugResponse401 = {
-  data: Error
-  status: 401
-}
-
-export type deleteSurveyBySlugResponse404 = {
-  data: Error
-  status: 404
-}
-
-export type deleteSurveyBySlugResponse422 = {
-  data: Error
-  status: 422
-}
-
-export type deleteSurveyBySlugResponse500 = {
-  data: Error
-  status: 500
-}
-
-export type deleteSurveyBySlugResponseSuccess = (deleteSurveyBySlugResponse204) & {
-  headers: Headers;
-};
-export type deleteSurveyBySlugResponseError = (deleteSurveyBySlugResponse400 | deleteSurveyBySlugResponse401 | deleteSurveyBySlugResponse404 | deleteSurveyBySlugResponse422 | deleteSurveyBySlugResponse500) & {
-  headers: Headers;
-};
-
-export type deleteSurveyBySlugResponse = (deleteSurveyBySlugResponseSuccess | deleteSurveyBySlugResponseError)
-
-export const getDeleteSurveyBySlugUrl = (slug: string,) => {
+    export const getDeleteSurveyBySlugUrl = (slug: string,) => {
 
 
 
 
-  return `http://localhost:3000/api/v1/surveys/${slug}`
+  return `/api/v1/surveys/${slug}`
 }
 
 /**
  * @summary Delete survey by slug
  */
-export const deleteSurveyBySlug = async (slug: string, options?: RequestInit): Promise<deleteSurveyBySlugResponse> => {
+export const deleteSurveyBySlug = async (slug: string, options?: RequestInit): Promise<void> => {
 
-  return customInstance<deleteSurveyBySlugResponse>(getDeleteSurveyBySlugUrl(slug),
+  return customInstance<void>(getDeleteSurveyBySlugUrl(slug),
   {
     ...options,
     method: 'DELETE'
@@ -557,7 +366,7 @@ export const deleteSurveyBySlug = async (slug: string, options?: RequestInit): P
 
 
 
-export const getDeleteSurveyBySlugMutationOptions = <TError = Error,
+export const getDeleteSurveyBySlugMutationOptions = <TError = Problem,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSurveyBySlug>>, TError,{slug: string}, TContext>, request?: SecondParameter<typeof customInstance>}
 ): UseMutationOptions<Awaited<ReturnType<typeof deleteSurveyBySlug>>, TError,{slug: string}, TContext> => {
 
@@ -586,12 +395,12 @@ const {mutation: mutationOptions, request: requestOptions} = options ?
 
     export type DeleteSurveyBySlugMutationResult = NonNullable<Awaited<ReturnType<typeof deleteSurveyBySlug>>>
 
-    export type DeleteSurveyBySlugMutationError = Error
+    export type DeleteSurveyBySlugMutationError = Problem
 
     /**
  * @summary Delete survey by slug
  */
-export const useDeleteSurveyBySlug = <TError = Error,
+export const useDeleteSurveyBySlug = <TError = Problem,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteSurveyBySlug>>, TError,{slug: string}, TContext>, request?: SecondParameter<typeof customInstance>}
  ): UseMutationResult<
         Awaited<ReturnType<typeof deleteSurveyBySlug>>,
@@ -601,59 +410,20 @@ export const useDeleteSurveyBySlug = <TError = Error,
       > => {
       return useMutation(getDeleteSurveyBySlugMutationOptions(options));
     }
-    export type getSurveyStatsBySlugResponse200 = {
-  data: SurveyStats
-  status: 200
-}
-
-export type getSurveyStatsBySlugResponse400 = {
-  data: Error
-  status: 400
-}
-
-export type getSurveyStatsBySlugResponse401 = {
-  data: Error
-  status: 401
-}
-
-export type getSurveyStatsBySlugResponse404 = {
-  data: Error
-  status: 404
-}
-
-export type getSurveyStatsBySlugResponse422 = {
-  data: Error
-  status: 422
-}
-
-export type getSurveyStatsBySlugResponse500 = {
-  data: Error
-  status: 500
-}
-
-export type getSurveyStatsBySlugResponseSuccess = (getSurveyStatsBySlugResponse200) & {
-  headers: Headers;
-};
-export type getSurveyStatsBySlugResponseError = (getSurveyStatsBySlugResponse400 | getSurveyStatsBySlugResponse401 | getSurveyStatsBySlugResponse404 | getSurveyStatsBySlugResponse422 | getSurveyStatsBySlugResponse500) & {
-  headers: Headers;
-};
-
-export type getSurveyStatsBySlugResponse = (getSurveyStatsBySlugResponseSuccess | getSurveyStatsBySlugResponseError)
-
-export const getGetSurveyStatsBySlugUrl = (slug: string,) => {
+    export const getGetSurveyStatsBySlugUrl = (slug: string,) => {
 
 
 
 
-  return `http://localhost:3000/api/v1/surveys/${slug}/stats`
+  return `/api/v1/surveys/${slug}/stats`
 }
 
 /**
- * @summary Get survey stats by slug
+ * @summary Get survey statistics
  */
-export const getSurveyStatsBySlug = async (slug: string, options?: RequestInit): Promise<getSurveyStatsBySlugResponse> => {
+export const getSurveyStatsBySlug = async (slug: string, options?: RequestInit): Promise<GetSurveyStatsBySlug200> => {
 
-  return customInstance<getSurveyStatsBySlugResponse>(getGetSurveyStatsBySlugUrl(slug),
+  return customInstance<GetSurveyStatsBySlug200>(getGetSurveyStatsBySlugUrl(slug),
   {
     ...options,
     method: 'GET'
@@ -668,12 +438,12 @@ export const getSurveyStatsBySlug = async (slug: string, options?: RequestInit):
 
 export const getGetSurveyStatsBySlugQueryKey = (slug: string,) => {
     return [
-    `http://localhost:3000/api/v1/surveys/${slug}/stats`
+    `/api/v1/surveys/${slug}/stats`
     ] as const;
     }
 
 
-export const getGetSurveyStatsBySlugQueryOptions = <TData = Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError = Error>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
+export const getGetSurveyStatsBySlugQueryOptions = <TData = Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError = Problem>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 ) => {
 
 const {query: queryOptions, request: requestOptions} = options ?? {};
@@ -692,14 +462,14 @@ const {query: queryOptions, request: requestOptions} = options ?? {};
 }
 
 export type GetSurveyStatsBySlugQueryResult = NonNullable<Awaited<ReturnType<typeof getSurveyStatsBySlug>>>
-export type GetSurveyStatsBySlugQueryError = Error
+export type GetSurveyStatsBySlugQueryError = Problem
 
 
 /**
- * @summary Get survey stats by slug
+ * @summary Get survey statistics
  */
 
-export function useGetSurveyStatsBySlug<TData = Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError = Error>(
+export function useGetSurveyStatsBySlug<TData = Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError = Problem>(
  slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyStatsBySlug>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
 
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {

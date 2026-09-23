@@ -27,7 +27,7 @@ Schemas: `packages/schemas/src/userSchema.ts`, `authSchema.ts`.
 
 - **AUTH-06** `[implemented]` Missing `jwt` cookie → `401 Unauthenticated user` ("Please, log in first").
 - **AUTH-07** `[implemented]` Expired token → `401 Token Error` (API-11).
-- **AUTH-08** `[pending: BL-22]` Malformed cookie (not a JWT) or bad signature → `401 Invalid token` ("Please, log in again"), clearing the `jwt` and `refresh` cookies. (Currently `422` / `500`.)
+- **AUTH-08** `[implemented]` Malformed cookie (not a JWT) or bad signature → `401 Invalid token` ("Please, log in again"), clearing the `jwt` and `refresh` cookies.
 - **AUTH-09** `[implemented]` On success sets `req.user = { id, username, email }` (`ProtectedRequest`) and adds `userId` to the request logger. The token is not checked against the database (a deleted user keeps access until the JWT expires).
 
 ## 2.1 Optional authentication middleware — `AuthMiddleware.optionalAuth`
@@ -47,7 +47,7 @@ Body (`createUserSchema`, strict):
 | `password` | string, min 5 |
 | `passwordConfirm` | must equal `password` (error on `passwordConfirm`) |
 
-- **AUTH-10** `[pending: BL-22]` Email already used by a non-deleted user → `409 Conflict`. Same for username. (Currently `400`.)
+- **AUTH-10** `[implemented]` Email already used by a non-deleted user → `409 Conflict`. Same for username.
 - **AUTH-11** `[implemented]` Password stored with bcrypt, cost 10. User id is UUID v7.
 - **AUTH-12** `[implemented]` On success: creates refresh token, sets both cookies, responds `200 { data: { id, username, email, createdAt, deletedAt } }`. The password is never returned.
 - **AUTH-13** `[pending: BL-03]` Public signup will be replaced by an **invitation-based account creation flow**. Until then the endpoint stays public. The flow's design is not specified yet and must be agreed with the owner before implementation.
@@ -72,7 +72,7 @@ Body (`loginDataSchema`, strict): `email` (valid email), `password` (string, min
 
 ### GET `/api/v1/users/me` — authenticated
 
-- **AUTH-21** `[implemented]` Returns the JWT payload `{ id, username, email }` (from the token, not the DB) with status `200`, wrapped as `{ data: { id, username, email } }` `[pending: BL-22]` (currently unwrapped).
+- **AUTH-21** `[implemented]` Returns the JWT payload `{ id, username, email }` (from the token, not the DB) with status `200`, wrapped as `{ data: { id, username, email } }`.
 
 ## 4. Rate limiting
 

@@ -43,7 +43,8 @@ export function LoginForm({
   const login = useLoginUser({
     mutation: {
       onSuccess(data) {
-        queryClient.setQueryData(getGetCurrentUserQueryKey(), data.data);
+        // Same shape as GET /users/me: { data: user } (AUTH-21).
+        queryClient.setQueryData(getGetCurrentUserQueryKey(), { data: data.data });
         navigate("/dashboard");
       },
       onError(error) {

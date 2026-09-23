@@ -50,6 +50,21 @@ describe("AuthMiddleware.protect", () => {
     expect(res.body.title).toBe("Token Error");
   });
 
+  it.each([
+    ["not a JWT", tokens.garbage],
+    ["signed with another secret", tokens.badSignature],
+  ])("AUTH-08: 401 Invalid token and cleared cookies for a token %s", async (_label, token) => {
+    const res = await get(app, token);
+    expect(res.status).toBe(401);
+    expect(res.body).toMatchObject({
+      title: "Invalid token",
+      detail: "Please, log in again",
+    });
+    const cookies = (res.headers["set-cookie"] as unknown as string[]).join("\n");
+    expect(cookies).toMatch(/jwt=;.*Expires=Thu, 01 Jan 1970/);
+    expect(cookies).toMatch(/refresh=;.*Path=\/api\/v1\/users\/refresh.*Expires=Thu, 01 Jan 1970/);
+  });
+
   it("AUTH-09: sets req.user from the token payload", async () => {
     const res = await get(app, tokens.valid);
     expect(res.status).toBe(200);

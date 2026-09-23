@@ -75,6 +75,10 @@ and exits. Required: `DATABASE_URL`, `NODE_ENV` (`development` | `production`),
 and `CORS_ORIGIN` in production. Optional: `PORT` (default `3000`), `LOG_LEVEL`
 (default `info`). See [`docs/sdd/05-configuration.md`](docs/sdd/05-configuration.md).
 
+The web reads `VITE_API_URL` (template: `apps/web/.env.example`), the API base URL.
+It defaults to `http://localhost:3000` in development and is required when building
+for production.
+
 ## Documentation
 
 | | |

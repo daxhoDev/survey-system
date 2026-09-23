@@ -42,7 +42,7 @@ export default class AuthService implements IAuthService {
       throw new AppError(
         "Conflict",
         "There is already an user with this email",
-        400,
+        409,
       );
     }
     const usernameExists = await this.userRepo.getByUsernameOnly(
@@ -52,7 +52,7 @@ export default class AuthService implements IAuthService {
       throw new AppError(
         "Conflict",
         "There is already an user with this username",
-        400,
+        409,
       );
     }
 

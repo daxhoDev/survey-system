@@ -81,7 +81,7 @@ Body (`updateSurveySchema`, non-strict): `name?`, `questions?`, `isActive?` (boo
   1. Unknown or deleted slug → `404`.
   2. If the survey is locked and the body contains `name` or `questions` → `400 Survey already activated` ("This survey was already activated, it can't be modified anymore").
   3. Body validated with `updateSurveySchema` → `422` on failure.
-  4. If `name` changes the slug and the new slug is taken by a non-deleted survey → `409 Conflict` (API-17, `[pending: BL-22]`, currently `400`).
+  4. If `name` changes the slug and the new slug is taken by a non-deleted survey → `409 Conflict` (API-17).
   5. `isActive: true` → `is_active = true`, `activated_at = now`, `is_locked = true`.
      `isActive: false` → `is_active = false`, `activated_at = null`.
      `isActive` absent → `is_active`, `activated_at`, `is_locked` unchanged.

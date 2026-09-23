@@ -130,16 +130,16 @@ describe("AuthService.signup", () => {
     passwordConfirm: "password123",
   };
 
-  it("AUTH-10: 400 Conflict when the email is taken", async () => {
+  it("AUTH-10: 409 Conflict when the email is taken", async () => {
     await expect(
       service.signup({ ...body, email: user.email }),
-    ).rejects.toMatchObject({ status: 400, title: "Conflict" });
+    ).rejects.toMatchObject({ status: 409, title: "Conflict" });
   });
 
-  it("AUTH-10: 400 Conflict when the username is taken", async () => {
+  it("AUTH-10: 409 Conflict when the username is taken", async () => {
     userRepo.getByUsernameOnly.mockResolvedValue({ username: body.username });
     await expect(service.signup(body)).rejects.toMatchObject({
-      status: 400,
+      status: 409,
       title: "Conflict",
     });
   });

@@ -142,7 +142,7 @@ export default class SurveyService implements ISurveyService {
     }
 
     if (newSlugExists) {
-      throw new AppError("Conflict", "This survey name is not avaliable", 400);
+      throw new AppError("Conflict", "This survey name is not avaliable", 409);
     }
 
     const updatedSurvey = await this.repo.updateOneBySlug(slug, {

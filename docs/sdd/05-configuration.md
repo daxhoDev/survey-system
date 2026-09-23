@@ -36,10 +36,10 @@ allowed by `.gitignore`.
 
 | Variable | Meaning | Status |
 |----------|---------|--------|
-| `VITE_API_URL` | Base URL of the API used by the generated client | `[pending: BL-14]` |
+| `VITE_API_URL` | Base URL of the API used by the generated client | `[implemented]` |
 
-- **CFG-07** `[pending: BL-14]` The API base URL used by the web app is configurable (`VITE_API_URL`) instead of being hardcoded as `http://localhost:3000` in the generated client (`orval.config.ts` `baseUrl`) and empty `baseURL` in `apps/web/src/lib/api/mutator/customInstance.ts`.
-- **CFG-09** `[pending: BL-14]` Orval generates paths without a host (`/api/v1/...`) and `customInstance` prefixes them with `VITE_API_URL`. The web validates `import.meta.env` with Zod when it starts (`apps/web/src/config/env.ts`): `VITE_API_URL` must be a URL; it defaults to `http://localhost:3000` in development and is required in a production build.
+- **CFG-07** `[implemented]` The API base URL used by the web app is configurable (`VITE_API_URL`, template in `apps/web/.env.example`); nothing in the web hardcodes the API host.
+- **CFG-09** `[implemented]` Orval generates paths without a host (`/api/v1/...`) and `customInstance` prefixes them with `VITE_API_URL`. The web validates `import.meta.env` with Zod when it starts (`apps/web/src/config/env.ts`): `VITE_API_URL` must be a URL; it defaults to `http://localhost:3000` in development and is required in a production build.
 
 ## 3. Code generation configuration
 
