@@ -17,7 +17,7 @@
     "Encuestas",
     "Empresarial"
   ],
-  "author": "Daxho",
+  "author": "Dayron Alexis Díaz Rodríguez (Daxho)",
   "license": "MIT",
   "dependencies": {
     "@survey-system/schemas": "workspace:*",

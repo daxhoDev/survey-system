@@ -1,9 +1,7 @@
-import { tr } from "zod/locales";
 import { prisma } from "../lib/prisma.js";
 import {
   type CreateUserData,
   type IUserRepository,
-  type LoginData,
   type User,
   type UserWithoutPassword,
 } from "../types.js";

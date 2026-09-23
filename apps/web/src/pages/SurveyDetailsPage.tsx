@@ -686,25 +686,44 @@ export default function SurveyDetailsPage() {
               </div>
 
               <div className="pt-6 border-t border-border/40 flex justify-end">
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => {
-                    if (
-                      confirm("¿Seguro que deseas eliminar esta respuesta?")
-                    ) {
-                      deleteAnswer.mutate({
-                        slug: survey.slug,
-                        id: selectedAnswer.id,
-                      });
-                    }
-                  }}
-                  disabled={deleteAnswer.isPending}
-                  className="cursor-pointer gap-2"
-                >
-                  <Trash2 className="size-4" />
-                  <span>Eliminar respuesta</span>
-                </Button>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      disabled={deleteAnswer.isPending}
+                      className="cursor-pointer gap-2"
+                    >
+                      <Trash2 className="size-4" />
+                      <span>Eliminar respuesta</span>
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Confirma tu acción</DialogTitle>
+                      <DialogDescription>
+                        ¿Seguro que deseas eliminar esta respuesta?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <Button
+                        variant="destructive"
+                        disabled={deleteAnswer.isPending}
+                        onClick={() =>
+                          deleteAnswer.mutate({
+                            slug: survey.slug,
+                            id: selectedAnswer.id,
+                          })
+                        }
+                      >
+                        Eliminar
+                      </Button>
+                      <DialogClose asChild>
+                        <Button variant="secondary">Cancelar</Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
               </div>
             </div>
           )}

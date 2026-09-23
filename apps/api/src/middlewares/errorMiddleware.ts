@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import AppError from "../utils/appError.js";
-import z, { ZodError } from "zod";
+import { ZodError } from "zod";
 import { type TokenExpiredError } from "jsonwebtoken";
 import { getLogger } from "../context/requestContext.js";
 
@@ -9,8 +9,6 @@ export class ErrorMiddleware {
     const errors = err.issues.map((i) => {
       return { field: i.path.join("."), message: i.message };
     });
-
-    console.log("FAAAH", errors);
 
     return new AppError(
       "Validation Error",
@@ -83,6 +81,7 @@ export class ErrorMiddleware {
           detail: err.detail,
           ...err.extensions,
         });
+      return;
     }
     res.status(500).type("application/problem+json").json({
       type: err.type,

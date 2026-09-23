@@ -1,33 +1,51 @@
-# Survey System Agent Instructions
+# Survey System — Agent Instructions
 
-## Workspace & Commands
+These rules are **mandatory** for any agent (and human) working in this repository.
 
-- **Monorepo:** Managed with `pnpm` workspaces.
-- **Root Scripts:**
-  - `pnpm dev`: Runs development servers for all apps in parallel.
-- **Dependencies:** Always use `pnpm` in the root or appropriate workspace directory.
+## 1. The specs are the source of truth
 
-## Backend (apps/api)
+- The specifications in [`docs/sdd/`](docs/sdd/MAIN.md) are the **primary source of truth**.
+  Start at [`docs/sdd/MAIN.md`](docs/sdd/MAIN.md), the index that links every spec.
+- **Before implementing any change — feature, fix, refactor, dependency, config, docs —
+  you must read and follow the relevant specs** and the process in
+  [`docs/sdd/00-sdd-process.md`](docs/sdd/00-sdd-process.md).
+- If code and specs disagree, the specs win. Planned gaps are tracked in
+  [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
 
-- **Framework:** Express + TypeScript.
-- **Database:** PostgreSQL with Prisma ORM.
-- **OpenAPI:** Uses `@asteasolutions/zod-to-openapi`.
-  - Always update `apps/api/src/lib/openapi.ts` when modifying or adding API endpoints.
-  - Endpoints should use `defaultResponses` (defined in `openapi.ts`) for consistent `application/problem+json` error handling.
-- **Validation:** Zod schemas are the source of truth for both validation and OpenAPI documentation.
-- **Error Handling:**
-  - All errors are handled by `ErrorMiddleware`.
-  - Always use `AppError` (exported from `apps/api/src/utils/appError.ts`) for operational errors.
-  - Ensure all routes are protected with `AuthMiddleware` where applicable.
+## 2. Deviations
 
-## Frontend (apps/web)
+- Any deviation from the specs must be declared in
+  [`docs/sdd/DEVIATIONS.md`](docs/sdd/DEVIATIONS.md) **and** documented in every
+  spec where it is relevant.
+- No deviation may be introduced without the owner's explicit approval.
 
-- **Framework:** Vite + React + Tailwind CSS.
-- **Styling:** shadcn/ui components (located in `apps/web/src/components/ui`).
-- **Routing:** React Router
-- **Global State:** Tanstack Query
+## 3. Keep everything in sync
 
-## Important Conventions
+- Every change must be documented exhaustively **wherever it is mentioned**: the
+  affected specs, cross-references, `BACKLOG.md`, `DEVIATIONS.md`, the OpenAPI
+  registry (`apps/api/src/lib/openapi.ts`) and the root [`README.md`](README.md).
+- The specs must **always** be synchronized and up to date. A change is not done
+  until they are.
+- `README.md` (repository root) is the only README and is aimed at visitors of the
+  repository; keep it consistent with the specs.
 
-- **Migrations:** Prisma is used for migrations. Check `apps/api/prisma/migrations` if schema changes are needed.
-- **Generated Code:** `apps/api/src/generated/prisma` is generated code; do not edit directly.
+## 4. Never decide alone
+
+- **Consult the owner before making any change.** Never take decisions on your own.
+- Analyze the possible options, present them with trade-offs and a
+  recommendation, and wait for an explicit decision.
+- Ask every pertinent question so that no doubt is resolved by the agent.
+  Items marked `[open: OQ-xx]` in the specs are undecided by definition.
+
+## 5. Where to find things
+
+| Topic | Spec |
+|-------|------|
+| Workflow, backlog and deviation rules | [00-sdd-process.md](docs/sdd/00-sdd-process.md) |
+| Monorepo, backend layers, request pipeline | [02-architecture.md](docs/sdd/02-architecture.md) |
+| Database and JSON documents | [03-data-model.md](docs/sdd/03-data-model.md) |
+| Responses, errors (`AppError`, problem+json), rate limits, OpenAPI | [04-api-conventions.md](docs/sdd/04-api-conventions.md) |
+| Environment variables | [05-configuration.md](docs/sdd/05-configuration.md) |
+| Auth, surveys, answers, stats | [10](docs/sdd/10-auth.md) · [11](docs/sdd/11-surveys.md) · [12](docs/sdd/12-answers.md) · [13](docs/sdd/13-stats.md) |
+| Web app | [20-frontend.md](docs/sdd/20-frontend.md) |
+| Commands, codegen, migrations, testing, deployment | [30-dev-workflow.md](docs/sdd/30-dev-workflow.md) |

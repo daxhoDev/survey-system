@@ -1,5 +1,4 @@
 import z from "zod";
-import type { answersCreateInput } from "../generated/prisma/models.js";
 import { createAnswerSchema } from "@survey-system/schemas";
 import AppError from "../utils/appError.js";
 import {
@@ -164,7 +163,6 @@ export default class AnswerService implements IAnswerService {
           ) {
             message =
               "The response content for a multi selection question must be an array of valid option id's";
-            console.log(response, matchingQuestion);
             return false;
           }
         }

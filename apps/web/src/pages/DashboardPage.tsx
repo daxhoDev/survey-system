@@ -1,7 +1,5 @@
 import { useEffect } from "react";
 import DashboardHeader from "@/components/DashboardHeader";
-import DashboardSidebar from "@/components/DashboardSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import { useGetCurrentUser } from "@/lib/api/users/users";
 import { Outlet, useNavigate } from "react-router";
 
@@ -30,16 +28,11 @@ export default function DashboardPage() {
   }
 
   return (
-    <>
-      {/* <SidebarProvider> */}
-      {/* <DashboardSidebar /> */}
-      <div className="w-full">
-        <DashboardHeader />
-        <div className="max-w-6xl mx-auto">
-          <Outlet />
-        </div>
+    <div className="w-full">
+      <DashboardHeader />
+      <div className="max-w-6xl mx-auto">
+        <Outlet />
       </div>
-      {/* </SidebarProvider> */}
-    </>
+    </div>
   );
 }
