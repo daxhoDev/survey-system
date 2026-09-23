@@ -39,7 +39,7 @@ allowed by `.gitignore`.
 | `VITE_API_URL` | Base URL of the API used by the generated client | `[pending: BL-14]` |
 
 - **CFG-07** `[pending: BL-14]` The API base URL used by the web app is configurable (`VITE_API_URL`) instead of being hardcoded as `http://localhost:3000` in the generated client (`orval.config.ts` `baseUrl`) and empty `baseURL` in `apps/web/src/lib/api/mutator/customInstance.ts`.
-- **CFG-09** `[open: OQ-17]` How `VITE_API_URL` is applied and validated (e.g. Orval generating relative paths and `customInstance` prefixing `VITE_API_URL`; Zod validation of `import.meta.env` in the web).
+- **CFG-09** `[pending: BL-14]` Orval generates paths without a host (`/api/v1/...`) and `customInstance` prefixes them with `VITE_API_URL`. The web validates `import.meta.env` with Zod when it starts (`apps/web/src/config/env.ts`): `VITE_API_URL` must be a URL; it defaults to `http://localhost:3000` in development and is required in a production build.
 
 ## 3. Code generation configuration
 

@@ -23,8 +23,8 @@
   - on `401` (except for the refresh call itself) performs **one shared** `POST /api/v1/users/refresh` (concurrent 401s wait on the same promise) and, if it succeeds, retries the original request once;
   - returns `null` for `204`.
 - **FE-10** `[implemented]` `QueryClient` retries failed queries up to 3 times, except `401`/`403` which are not retried.
-- **FE-11** `[pending: BL-16]` Because the OpenAPI document does not describe the real envelopes (BL-01), pages cast responses (`(data as any)?.data`, `as unknown as`). After BL-01 the client must be regenerated and these casts removed.
-- **FE-12** `[pending: BL-14]` The API base URL comes from `VITE_API_URL` (CFG-07). Currently the generated client hardcodes `http://localhost:3000`, and `SurveyDetailsPage` invalidates a hardcoded query key `http://localhost:3000/api/v1/surveys/${slug}` (should use `getGetSurveyBySlugQueryKey`).
+- **FE-11** `[pending: BL-16]` Orval is configured so each generated response type is the response **body** (`fetch.includeHttpResponseReturnType: false`), matching what `customInstance` returns. Pages read `data?.data` with real types and never cast responses (`as any`, `as unknown as`). (Currently they cast.)
+- **FE-12** `[pending: BL-14]` The API base URL comes from `VITE_API_URL` (CFG-07, CFG-09). Query keys always come from the generated helpers (e.g. `getGetSurveyBySlugQueryKey`), never hardcoded. (Currently the generated client hardcodes `http://localhost:3000` and `SurveyDetailsPage` invalidates a hardcoded key.)
 
 ## 3. Routes (`apps/web/src/App.tsx`)
 

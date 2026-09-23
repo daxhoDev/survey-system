@@ -78,4 +78,4 @@ packages/schemas (Zod) ──► apps/api validation (services/controllers)
                                                 apps/web/src/lib/api (generated hooks + types)
 ```
 
-- **ARCH-12** `[pending: BL-01]` The OpenAPI document must describe the real responses (envelope, status codes, server URL). Until BL-01 is done, the generated web client types may not match the actual payloads and the web code casts responses (`as any`, `as unknown as`).
+- **ARCH-12** `[pending: BL-01]` The OpenAPI document must describe the real responses (envelope, status codes, server URL, cookie auth), so the generated web client types match the actual payloads and the web code needs no response casts (FE-11).
