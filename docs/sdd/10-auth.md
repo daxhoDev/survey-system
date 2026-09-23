@@ -52,7 +52,7 @@ Body (`createUserSchema`, strict):
 
 Body (`loginDataSchema`, strict): `email` (valid email), `password` (string, min 5).
 
-- **AUTH-14** `[pending: BL-09]` Unknown email **and** wrong password both return the same `401 Invalid credentials` response (same title and detail). bcrypt comparison is always executed (against a dummy hash when the user does not exist) so response time does not reveal whether the email exists. (Currently: unknown email → `404 "This email is not registered"`; wrong password → `401 "Incorrect credentials"`.)
+- **AUTH-14** `[implemented]` Unknown email **and** wrong password both return the same `401` response: title `Invalid credentials`, detail `Invalid email or password`. bcrypt comparison is always executed (against a dummy hash generated once at startup with the same cost factor, 10, when the user does not exist) so response time does not reveal whether the email exists.
 - **AUTH-15** `[implemented]` On success: deletes the user's existing refresh token if any, creates a new one, sets both cookies, responds `200 { data: { id, username, email, createdAt, deletedAt } }`.
 
 ### POST `/api/v1/users/logout` — authenticated

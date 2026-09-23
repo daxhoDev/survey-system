@@ -8,12 +8,10 @@ import type {
 } from "../types.js";
 
 export default class AnswerRepository implements IAnswerRepository {
-  async getAllFromSurvey(surveySlug: string): Promise<Answer[]> {
+  async getAllFromSurvey(surveyId: string): Promise<Answer[]> {
     const results = await prisma.answers.findMany({
       where: {
-        surveys: {
-          slug: surveySlug,
-        },
+        survey_id: surveyId,
         deleted_at: null,
       },
     });
@@ -33,6 +31,7 @@ export default class AnswerRepository implements IAnswerRepository {
   }
 
   async getById(
+    surveyId: string,
     id: string,
   ): Promise<
     (Answer & { surveys: Pick<Survey, "name" | "questions"> | null }) | null
@@ -40,6 +39,7 @@ export default class AnswerRepository implements IAnswerRepository {
     const result = await prisma.answers.findUnique({
       where: {
         id,
+        survey_id: surveyId,
         deleted_at: null,
       },
       include: {

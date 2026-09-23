@@ -40,8 +40,9 @@ export interface ISurveyRepository {
 }
 
 export interface IAnswerRepository {
-  getAllFromSurvey(slug: string): Promise<Answer[]>;
+  getAllFromSurvey(surveyId: string): Promise<Answer[]>;
   getById(
+    surveyId: string,
     id: string,
   ): Promise<
     (Answer & { surveys: Pick<Survey, "name" | "questions"> | null }) | null
@@ -92,10 +93,13 @@ export interface ISurveyService extends Omit<
 > {
   getStatsBySlug(slug: string): Promise<SurveyStats>;
 }
-export interface IAnswerService extends Omit<
-  IAnswerRepository,
-  "createOne" | "getIpBySurveyIdAndIp"
-> {
+export interface IAnswerService {
+  getAllFromSurvey(surveySlug: string): Promise<Answer[]>;
+  getById(
+    surveySlug: string,
+    id: string,
+  ): Promise<Answer & { surveys: Pick<Survey, "name" | "questions"> | null }>;
+  deleteById(surveySlug: string, id: string): Promise<void>;
   createOne(
     answer: CreateAnswerData,
     slug: string,

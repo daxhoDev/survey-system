@@ -20,15 +20,24 @@ export default class AnswerService implements IAnswerService {
   ) {}
 
   async getAllFromSurvey(surveySlug: string): Promise<Answer[]> {
-    return await this.answerRepo.getAllFromSurvey(surveySlug);
+    const survey = await this.getSurveyBySlug(surveySlug);
+    return await this.answerRepo.getAllFromSurvey(survey.id);
   }
 
   async getById(
+    surveySlug: string,
     id: string,
-  ): Promise<
-    (Answer & { surveys: Pick<Survey, "name" | "questions"> | null }) | null
-  > {
-    return await this.answerRepo.getById(id);
+  ): Promise<Answer & { surveys: Pick<Survey, "name" | "questions"> | null }> {
+    const survey = await this.getSurveyBySlug(surveySlug);
+    const answer = await this.answerRepo.getById(survey.id, id);
+    if (!answer)
+      throw new AppError(
+        "Not found",
+        "The requested answer doesn't exist",
+        404,
+      );
+
+    return answer;
   }
 
   async createOne(
@@ -40,7 +49,7 @@ export default class AnswerService implements IAnswerService {
     if (!success) throw error;
 
     const referencedSurvey = await this.surveyRepo.getBySlug(slug);
-    if (!referencedSurvey)
+    if (!referencedSurvey || !referencedSurvey.isActive)
       throw new AppError(
         "Not found",
         "The survey you are trying to answer doesn't exist",
@@ -71,8 +80,21 @@ export default class AnswerService implements IAnswerService {
     });
   }
 
-  async deleteById(id: string) {
+  async deleteById(surveySlug: string, id: string) {
+    await this.getById(surveySlug, id);
     await this.answerRepo.deleteById(id);
+  }
+
+  private async getSurveyBySlug(slug: string): Promise<Survey> {
+    const survey = await this.surveyRepo.getBySlug(slug);
+    if (!survey)
+      throw new AppError(
+        "Not found",
+        "The requested survey doesn't exist",
+        404,
+      );
+
+    return survey;
   }
 
   validateAnswerCreation(

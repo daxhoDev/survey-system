@@ -94,7 +94,7 @@ Body (`updateSurveySchema`, non-strict): `name?`, `questions?`, `isActive?` (boo
 ### DELETE `/api/v1/surveys/:slug` — authenticated
 
 - **SURV-17** `[implemented]` Unknown or deleted slug → `404`. Otherwise soft delete (`deleted_at = now`), `204`.
-- **SURV-18** `[pending: BL-13]` Answers of a deleted survey are kept (not soft-deleted) but are unreachable through the API: every answer route first resolves a **non-deleted** survey by slug and returns `404` otherwise (ANS-08). (Currently `GET …/answers` filters by slug without checking the survey's `deleted_at`, and `GET/DELETE …/answers/:id` ignore the slug.)
+- **SURV-18** `[implemented]` Answers of a deleted survey are kept (not soft-deleted) but are unreachable through the API: every answer route first resolves a **non-deleted** survey by slug and returns `404` otherwise (ANS-08).
 - **SURV-19** `[open: OQ-08]` Whether locked/active surveys may be deleted is undecided (currently allowed).
 
 ### GET `/api/v1/surveys/:slug/stats`
