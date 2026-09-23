@@ -37,6 +37,19 @@ model; differences with the current schema are tagged.
 | `created_at` | TIMESTAMPTZ | default now |
 | `expires_at` | TIMESTAMPTZ | now + `REFRESH_TOKEN_TTL_DAYS` days |
 
+### `invitations` `[pending: BL-03]`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | UUID PK | v7 |
+| `email` | TEXT | invited email; the account is created with it |
+| `token_hash` | TEXT UNIQUE | SHA-256 hex of the raw token (AUTH-23) |
+| `invited_by` | UUID? FK → users.id | `ON DELETE SET NULL` |
+| `created_at` | TIMESTAMPTZ | default now |
+| `expires_at` | TIMESTAMPTZ | created_at + 48 h |
+| `accepted_at` | TIMESTAMPTZ? | set when the account is created |
+| `revoked_at` | TIMESTAMPTZ? | set when revoked or replaced |
+
 ### `surveys`
 
 | Column | Type | Notes |

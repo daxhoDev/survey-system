@@ -36,21 +36,28 @@ Schemas: `packages/schemas/src/userSchema.ts`, `authSchema.ts`.
 
 ## 3. Endpoints
 
-### POST `/api/v1/users/signup` — public
+### Account creation
 
-Body (`createUserSchema`, strict):
+- **AUTH-13** `[pending: BL-03]` There is no public signup: `POST /api/v1/users/signup` does not exist (it answers the generic `404` of API-03). Accounts are created only by accepting an invitation (§3.1) or with the `create-user` command (AUTH-31).
+- **AUTH-10** `[implemented]` An email or username already used by a non-deleted user → `409 Conflict`. Applies to invitations (email, AUTH-24) and to accepting one (username, AUTH-29).
+- **AUTH-11** `[implemented]` Passwords are stored with bcrypt, cost 10. User ids are UUID v7. Username: string, min 3, max 50 (DB column); password: string, min 5, confirmed by `passwordConfirm`.
+- **AUTH-12** ~~removed~~ — described the public signup response; replaced by AUTH-29.
 
-| Field | Rule |
-|-------|------|
-| `email` | valid email |
-| `username` | string, min 3 (max 50 by DB column) |
-| `password` | string, min 5 |
-| `passwordConfirm` | must equal `password` (error on `passwordConfirm`) |
+### 3.1 Invitations — `/api/v1/invitations`
 
-- **AUTH-10** `[implemented]` Email already used by a non-deleted user → `409 Conflict`. Same for username.
-- **AUTH-11** `[implemented]` Password stored with bcrypt, cost 10. User id is UUID v7.
-- **AUTH-12** `[implemented]` On success: creates refresh token, sets both cookies, responds `200 { data: { id, username, email, createdAt, deletedAt } }`. The password is never returned.
-- **AUTH-13** `[pending: BL-03]` Public signup will be replaced by an **invitation-based account creation flow**. Until then the endpoint stays public. The flow's design is not specified yet and must be agreed with the owner before implementation.
+Code: `routes/invitationRouter.ts`, `controllers/invitationController.ts`, `services/invitationService.ts`, `repositories/invitationRepository.ts`. Schemas: `packages/schemas/src/invitationSchema.ts`.
+
+An invitation lets one person create one account with a fixed email. Any user with a session may invite (there are no roles). The link is shown to the inviter to copy and send by their own means; the API sends no email.
+
+- **AUTH-23** `[pending: BL-03]` The invitation token is 32 random bytes (base64url). Only its SHA-256 hex hash is stored; the raw token is returned once, when the invitation is created. It is single use and expires **48 hours** after creation. Status is derived: `accepted` (`accepted_at` set), `revoked` (`revoked_at` set), `expired` (`expires_at < now`), otherwise `pending`.
+- **AUTH-24** `[pending: BL-03]` `POST /api/v1/invitations` — authenticated. Body `{ email }` (strict, valid email). Email of a non-deleted user → `409 Conflict` ("There is already an user with this email"). A pending invitation for the same email is revoked and replaced. Response `201 { data: { invitation: Invitation, token } }`.
+- **AUTH-25** `[pending: BL-03]` `GET /api/v1/invitations` — authenticated. All invitations, newest first: `200 { data: Invitation[], meta: { results } }`. `Invitation` = `{ id, email, status, invitedBy: { id, username } | null, createdAt, expiresAt, acceptedAt, revokedAt }`; the token and its hash are never returned.
+- **AUTH-26** `[pending: BL-03]` `DELETE /api/v1/invitations/:id` — authenticated. Revokes a pending invitation (`revoked_at = now`) → `204`. Unknown id → `404 Not found` ("The requested invitation doesn't exist"); an invitation that is not pending → `409 Conflict` ("This invitation is no longer pending").
+- **AUTH-27** `[pending: BL-03]` `GET /api/v1/invitations/token/:token` — public. A pending invitation → `200 { data: { email, expiresAt } }`. Unknown, expired, revoked or accepted → the same `404 Not found` ("This invitation is invalid or has expired").
+- **AUTH-28** `[pending: BL-03]` `POST /api/v1/invitations/token/:token/accept` — public. Body `{ username, password, passwordConfirm }` (strict, AUTH-11) → `422` on failure. Invalid token → the `404` of AUTH-27.
+- **AUTH-29** `[pending: BL-03]` Accepting creates the user with the invitation's email, marks the invitation accepted in the same transaction, creates the refresh token, sets both cookies (AUTH-01) and responds `201 { data: { id, username, email, createdAt, deletedAt } }`. Username or email taken by a non-deleted user → `409 Conflict` (AUTH-10).
+- **AUTH-30** `[pending: BL-03]` The two public token routes use the stricter limiter of `/users` (API-21) in addition to the global one.
+- **AUTH-31** `[pending: BL-03]` First account: `pnpm create-user` in `apps/api` (`tsx src/scripts/createUser.ts`; `node dist/scripts/createUser.js` in a built image) asks for email, username and password (twice, not echoed), applies AUTH-10 and AUTH-11 and creates the user directly in the database. It prints to the console (CLI, API-33).
 
 ### POST `/api/v1/users/login` — public
 
@@ -76,4 +83,4 @@ Body (`loginDataSchema`, strict): `email` (valid email), `password` (string, min
 
 ## 4. Rate limiting
 
-All `/api/v1/users/*` routes are subject to the stricter limiter (API-21).
+All `/api/v1/users/*` routes and the public invitation token routes (AUTH-30) are subject to the stricter limiter (API-21).

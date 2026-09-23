@@ -28,7 +28,7 @@ In scope:
 
 Planned (see [BACKLOG.md](BACKLOG.md)):
 
-- Invitation-based account creation replacing public signup (BL-03).
+- Invitation-based account creation replacing public signup (BL-03, see 10-auth §3.1).
 - Containerized deployment (BL-02).
 
 Out of scope: roles/permissions, multi-tenancy, respondent accounts, email
