@@ -1,9 +1,10 @@
 import pino, { stdTimeFunctions } from "pino";
+import { env } from "./env.js";
 
-const isDevelopment = process.env.NODE_ENV === "development";
+const isDevelopment = env.NODE_ENV === "development";
 
 export default pino({
-  level: "info",
+  level: env.LOG_LEVEL,
   timestamp: stdTimeFunctions.isoTime,
   transport: {
     ...(isDevelopment
@@ -23,6 +24,6 @@ export default pino({
     censor: "[REDACTED]",
   },
   base: {
-    enviroment: process.env.NODE_ENV,
+    enviroment: env.NODE_ENV,
   },
 });

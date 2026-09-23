@@ -3,6 +3,7 @@ import AppError from "../utils/appError.js";
 import { ZodError } from "zod";
 import { type TokenExpiredError } from "jsonwebtoken";
 import { getLogger } from "../context/requestContext.js";
+import { env } from "../config/env.js";
 
 export class ErrorMiddleware {
   handleZodError(err: ZodError) {
@@ -47,9 +48,9 @@ export class ErrorMiddleware {
       logger.warn({ err }, `Client Error: ${err.title}`);
     }
 
-    if (process.env.NODE_ENV === "development") {
+    if (env.NODE_ENV === "development") {
       this.sendErrorDev(err, res);
-    } else if (process.env.NODE_ENV === "production") {
+    } else {
       this.sendErrorProd(err, res);
     }
   };

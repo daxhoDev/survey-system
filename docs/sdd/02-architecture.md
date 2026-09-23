@@ -26,7 +26,7 @@ services/      Business rules and validation (Zod safeParse + domain checks), th
 repositories/  Data access with Prisma; map snake_case DB rows ⇄ camelCase domain objects
 middlewares/   auth, error, logging, request context
 lib/           prisma client, openapi registry/generator, zod setup
-config/        pino logger
+config/        env (validated configuration), pino logger
 context/       AsyncLocalStorage request context (per-request child logger)
 utils/         AppError, rate limiter factory, BigInt-safe JSON serializer
 types.ts       Domain types (inferred from Zod) and repository/service interfaces

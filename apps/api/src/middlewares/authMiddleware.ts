@@ -5,6 +5,7 @@ import z from "zod";
 import { jwtSchema } from "@survey-system/schemas";
 import type { ProtectedRequest, UserPayload } from "../types.js";
 import { getLogger, requestContext } from "../context/requestContext.js";
+import { env } from "../config/env.js";
 
 export default class AuthMiddleware {
   async protect(req: ProtectedRequest, res: Response, next: NextFunction) {
@@ -21,7 +22,7 @@ export default class AuthMiddleware {
 
     const decoded = jwt.verify(
       validToken,
-      process.env.JWT_SECRET as string,
+      env.JWT_SECRET,
     ) as UserPayload;
 
     const userInfo = {
@@ -49,7 +50,7 @@ export default class AuthMiddleware {
     try {
       decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET as string,
+        env.JWT_SECRET,
       ) as UserPayload;
     } catch (err) {
       if (err instanceof jwt.TokenExpiredError) {

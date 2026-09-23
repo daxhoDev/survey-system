@@ -7,7 +7,7 @@
 Loaded with `dotenv/config`. `.env` files are git-ignored; `.env.example` is
 allowed by `.gitignore`.
 
-### 1.1 Target variables `[pending: BL-05]`
+### 1.1 Variables `[implemented]`
 
 | Variable | Required | Default | Format / values | Meaning |
 |----------|----------|---------|-----------------|---------|
@@ -20,27 +20,15 @@ allowed by `.gitignore`.
 | `CORS_ORIGIN` | in `production` | `http://localhost:5173` in `development` | single URL | Allowed CORS origin (one origin only) |
 | `LOG_LEVEL` | no | `info` | pino level (`fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`) | Logger level |
 
-### 1.2 Current variables (to be replaced by BL-05)
+### 1.2 Requirements
 
-| Variable | Current format | Replaced by |
-|----------|----------------|-------------|
-| `JWT_EXPIRES_IN` | passed verbatim to jsonwebtoken `expiresIn`; a bare number string such as `"15"` is interpreted as **milliseconds** | `ACCESS_TOKEN_TTL_MINUTES` |
-| `JWT_COOKIE_EXPIRES_IN` | minutes | `ACCESS_TOKEN_TTL_MINUTES` |
-| `REFRESH_EXPIRES_IN` | days | `REFRESH_TOKEN_TTL_DAYS` |
-| `REFRESH_COOKIE_EXPIRES_IN` | days | `REFRESH_TOKEN_TTL_DAYS` |
-
-`DATABASE_URL`, `PORT`, `NODE_ENV` and `JWT_SECRET` exist today without validation;
-`CORS_ORIGIN` and `LOG_LEVEL` do not exist yet (origin hardcoded, level `info`).
-
-### 1.3 Requirements
-
-- **CFG-01** `[pending: BL-05]` The schema lives in `apps/api/src/config/env.ts` (API-only; not in `packages/schemas`). It is validated at startup, before `app` is imported and before the server listens.
-- **CFG-02** `[pending: BL-05]` On validation failure the process prints **every** issue (variable + message) and exits with code `1`. Secret values are never printed.
-- **CFG-03** `[pending: BL-05]` Code reads configuration only from the exported, typed config object — never from `process.env` directly (no `as string` casts). Numeric values are coerced (`z.coerce.number().int().positive()`).
-- **CFG-04** `[pending: BL-05]` `NODE_ENV` accepts only `development` or `production` (API-15).
-- **CFG-05** `[pending: BL-05]` `apps/api/.env.example` documents every variable with safe example values and is kept in sync with the schema.
-- **CFG-06** `[pending: BL-05]` The CORS origin comes from `CORS_ORIGIN` (API-24); in `production` it is required, in `development` it defaults to `http://localhost:5173`.
-- **CFG-08** `[pending: BL-05]` `apps/api/prisma.config.ts` is executed by the Prisma CLI and keeps reading `DATABASE_URL` from `process.env`; it is outside the runtime schema.
+- **CFG-01** `[implemented]` The schema lives in `apps/api/src/config/env.ts` (API-only; not in `packages/schemas`). It is validated at startup, before `app` is imported and before the server listens.
+- **CFG-02** `[implemented]` On validation failure the process prints **every** issue (variable + message) to stderr with `console.error` (the only exception to API-33) and exits with code `1`. Secret values are never printed.
+- **CFG-03** `[implemented]` Code reads configuration only from the exported, typed config object — never from `process.env` directly (no `as string` casts). Numeric values are coerced (`z.coerce.number().int().positive()`).
+- **CFG-04** `[implemented]` `NODE_ENV` accepts only `development` or `production` (API-15).
+- **CFG-05** `[implemented]` `apps/api/.env.example` documents every variable with safe example values and is kept in sync with the schema.
+- **CFG-06** `[implemented]` The CORS origin comes from `CORS_ORIGIN` (API-24); in `production` it is required, in `development` it defaults to `http://localhost:5173`.
+- **CFG-08** `[implemented]` `apps/api/prisma.config.ts` is executed by the Prisma CLI and keeps reading `DATABASE_URL` from `process.env`; it is outside the runtime schema.
 
 ## 2. Web configuration
 
