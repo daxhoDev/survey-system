@@ -18,7 +18,7 @@
 | BL-03 | **Invitation-based account creation flow** replacing public `POST /users/signup`, plus its UI. Design to be agreed with the owner. | AUTH-13, FE-14 |
 | BL-04 | **`is_locked` survey column**: migration (`BOOLEAN NOT NULL DEFAULT false`), repository mapping, `isLocked` in the survey schema/response, lock set on first activation, edit rules of SURV-14, and only touch `activated_at` when `isActive` is present. No data backfill is needed: as of 2026-09-23 there is no deployed database. | SURV-02, SURV-03, SURV-14, DATA (surveys) |
 | BL-05 | **Environment validation with Zod** in `apps/api/src/config/env.ts`: fail-fast listing all issues, typed config object replacing every `process.env` read, defaults/required policy of 05-configuration §1.1, replace the four token-lifetime variables with `ACCESS_TOKEN_TTL_MINUTES` and `REFRESH_TOKEN_TTL_DAYS`, add `LOG_LEVEL`, `JWT_SECRET` ≥ 32 chars, `NODE_ENV` ∈ {`development`,`production`}, `apps/api/.env.example`. | CFG-01…05, CFG-08, API-15, API-25, AUTH-01, AUTH-02 |
-| BL-06 | **IP uniqueness per survey**: migration replacing unique `origin_ip` with composite unique `(survey_id, origin_ip)`; service checks duplicates for the resolved survey. | DATA-07, ANS-03 |
+| BL-06 | **IP uniqueness per survey**: migration replacing unique `origin_ip` with composite unique `(survey_id, origin_ip)`; the service checks duplicates by survey id **after** resolving the survey (ANS-02 before ANS-03). | DATA-07, ANS-03 |
 | BL-07 | **Reject answers to inactive surveys** with the same `404` as a non-existent survey. | ANS-05, FE-24 |
 | BL-08 | **Hide inactive surveys from anonymous users** on `GET /surveys/:slug` (optional-auth middleware; `404` without session). | SURV-12, FE-24 |
 | BL-09 | **Login without user enumeration**: single `401 Invalid credentials`, constant-time-ish bcrypt check. | AUTH-14 |
@@ -29,6 +29,7 @@
 | BL-17 | **Seed and scripts**: create the seed script (or remove `seed` script and Prisma seed config); remove the broken `generate:api` script in `apps/web`. | DEV-WF-01 |
 | BL-18 | **Testing strategy**: choose framework(s), scope and minimum coverage with the owner; specify in 30-dev-workflow. | DEV-WF-02 |
 | BL-20 | **Make the API typecheck clean** so `pnpm build` in `apps/api` (`tsc`) finishes with zero errors: in `packages/schemas`, add the `.js` extension to relative imports (`./zod-setup` in `authSchema.ts`, `queryStringsSchema.ts`) and type the implicit-`any` `value` parameters in `queryStringsSchema.ts`; in `apps/api`, fix `SurveyRepository.updateOneBySlug` (`name`/`is_active` may be `undefined` under `exactOptionalPropertyTypes`) and add an explicit return type to `generateOpenApiDocument` in `apps/api/src/lib/openapi.ts` (TS2883: inferred type references `OpenAPIObject` from `openapi3-ts`; only reported when emitting, not with `--noEmit`). The approach for each fix is agreed with the owner before implementing it. | DEV-WF-04 |
+| BL-21 | **Centralize confirmations in `ConfirmationDialog`**: answer deletion in `SurveyDetailsPage` uses `ConfirmationDialog`; remove the commented-out survey-deletion `DialogContent` and any `Dialog*` import left unused. | FE-25, FE-16, FE-21, FE-22 |
 
 ## Open questions
 
