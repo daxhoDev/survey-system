@@ -5,7 +5,7 @@
 ## 1. Prerequisites
 
 - Node.js (version not pinned — see BL-02), pnpm `11.5.3` (root `devEngines`, auto-downloaded).
-- PostgreSQL reachable through `DATABASE_URL`.
+- PostgreSQL reachable through `DATABASE_URL`. For local work, `docker compose up -d` (root `docker-compose.yml`) starts `postgres:18-alpine` on `localhost:5432` (user and password `postgres`) with two databases: `survey_system` (development) and `survey_system_test` (tests), created by `docker/postgres/init.sql` the first time the volume is created. This compose file is for local use only, not for deployment (BL-02).
 
 ## 2. Commands
 
@@ -13,11 +13,15 @@
 |-------|---------|--------|
 | root | `pnpm install` | Install all workspaces |
 | root | `pnpm dev` | Run `dev` of every workspace in parallel (API `tsx watch src/server.ts`, web `vite`) |
+| root | `docker compose up -d` / `docker compose down` | Start / stop the local PostgreSQL (data kept in the `pgdata` volume) |
+| root | `pnpm test` | Run the tests of every workspace (`pnpm -r test`) |
 | root | `pnpm generate:api` | Run Orval: regenerate `apps/web/src/lib/api` from `http://localhost:3000/api/v1/docs-raw` (API must be running) |
 | `apps/api` | `pnpm exec prisma migrate dev` | Create/apply migrations |
 | `apps/api` | `pnpm exec prisma generate` | Regenerate the Prisma client in `src/generated/prisma` |
 | `apps/api` | `pnpm build` / `pnpm start` | `tsc` → `dist/`, run `node dist/server.js` |
+| `apps/api` | `pnpm test` / `pnpm test:watch` / `pnpm test:coverage` | Vitest: one run / watch mode / one run with a v8 coverage report (`coverage/`) |
 | `apps/web` | `pnpm build` / `pnpm preview` / `pnpm lint` | `tsc -b && vite build`, preview, ESLint |
+| `apps/web` | `pnpm test` / `pnpm test:watch` | Vitest: one run / watch mode |
 
 Dev URLs: API `http://localhost:3000` (Swagger at `/api/v1/docs`), web `http://localhost:5173`.
 
@@ -34,7 +38,13 @@ Dev URLs: API `http://localhost:3000` (Swagger at `/api/v1/docs`), web `http://l
 
 ## 4. Testing
 
-- **DEV-WF-02** `[pending: BL-18]` There are no automated tests (`apps/api` `test` script is a placeholder). A testing strategy (framework, scope, minimum coverage) must be defined with the owner and then specified here.
+- **DEV-WF-02** `[implemented]` Tests use **Vitest** in both apps. Test files live outside `src` (`apps/api/tests`, `apps/web/tests`) and name the requirement IDs they cover.
+  - **API, `unit` project** (`apps/api/tests/unit`, no database): services with fake repositories; middlewares and the error handler on a small Express app with Supertest; `config/env.ts`; HTTP tests of the real `app` with the repository modules replaced by in-memory fakes (`vi.mock`, `tests/helpers/fakeRepositories.ts`). Rate limiters are mocked out except in `rateLimit.test.ts`.
+  - **API, `db` project** (`apps/api/tests/db`, real PostgreSQL): repositories and full HTTP flows against `TEST_DATABASE_URL`. A global setup rebuilds that database with `prisma migrate reset --force` once per run and refuses to run unless the database name contains `test` and differs from `DATABASE_URL`; every test starts from truncated tables. Without `TEST_DATABASE_URL` the `db` project is skipped with a warning. Files run one at a time because they share the database.
+  - **Web** (`apps/web/tests`, jsdom + Testing Library): components and pages rendered with a fresh `QueryClient` and `MemoryRouter`; `fetch` is replaced by a route table (`tests/helpers.tsx`). Covered today: `ConfirmationDialog`, `SurveyAnsweringPage`, the login form and `customInstance`.
+  - Tests set their own configuration (`NODE_ENV=development`, `LOG_LEVEL=silent`, test secrets); `.env` is only read for `TEST_DATABASE_URL`.
+  - Coverage is reported (`pnpm test:coverage` in `apps/api`) without a minimum threshold. There is no CI: tests run locally.
+- **DEV-WF-06** `[implemented]` Every change of behavior adds or updates the tests that cover it, in the same change, and `pnpm test` must pass (with the `db` project enabled) before the PR is merged.
 
 ## 5. Deployment
 

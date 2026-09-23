@@ -20,6 +20,8 @@ allowed by `.gitignore`.
 | `CORS_ORIGIN` | in `production` | `http://localhost:5173` in `development` | single URL | Allowed CORS origin (one origin only) |
 | `LOG_LEVEL` | no | `info` | pino level (`fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`) | Logger level |
 
+`TEST_DATABASE_URL` is read only by the API tests (not by the runtime schema): the database the `db` test project rebuilds and uses (DEV-WF-02). It must be a dedicated database whose name contains `test`.
+
 ### 1.2 Requirements
 
 - **CFG-01** `[implemented]` The schema lives in `apps/api/src/config/env.ts` (API-only; not in `packages/schemas`). It is validated at startup, before `app` is imported and before the server listens.

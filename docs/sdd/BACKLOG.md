@@ -20,7 +20,6 @@
 | BL-14 | **Configurable API URL in the web**: `VITE_API_URL` (generated client + mutator), replace hardcoded query key in `SurveyDetailsPage`. (The API side, `CORS_ORIGIN`, moved to BL-05.) | CFG-07, FE-12 |
 | BL-16 | **Regenerate the web client after BL-01 and remove response casts** in pages. | FE-11 |
 | BL-17 | **Seed and scripts**: create the seed script (or remove `seed` script and Prisma seed config); remove the broken `generate:api` script in `apps/web`. | DEV-WF-01 |
-| BL-18 | **Testing strategy**: choose framework(s), scope and minimum coverage with the owner; specify in 30-dev-workflow. | DEV-WF-02 |
 
 ## Open questions
 

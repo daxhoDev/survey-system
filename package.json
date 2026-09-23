@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "pnpm --parallel -r dev",
+    "test": "pnpm -r test",
     "generate:api": "orval"
   },
   "keywords": [],
