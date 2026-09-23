@@ -65,7 +65,7 @@ model; differences with the current schema are tagged.
 | `created_at` | TIMESTAMPTZ | default now |
 | `deleted_at` | TIMESTAMPTZ? | soft delete |
 
-- **DATA-07** `[pending: BL-06]` `origin_ip` must be unique **per survey**: composite unique `(survey_id, origin_ip)`. Currently `origin_ip` alone is unique, so one IP can only ever answer one survey in the whole system.
+- **DATA-07** `[implemented]` `origin_ip` must be unique **per survey**: composite unique `(survey_id, origin_ip)` (index `answers_survey_id_origin_ip_key`, migration `20260923190000_answers_ip_unique_per_survey`).
 
 ### Enum `answer_type`
 

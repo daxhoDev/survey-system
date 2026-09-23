@@ -54,10 +54,10 @@ export interface IAnswerRepository {
     },
   ): Promise<Answer>;
   deleteById(id: string): Promise<void>;
-  getIpAndSlugByIpAndSlug(
+  getIpBySurveyIdAndIp(
+    surveyId: string,
     ip: string,
-    slug: string,
-  ): Promise<AnswerWithSlugAndIp | null>;
+  ): Promise<Pick<Answer, "originIp"> | null>;
 }
 
 export interface IUserRepository {
@@ -94,7 +94,7 @@ export interface ISurveyService extends Omit<
 }
 export interface IAnswerService extends Omit<
   IAnswerRepository,
-  "createOne" | "getIpAndSlugByIpAndSlug"
+  "createOne" | "getIpBySurveyIdAndIp"
 > {
   createOne(
     answer: CreateAnswerData,
@@ -148,10 +148,6 @@ export type Answer = CreateAnswerData & {
   createdAt: Date;
   deletedAt: Date | null;
   originIp: string;
-};
-export type AnswerWithSlugAndIp = {
-  originIp: string;
-  slug: string | undefined;
 };
 export type Response = z.infer<typeof responseSchema>;
 

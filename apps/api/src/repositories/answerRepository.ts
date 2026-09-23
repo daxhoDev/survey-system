@@ -1,7 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import type {
   Answer,
-  AnswerWithSlugAndIp,
   CreateAnswerData,
   IAnswerRepository,
   Response,
@@ -110,24 +109,19 @@ export default class AnswerRepository implements IAnswerRepository {
     });
   }
 
-  async getIpAndSlugByIpAndSlug(
+  async getIpBySurveyIdAndIp(
+    surveyId: string,
     ip: string,
-    slug: string,
-  ): Promise<AnswerWithSlugAndIp | null> {
+  ): Promise<Pick<Answer, "originIp"> | null> {
     const result = await prisma.answers.findUnique({
       where: {
-        origin_ip: ip,
-        surveys: {
-          slug,
+        survey_id_origin_ip: {
+          survey_id: surveyId,
+          origin_ip: ip,
         },
       },
       select: {
         origin_ip: true,
-        surveys: {
-          select: {
-            slug: true,
-          },
-        },
       },
     });
 
@@ -135,7 +129,6 @@ export default class AnswerRepository implements IAnswerRepository {
 
     const serializedData = {
       originIp: result.origin_ip,
-      slug: result.surveys?.slug,
     };
 
     return serializedData;

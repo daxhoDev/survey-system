@@ -11,10 +11,12 @@ model answers {
   id         String    @id @db.Uuid
   survey_id  String?   @db.Uuid
   responses  Json
-  origin_ip  String    @unique @db.Inet
+  origin_ip  String    @db.Inet
   created_at DateTime  @default(now()) @db.Timestamptz(6)
   deleted_at DateTime? @db.Timestamptz(6)
   surveys    surveys?  @relation(fields: [survey_id], references: [id])
+
+  @@unique([survey_id, origin_ip])
 }
 
 model surveys {
