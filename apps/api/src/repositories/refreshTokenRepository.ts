@@ -1,14 +1,10 @@
-import { id } from "zod/locales";
 import { prisma } from "../lib/prisma.js";
 import type {
   CreateRefreshTokenData,
   IRefreshTokenRepository,
   RefreshToken,
   RefreshTokenWithUser,
-  User,
-  UserWithoutPassword,
 } from "../types.js";
-import { email } from "zod";
 
 export default class RefreshTokenRepository implements IRefreshTokenRepository {
   async getByUserId(userId: string): Promise<RefreshToken | null> {
@@ -95,7 +91,7 @@ export default class RefreshTokenRepository implements IRefreshTokenRepository {
   }
 
   async deleteByUserId(userId: string): Promise<void> {
-    await prisma.refresh_tokens.delete({
+    await prisma.refresh_tokens.deleteMany({
       where: { user_id: userId },
     });
   }

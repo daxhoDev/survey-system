@@ -1,4 +1,3 @@
-import type { answersCreateInput } from "../generated/prisma/models.js";
 import { prisma } from "../lib/prisma.js";
 import type {
   Answer,

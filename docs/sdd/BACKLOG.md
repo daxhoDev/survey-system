@@ -22,16 +22,13 @@
 | BL-07 | **Reject answers to inactive surveys** with the same `404` as a non-existent survey. | ANS-05, FE-24 |
 | BL-08 | **Hide inactive surveys from anonymous users** on `GET /surveys/:slug` (optional-auth middleware; `404` without session). | SURV-12, FE-24 |
 | BL-09 | **Login without user enumeration**: single `401 Invalid credentials`, constant-time-ish bcrypt check. | AUTH-14 |
-| BL-10 | **Idempotent logout** (`204` even without refresh token). | AUTH-16 |
-| BL-11 | **Pagination offset** `(page - 1) * limit`. | SURV-06 |
-| BL-12 | **Production error handler sends exactly one response**. | API-14 |
 | BL-13 | **Scope answer routes by survey slug**: `404` for missing/deleted survey, and for answers that don't exist, are deleted or belong to another survey. | ANS-08, SURV-18 |
 | BL-14 | **Configurable URLs**: `CORS_ORIGIN` in the API, `VITE_API_URL` in the web (generated client + mutator), replace hardcoded query key in `SurveyDetailsPage`. | API-24, CFG-06, CFG-07, FE-12 |
 | BL-15 | **Remove unused dependencies** from `apps/api`: `@tsoa/runtime`, `drizzle-kit`, `swagger-jsdoc` (+ `@types/swagger-jsdoc`), `@scalar/express-api-reference`, `ts-node` (verify each before removal). | — |
 | BL-16 | **Regenerate the web client after BL-01 and remove response casts** in pages. | FE-11 |
 | BL-17 | **Seed and scripts**: create the seed script (or remove `seed` script and Prisma seed config); remove the broken `generate:api` script in `apps/web`. | DEV-WF-01 |
 | BL-18 | **Testing strategy**: choose framework(s), scope and minimum coverage with the owner; specify in 30-dev-workflow. | DEV-WF-02 |
-| BL-19 | **Debug leftovers and dead code**: `console.log` in `errorMiddleware.ts` ("FAAAH"), `surveyService.ts`, `answerService.ts`; unused imports (`zod/locales` in repositories, `email` from zod, unused Prisma types); stray `~` before `res` in `answerController.createOne`; `DashboardSidebar` placeholder ("Fahh"); `window.confirm` in answer deletion (other confirmations use dialogs); unused imports of `SidebarProvider`/`DashboardSidebar` in `DashboardPage`. | FE-13, FE-22 |
+| BL-20 | **Make the API typecheck clean** so `pnpm build` in `apps/api` (`tsc`) finishes with zero errors: in `packages/schemas`, add the `.js` extension to relative imports (`./zod-setup` in `authSchema.ts`, `queryStringsSchema.ts`) and type the implicit-`any` `value` parameters in `queryStringsSchema.ts`; in `apps/api`, fix `SurveyRepository.updateOneBySlug` (`name`/`is_active` may be `undefined` under `exactOptionalPropertyTypes`). The approach for each fix is agreed with the owner before implementing it. | DEV-WF-04 |
 
 ## Open questions
 

@@ -3,7 +3,6 @@ import type {
   IUserRepository,
   IAuthService,
   LoginData,
-  UserWithoutPassword,
   CreateUserData,
   UserWithTokens,
   IRefreshTokenRepository,
@@ -136,14 +135,6 @@ export default class AuthService implements IAuthService {
   }
 
   async logout(userId: string): Promise<void> {
-    const refreshExists = await this.refreshRepo.getUserIdByUserId(userId);
-    if (!refreshExists)
-      throw new AppError(
-        "Invalid token",
-        "You don't have a refresh token",
-        500,
-      );
-
     await this.refreshRepo.deleteByUserId(userId);
   }
 
