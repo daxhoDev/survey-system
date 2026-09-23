@@ -454,7 +454,9 @@ registry.registerPath({
   },
 });
 
-export function generateOpenApiDocument() {
+export function generateOpenApiDocument(): ReturnType<
+  OpenApiGeneratorV3["generateDocument"]
+> {
   const generator = new OpenApiGeneratorV3(registry.definitions);
   return generator.generateDocument({
     openapi: "3.0.0",

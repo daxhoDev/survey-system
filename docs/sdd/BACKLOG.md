@@ -27,7 +27,6 @@
 | BL-16 | **Regenerate the web client after BL-01 and remove response casts** in pages. | FE-11 |
 | BL-17 | **Seed and scripts**: create the seed script (or remove `seed` script and Prisma seed config); remove the broken `generate:api` script in `apps/web`. | DEV-WF-01 |
 | BL-18 | **Testing strategy**: choose framework(s), scope and minimum coverage with the owner; specify in 30-dev-workflow. | DEV-WF-02 |
-| BL-20 | **Make the API typecheck clean** so `pnpm build` in `apps/api` (`tsc`) finishes with zero errors: in `packages/schemas`, add the `.js` extension to relative imports (`./zod-setup` in `authSchema.ts`, `queryStringsSchema.ts`) and type the implicit-`any` `value` parameters in `queryStringsSchema.ts`; in `apps/api`, fix `SurveyRepository.updateOneBySlug` (`name`/`is_active` may be `undefined` under `exactOptionalPropertyTypes`) and add an explicit return type to `generateOpenApiDocument` in `apps/api/src/lib/openapi.ts` (TS2883: inferred type references `OpenAPIObject` from `openapi3-ts`; only reported when emitting, not with `--noEmit`). The approach for each fix is agreed with the owner before implementing it. | DEV-WF-04 |
 
 ## Open questions
 
