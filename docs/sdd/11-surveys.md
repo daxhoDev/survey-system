@@ -15,7 +15,7 @@ Schemas: `packages/schemas/src/surveySchema.ts`, `queryStringsSchema.ts`.
   "slug": "employee-satisfaction-survey",
   "questions": [ /* Question, see 03-data-model.md §3 */ ],
   "isActive": false,
-  "isLocked": false,          // [pending: BL-04]
+  "isLocked": false,
   "activatedAt": null,
   "createdAt": "2026-01-01T00:00:00.000Z",
   "updatedAt": null,
@@ -36,8 +36,8 @@ Schemas: `packages/schemas/src/surveySchema.ts`, `queryStringsSchema.ts`.
 ```
 
 - **SURV-01** `[implemented]` New surveys are inactive (`isActive = false`).
-- **SURV-02** `[pending: BL-04]` The first activation sets `isLocked = true`. `isLocked` never returns to `false`.
-- **SURV-03** `[pending: BL-04]` A locked survey cannot be edited: its `name` and `questions` are immutable. Only `isActive` may change.
+- **SURV-02** `[implemented]` The first activation sets `isLocked = true`. `isLocked` never returns to `false`.
+- **SURV-03** `[implemented]` A locked survey cannot be edited: its `name` and `questions` are immutable. Only `isActive` may change.
 - **SURV-04** `[implemented]` Only active surveys should be answerable; enforcement is in [12-answers.md](12-answers.md) (ANS-05).
 
 ## 3. Endpoints
@@ -77,7 +77,7 @@ Body (`createSurveySchema`, strict): `name` (string, min 5), `questions` (non-em
 
 Body (`updateSurveySchema`, non-strict): `name?`, `questions?`, `isActive?` (boolean).
 
-- **SURV-14** `[pending: BL-04]` Rules, in order:
+- **SURV-14** `[implemented]` Rules, in order:
   1. Unknown or deleted slug → `404`.
   2. If the survey is locked and the body contains `name` or `questions` → `400 Survey already activated` ("This survey was already activated, it can't be modified anymore").
   3. Body validated with `updateSurveySchema` → `422` on failure.
@@ -87,7 +87,6 @@ Body (`updateSurveySchema`, non-strict): `name?`, `questions?`, `isActive?` (boo
      `isActive` absent → `is_active`, `activated_at`, `is_locked` unchanged.
   6. `updated_at = now`; slug recalculated from `name` if provided.
 
-  Current code deviates: the lock check is based on `activated_at` and on the *first* key of the body (a body like `{ "name": "…" }` passes on an activated survey), and `activated_at` is set to `null` whenever `isActive` is absent.
 - **SURV-15** `[implemented]` Renaming changes the slug, which changes the public URL (`/surveys/:slug`); previously shared links stop working.
 - **SURV-16** `[implemented]` Response `200 { data: Survey }`.
 

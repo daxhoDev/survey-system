@@ -21,7 +21,7 @@ beforeEach(() => {
     deleteOneBySlug: vi.fn().mockResolvedValue(undefined),
     updateOneBySlug: vi.fn(async (slug, data) => buildSurvey({ slug, ...data })),
     getSlugBySlug: vi.fn().mockResolvedValue(null),
-    getActivatedAtBySlug: vi.fn().mockResolvedValue({ activatedAt: null }),
+    getIsLockedBySlug: vi.fn().mockResolvedValue({ isLocked: false }),
     getSurveyStatsBySlug: vi.fn().mockResolvedValue(null),
     getResponsesOptionsStatsBySlug: vi.fn().mockResolvedValue([]),
   };
@@ -147,11 +147,58 @@ describe("SurveyService.updateOneBySlug", () => {
     ).rejects.toMatchObject({ status: 409, title: "Conflict" });
   });
 
-  it("404 for an unknown survey", async () => {
-    repo.getActivatedAtBySlug.mockResolvedValue(null);
+  it("SURV-14.1: 404 for an unknown survey", async () => {
+    repo.getIsLockedBySlug.mockResolvedValue(null);
     await expect(
       service.updateOneBySlug("missing", { isActive: true }),
     ).rejects.toMatchObject({ status: 404 });
+  });
+
+  it.each([
+    ["name", { name: "A brand new name" }],
+    ["questions", { questions }],
+    ["name and isActive", { isActive: false, name: "A brand new name" }],
+  ])("SURV-03, SURV-14.2: a locked survey rejects changes to %s", async (_label, body) => {
+    repo.getIsLockedBySlug.mockResolvedValue({ isLocked: true });
+    await expect(
+      service.updateOneBySlug(active.slug, body as never),
+    ).rejects.toMatchObject({ status: 400, title: "Survey already activated" });
+    expect(repo.updateOneBySlug).not.toHaveBeenCalled();
+  });
+
+  it("SURV-03: a locked survey can still be activated and deactivated", async () => {
+    repo.getIsLockedBySlug.mockResolvedValue({ isLocked: true });
+    await service.updateOneBySlug(active.slug, { isActive: false });
+    expect(repo.updateOneBySlug).toHaveBeenCalledOnce();
+  });
+
+  it("SURV-14.3: an invalid body is a ZodError, checked after the lock", async () => {
+    await expect(
+      service.updateOneBySlug(active.slug, { isActive: "yes" } as never),
+    ).rejects.toBeInstanceOf(ZodError);
+  });
+
+  it("SURV-02, SURV-14.5: activating sets isActive, activatedAt and locks the survey", async () => {
+    await service.updateOneBySlug(inactive.slug, { isActive: true });
+    const changes = repo.updateOneBySlug.mock.calls[0]![1];
+    expect(changes).toMatchObject({ isActive: true, isLocked: true });
+    expect(changes.activatedAt).toBeInstanceOf(Date);
+  });
+
+  it("SURV-02, SURV-14.5: deactivating clears activatedAt but never unlocks", async () => {
+    await service.updateOneBySlug(active.slug, { isActive: false });
+    const changes = repo.updateOneBySlug.mock.calls[0]![1];
+    expect(changes).toMatchObject({ isActive: false, activatedAt: null });
+    expect(changes).not.toHaveProperty("isLocked");
+  });
+
+  it("SURV-14.5, 14.6: without isActive, activation fields are untouched and updatedAt is set", async () => {
+    await service.updateOneBySlug(inactive.slug, { name: "Renamed survey" });
+    const changes = repo.updateOneBySlug.mock.calls[0]![1];
+    expect(changes).not.toHaveProperty("isActive");
+    expect(changes).not.toHaveProperty("activatedAt");
+    expect(changes).not.toHaveProperty("isLocked");
+    expect(changes.updatedAt).toBeInstanceOf(Date);
   });
 });
 

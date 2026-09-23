@@ -10,7 +10,7 @@ import type {
   Question,
   Survey,
   SurveyStats,
-  UpdateSurveyDataWithMetadata,
+  SurveyChanges,
 } from "../types.js";
 
 export default class SurveyRepository implements ISurveyRepository {
@@ -89,6 +89,7 @@ export default class SurveyRepository implements ISurveyRepository {
         deletedAt: r.deleted_at,
         updatedAt: r.updated_at,
         activatedAt: r.activated_at,
+        isLocked: r.is_locked,
       };
     });
 
@@ -112,6 +113,7 @@ export default class SurveyRepository implements ISurveyRepository {
       deletedAt: result.deleted_at,
       updatedAt: result.updated_at,
       activatedAt: result.activated_at,
+      isLocked: result.is_locked,
     };
 
     return serializedData;
@@ -137,6 +139,7 @@ export default class SurveyRepository implements ISurveyRepository {
       deletedAt: result.deleted_at,
       updatedAt: result.updated_at,
       activatedAt: result.activated_at,
+      isLocked: result.is_locked,
     };
 
     return serializedData;
@@ -153,15 +156,18 @@ export default class SurveyRepository implements ISurveyRepository {
 
   async updateOneBySlug(
     slug: string,
-    data: UpdateSurveyDataWithMetadata,
+    changes: SurveyChanges,
   ): Promise<Survey | null> {
     const dbData = {
-      ...(data.name !== undefined && { name: data.name }),
-      slug: data.slug,
-      questions: data.questions as Question[],
-      ...(data.isActive !== undefined && { is_active: data.isActive }),
-      updated_at: data.updatedAt,
-      activated_at: data.activatedAt,
+      slug: changes.slug,
+      updated_at: changes.updatedAt,
+      ...(changes.name !== undefined && { name: changes.name }),
+      ...(changes.questions !== undefined && { questions: changes.questions }),
+      ...(changes.isActive !== undefined && { is_active: changes.isActive }),
+      ...(changes.activatedAt !== undefined && {
+        activated_at: changes.activatedAt,
+      }),
+      ...(changes.isLocked !== undefined && { is_locked: changes.isLocked }),
     };
 
     const result = await prisma.surveys.update({
@@ -179,6 +185,7 @@ export default class SurveyRepository implements ISurveyRepository {
       deletedAt: result.deleted_at,
       updatedAt: result.updated_at,
       activatedAt: result.activated_at,
+      isLocked: result.is_locked,
     };
 
     return serializedData;
@@ -199,20 +206,20 @@ export default class SurveyRepository implements ISurveyRepository {
     return serializedData;
   }
 
-  async getActivatedAtBySlug(
+  async getIsLockedBySlug(
     slug: string,
-  ): Promise<Pick<Survey, "activatedAt"> | null> {
+  ): Promise<Pick<Survey, "isLocked"> | null> {
     const result = await prisma.surveys.findUnique({
       where: { slug, deleted_at: null },
       select: {
-        activated_at: true,
+        is_locked: true,
       },
     });
 
     if (!result) return null;
 
     const serializedData = {
-      activatedAt: result.activated_at,
+      isLocked: result.is_locked,
     };
 
     return serializedData;

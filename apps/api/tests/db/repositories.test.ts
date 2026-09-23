@@ -84,14 +84,37 @@ describe("SurveyRepository single survey", () => {
     expect(await surveys.getBySlug("deleted-survey")).toBeNull();
   });
 
-  it("updateOneBySlug leaves name and isActive untouched when absent", async () => {
-    await createSurvey("Alpha survey", { is_active: true });
+  it("updateOneBySlug only writes the fields present in the changes", async () => {
+    const activatedAt = new Date("2026-01-05T00:00:00Z");
+    await createSurvey("Alpha survey", {
+      is_active: true,
+      is_locked: true,
+      activated_at: activatedAt,
+    });
     const updated = await surveys.updateOneBySlug("alpha-survey", {
       slug: "alpha-survey",
       updatedAt: new Date(),
-      activatedAt: new Date(),
     });
-    expect(updated).toMatchObject({ name: "Alpha survey", isActive: true });
+    expect(updated).toMatchObject({
+      name: "Alpha survey",
+      isActive: true,
+      isLocked: true,
+      activatedAt,
+    });
+  });
+
+  it("DATA: new surveys start unlocked and getIsLockedBySlug reads the flag", async () => {
+    await createSurvey("Alpha survey");
+    expect(await surveys.getIsLockedBySlug("alpha-survey")).toEqual({ isLocked: false });
+    await surveys.updateOneBySlug("alpha-survey", {
+      slug: "alpha-survey",
+      updatedAt: new Date(),
+      isActive: true,
+      activatedAt: new Date(),
+      isLocked: true,
+    });
+    expect(await surveys.getIsLockedBySlug("alpha-survey")).toEqual({ isLocked: true });
+    expect(await surveys.getIsLockedBySlug("missing")).toBeNull();
   });
 });
 

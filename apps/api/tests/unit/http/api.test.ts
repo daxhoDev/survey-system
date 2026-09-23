@@ -217,6 +217,41 @@ describe("survey endpoints", () => {
     expect(anonymous.body.data.isActive).toBe(true);
   });
 
+  it("SURV-02, SURV-03: the first activation locks the survey for good", async () => {
+    const { jwt } = await signup();
+    await createSurvey(jwt);
+    const path = "/api/v1/surveys/employee-satisfaction-survey";
+
+    const renamed = await request(app)
+      .patch(path)
+      .set("Cookie", jwt)
+      .send({ name: "Employee survey v2" });
+    expect(renamed.body.data).toMatchObject({ isLocked: false });
+    const newPath = "/api/v1/surveys/employee-survey-v2";
+
+    const activated = await request(app)
+      .patch(newPath)
+      .set("Cookie", jwt)
+      .send({ isActive: true });
+    expect(activated.body.data).toMatchObject({ isActive: true, isLocked: true });
+
+    const deactivated = await request(app)
+      .patch(newPath)
+      .set("Cookie", jwt)
+      .send({ isActive: false });
+    expect(deactivated.body.data).toMatchObject({
+      isActive: false,
+      isLocked: true,
+      activatedAt: null,
+    });
+
+    const edit = await request(app)
+      .patch(newPath)
+      .set("Cookie", jwt)
+      .send({ name: "Another name" });
+    expect(edit.status).toBe(400);
+  });
+
   it("SURV-17: deleting a survey returns 204 and it disappears", async () => {
     const { jwt } = await signup();
     await createSurvey(jwt);

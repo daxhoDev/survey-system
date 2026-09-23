@@ -102,8 +102,8 @@ export default class SurveyService implements ISurveyService {
     slug: string,
     data: UpdateSurveyData,
   ): Promise<Survey | null> {
-    const existingSurvey = await this.repo.getActivatedAtBySlug(slug);
-
+    // SURV-14, rule 1
+    const existingSurvey = await this.repo.getIsLockedBySlug(slug);
     if (!existingSurvey) {
       throw new AppError(
         "Not found",
@@ -112,10 +112,11 @@ export default class SurveyService implements ISurveyService {
       );
     }
 
+    // Rule 2: a locked survey keeps its name and questions (SURV-03)
+    const body = (data ?? {}) as Partial<UpdateSurveyData>;
     if (
-      existingSurvey.activatedAt &&
-      Object.keys(data).length > 1 &&
-      Object.keys(data).at(0) !== "isActive"
+      existingSurvey.isLocked &&
+      (body.name !== undefined || body.questions !== undefined)
     ) {
       throw new AppError(
         "Survey already activated",
@@ -124,6 +125,7 @@ export default class SurveyService implements ISurveyService {
       );
     }
 
+    // Rule 3
     const {
       success,
       data: serializedData,
@@ -131,25 +133,27 @@ export default class SurveyService implements ISurveyService {
     } = z.safeParse(updateSurveySchema, data);
     if (!success) throw error;
 
+    // Rule 4
     const newSlug = serializedData.name
       ? slugify(serializedData.name, { lower: true, strict: true })
       : slug;
-
-    let newSlugExists = false;
-
-    if (slug !== newSlug) {
-      newSlugExists = Boolean(await this.repo.getSlugBySlug(newSlug));
-    }
-
-    if (newSlugExists) {
+    if (slug !== newSlug && (await this.repo.getSlugBySlug(newSlug))) {
       throw new AppError("Conflict", "This survey name is not avaliable", 409);
     }
 
+    // Rules 5 and 6
+    const { name, questions, isActive } = serializedData;
     const updatedSurvey = await this.repo.updateOneBySlug(slug, {
-      ...serializedData,
       slug: newSlug,
       updatedAt: new Date(),
-      activatedAt: serializedData.isActive ? new Date() : null,
+      ...(name !== undefined && { name }),
+      ...(questions !== undefined && { questions }),
+      ...(isActive === true && {
+        isActive: true,
+        activatedAt: new Date(),
+        isLocked: true,
+      }),
+      ...(isActive === false && { isActive: false, activatedAt: null }),
     });
 
     getLogger().info(updatedSurvey, "Survey updated successfully");

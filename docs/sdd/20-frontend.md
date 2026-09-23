@@ -63,7 +63,7 @@
 ### Survey details — `pages/SurveyDetailsPage.tsx`
 
 - **FE-21** `[implemented]` Header with name, slug, activate/deactivate button and delete button (confirmation dialog; on success navigates to `/dashboard`).
-- **FE-26** `[pending: BL-04]` A locked survey (`isLocked`) shows a "Bloqueada" badge next to its status, in the dashboard table (FE-17) and in the details header (FE-21). Hovering or focusing it shows the tooltip "Ya fue activada: nombre y preguntas no se pueden modificar". The badge is the shared component `components/LockedBadge.tsx`.
+- **FE-26** `[implemented]` A locked survey (`isLocked`) shows a "Bloqueada" badge next to its status, in the dashboard table (FE-17) and in the details header (FE-21). Hovering or focusing it shows the tooltip "Ya fue activada: nombre y preguntas no se pueden modificar". The badge is the shared component `components/LockedBadge.tsx`.
 - **FE-22** `[implemented]` Tabs, each loading its data lazily when opened:
   - **Detalles**: public link `${window.location.origin}/surveys/${slug}` with copy/open buttons; list of questions with type, required badge and options.
   - **Respuestas**: table (short id, date, IP, "Ver respuestas"); a side sheet shows each question with the resolved response text and allows deleting the answer after a confirmation dialog.

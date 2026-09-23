@@ -37,6 +37,7 @@ export function buildSurvey(overrides: Partial<Survey> = {}): Survey {
     slug: "employee-satisfaction-survey",
     questions,
     isActive: true,
+    isLocked: true,
     createdAt: new Date("2026-01-01T00:00:00Z"),
     updatedAt: null,
     deletedAt: null,
