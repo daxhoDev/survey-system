@@ -32,7 +32,7 @@ pnpm workspaces monorepo.
 
 ## Getting started
 
-Prerequisites: Node.js, [pnpm](https://pnpm.io) and a PostgreSQL database.
+Prerequisites: Node.js, [pnpm](https://pnpm.io) and Docker (or your own PostgreSQL).
 
 ```bash
 pnpm install
@@ -41,7 +41,8 @@ pnpm install
 # (variables documented in docs/sdd/05-configuration.md)
 cp apps/api/.env.example apps/api/.env
 
-# Database
+# Database: local PostgreSQL with a development and a test database
+docker compose up -d
 cd apps/api
 pnpm exec prisma migrate dev
 pnpm exec prisma generate
@@ -55,6 +56,15 @@ API documentation: <http://localhost:3000/api/v1/docs> (raw OpenAPI at `/api/v1/
 
 After changing the API contract, regenerate the web client with `pnpm generate:api`
 (the API must be running).
+
+## Tests
+
+```bash
+pnpm test   # API and web (Vitest)
+```
+
+API tests that need a database use `TEST_DATABASE_URL` (see `apps/api/.env.example`);
+without it they are skipped. See [`docs/sdd/30-dev-workflow.md`](docs/sdd/30-dev-workflow.md) §4.
 
 ## Configuration
 
