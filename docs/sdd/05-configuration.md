@@ -44,4 +44,4 @@ allowed by `.gitignore`.
 ## 3. Code generation configuration
 
 - `orval.config.ts` (root): input `http://localhost:3000/api/v1/docs-raw`, output `apps/web/src/lib/api`, mode `tags-split`, client `react-query`, http client `fetch`, mutator `customInstance`. See [30-dev-workflow.md](30-dev-workflow.md).
-- `apps/api/prisma.config.ts`: schema `prisma/schema.prisma`, migrations `prisma/migrations`, seed command `tsx prisma/seed.ts` (file does not exist — BL-17).
+- `apps/api/prisma.config.ts`: schema `prisma/schema.prisma`, migrations `prisma/migrations`, seed command `tsx prisma/seed.ts` (DEV-WF-01).
