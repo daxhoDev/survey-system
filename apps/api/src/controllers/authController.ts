@@ -1,4 +1,4 @@
-import type { CookieOptions, Request, Response } from "express";
+import type { Request, Response } from "express";
 import type {
   IAuthService,
   ProtectedRequest,
@@ -7,19 +7,10 @@ import type {
 import { json } from "../utils/json.js";
 import AppError from "../utils/appError.js";
 import { getLogger } from "../context/requestContext.js";
-import { env } from "../config/env.js";
-
-const jwtCookieOptions: CookieOptions = {
-  httpOnly: true,
-  secure: env.NODE_ENV === "production",
-  maxAge: env.ACCESS_TOKEN_TTL_MINUTES * 60 * 1000,
-};
-const refreshCookieOptions: CookieOptions = {
-  httpOnly: true,
-  secure: env.NODE_ENV === "production",
-  maxAge: env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
-  path: "/api/v1/users/refresh",
-};
+import {
+  jwtCookieOptions,
+  refreshCookieOptions,
+} from "../config/cookies.js";
 
 export default class AuthController {
   constructor(private service: IAuthService) {}
@@ -83,7 +74,7 @@ export default class AuthController {
     if (!currentUser)
       throw new AppError("Unauthenticated user", "Please, log in first", 401);
 
-    res.type("json").status(200).send(json(currentUser));
+    res.type("json").status(200).send(json({ data: currentUser }));
   }
 
   sendTokenAndUser(

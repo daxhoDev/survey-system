@@ -28,4 +28,27 @@ export const createAnswerSchema = z
     },
   });
 
+// Response shapes (documentation only).
+export const answerSchema = z
+  .strictObject({
+    id: z.uuid(),
+    surveyId: z.uuid().nullable(),
+    responses: z.array(responseSchema),
+    originIp: z.string().openapi({ example: "203.0.113.10" }),
+    createdAt: z.date(),
+    deletedAt: z.date().nullable(),
+  })
+  .openapi("Answer");
+
+export const answerWithSurveySchema = answerSchema
+  .extend({
+    surveys: z
+      .strictObject({
+        name: z.string(),
+        questions: z.array(z.any()),
+      })
+      .nullable(),
+  })
+  .openapi("AnswerWithSurvey");
+
 export type CreateAnswerSchema = z.infer<typeof createAnswerSchema>;

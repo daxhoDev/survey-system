@@ -50,3 +50,11 @@ export const userSchema = z
       username: "johndoe",
     },
   });
+
+// Returned by signup and login (AUTH-12, AUTH-15).
+export const userAccountSchema = userSchema
+  .extend({
+    createdAt: z.date(),
+    deletedAt: z.date().nullable(),
+  })
+  .openapi("UserAccount");

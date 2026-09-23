@@ -63,7 +63,7 @@ Query string (`queryStringSchema`; all optional, all received as strings):
 
 Body (`createSurveySchema`, strict): `name` (string, min 5), `questions` (non-empty array of Question).
 
-- **SURV-08** `[implemented]` `slug = slugify(name, { lower: true, strict: true })`. If a non-deleted survey has that slug → `409 Conflict` ("This survey name is not avaliable"). See also OQ-05 (deleted surveys) and OQ-04 (status code).
+- **SURV-08** `[implemented]` `slug = slugify(name, { lower: true, strict: true })`. If a non-deleted survey has that slug → `409 Conflict` ("This survey name is not avaliable"). See also OQ-05 (deleted surveys).
 - **SURV-09** `[implemented]` Select questions (`SINGLE_SELECT`, `MULTI_SELECT`) must have non-empty `options`; `TEXT_ANSWER` must not have `options` → `422`.
 - **SURV-10** `[implemented]` Response `201 { data: Survey }`.
 
@@ -81,7 +81,7 @@ Body (`updateSurveySchema`, non-strict): `name?`, `questions?`, `isActive?` (boo
   1. Unknown or deleted slug → `404`.
   2. If the survey is locked and the body contains `name` or `questions` → `400 Survey already activated` ("This survey was already activated, it can't be modified anymore").
   3. Body validated with `updateSurveySchema` → `422` on failure.
-  4. If `name` changes the slug and the new slug is taken by a non-deleted survey → `400 Conflict` (OQ-04).
+  4. If `name` changes the slug and the new slug is taken by a non-deleted survey → `409 Conflict` (API-17).
   5. `isActive: true` → `is_active = true`, `activated_at = now`, `is_locked = true`.
      `isActive: false` → `is_active = false`, `activated_at = null`.
      `isActive` absent → `is_active`, `activated_at`, `is_locked` unchanged.

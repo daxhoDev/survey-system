@@ -140,6 +140,13 @@ describe("SurveyService.updateOneBySlug", () => {
     );
   });
 
+  it("API-17: 409 Conflict when the new name's slug is taken", async () => {
+    repo.getSlugBySlug.mockResolvedValue({ slug: "a-brand-new-name" });
+    await expect(
+      service.updateOneBySlug(active.slug, { name: "A brand new name" }),
+    ).rejects.toMatchObject({ status: 409, title: "Conflict" });
+  });
+
   it("404 for an unknown survey", async () => {
     repo.getActivatedAtBySlug.mockResolvedValue(null);
     await expect(

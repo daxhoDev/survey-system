@@ -54,12 +54,7 @@ export default function Surveys() {
     },
   });
 
-  const surveys = data as unknown as {
-    message: string;
-    data: Survey[];
-    status: string;
-    statusCode: number;
-  };
+  const surveys = data?.data ?? [];
 
   const columns: ColumnDef<Survey>[] = [
     {
@@ -190,7 +185,7 @@ export default function Surveys() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold">
-                {surveys.data.length}
+                {surveys.length}
               </CardContent>
             </Card>
             <Card className="w-full max-w-60 py-6">
@@ -200,14 +195,14 @@ export default function Surveys() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold text-primary">
-                {surveys.data.filter((survey) => survey.isActive === true)
+                {surveys.filter((survey) => survey.isActive === true)
                   .length}
               </CardContent>
             </Card>
           </div>
 
           <div className="mt-8">
-            <DataTable columns={columns} data={surveys.data} />
+            <DataTable columns={columns} data={surveys} />
           </div>
         </>
       )}

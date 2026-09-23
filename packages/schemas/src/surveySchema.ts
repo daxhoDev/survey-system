@@ -116,13 +116,13 @@ export const updateSurveySchema = z.object({
 export const surveySchema = z
   .strictObject(
     {
-      id: z.uuidv4("Must be a UUID").min(1, "Must be positive"),
+      id: z.uuid("Must be a UUID"),
       name: surveyNameSchema,
       questions: questionArrSchema,
       isActive: z.boolean("is_active must be a boolean"),
       deletedAt: z.date().nullable(),
       createdAt: z.date(),
-      updatedAt: z.date(),
+      updatedAt: z.date().nullable(),
       slug: z.string("Must be a string").nonempty("Can't be empty"),
       activatedAt: z.date().nullable(),
     },
@@ -145,8 +145,11 @@ export const surveySchema = z
         },
       ],
       isActive: true,
+      slug: "employee-satisfaction-survey",
+      activatedAt: new Date("2024-01-02T00:00:00Z"),
       deletedAt: null,
       createdAt: new Date("2024-01-01T00:00:00Z"),
+      updatedAt: null,
     },
   });
 

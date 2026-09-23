@@ -16,8 +16,13 @@ export default function setup() {
     throw new Error("TEST_DATABASE_URL must differ from DATABASE_URL");
   }
 
-  execSync("pnpm exec prisma migrate reset --force", {
-    env: { ...process.env, DATABASE_URL: url },
-    stdio: "pipe",
-  });
+  try {
+    execSync("pnpm exec prisma migrate reset --force", {
+      env: { ...process.env, DATABASE_URL: url },
+      stdio: "pipe",
+    });
+  } catch (error) {
+    const stderr = (error as { stderr?: Buffer }).stderr?.toString() ?? "";
+    throw new Error(`Could not rebuild the test database:\n${stderr}`);
+  }
 }

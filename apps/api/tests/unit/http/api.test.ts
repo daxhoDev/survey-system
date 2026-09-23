@@ -127,13 +127,21 @@ describe("auth endpoints", () => {
     );
   });
 
-  it("AUTH-21: /me returns the token payload without the envelope", async () => {
+  it("AUTH-21: /me returns the token payload in { data }", async () => {
     const { jwt } = await signup();
     const res = await request(app).get("/api/v1/users/me").set("Cookie", jwt);
 
     expect(res.status).toBe(200);
-    expect(res.body).toMatchObject({ email: account.email, username: account.username });
-    expect(res.body).not.toHaveProperty("data");
+    expect(res.body.data).toMatchObject({
+      email: account.email,
+      username: account.username,
+    });
+  });
+
+  it("AUTH-10: signing up with a taken email is 409", async () => {
+    await signup();
+    const res = await request(app).post("/api/v1/users/signup").send(account);
+    expect(res.status).toBe(409);
   });
 
   it("AUTH-18: refresh without the cookie is 401 Invalid token", async () => {
@@ -252,7 +260,7 @@ describe("answer endpoints", () => {
     const first = await request(app).post(answersPath).send(body);
     const second = await request(app).post(answersPath).send(body);
 
-    expect(first.status).toBe(200);
+    expect(first.status).toBe(201);
     expect(first.body.data).toMatchObject({ responses: body.responses });
     expect(second.status).toBe(403);
   });

@@ -5,54 +5,18 @@
  * API endpoints documentation for the Survey System, built by Daxho
  * OpenAPI spec version: 1.0.0
  */
-export interface Error {
+export type ProblemErrorsItem = {
+  field: string;
+  message: string;
+};
+
+export interface Problem {
   type: string;
   status: number;
   title: string;
   detail: string;
-  extensions?: unknown | null;
-}
-
-export type OptionStatsOptionsItem = {
-  optionContent: string;
-  responseCount: number;
-};
-
-export interface OptionStats {
-  questionId: number;
-  questionName: string;
-  options: OptionStatsOptionsItem[];
-}
-
-export interface SurveyStats {
-  totalAnswers: number;
-  completedAnswers: number;
-  incompleteAnswers: number;
-  questionCount: number;
-  optionStats: OptionStats[];
-}
-
-export interface User {
-  id: string;
-  email: string;
-  /** @minLength 3 */
-  username: string;
-}
-
-export interface UserSignup {
-  email: string;
-  /** @minLength 3 */
-  username: string;
-  /** @minLength 5 */
-  password: string;
-  /** @minLength 5 */
-  passwordConfirm: string;
-}
-
-export interface UserLogin {
-  email: string;
-  /** @minLength 5 */
-  password: string;
+  /** Only in 422 validation errors */
+  errors?: ProblemErrorsItem[];
 }
 
 export type SurveyQuestionsItemType = typeof SurveyQuestionsItemType[keyof typeof SurveyQuestionsItemType];
@@ -83,7 +47,6 @@ export type SurveyQuestionsItem = {
 };
 
 export interface Survey {
-  /** @minLength 1 */
   id: string;
   /** @minLength 5 */
   name: string;
@@ -93,11 +56,60 @@ export interface Survey {
   /** @nullable */
   deletedAt: string | null;
   createdAt: string;
-  updatedAt: string;
+  /** @nullable */
+  updatedAt: string | null;
   /** @minLength 1 */
   slug: string;
   /** @nullable */
   activatedAt: string | null;
+}
+
+export type OptionStatsOptionsItem = {
+  optionContent: string;
+  responseCount: number;
+};
+
+export interface OptionStats {
+  questionId: number;
+  questionName: string;
+  options: OptionStatsOptionsItem[];
+}
+
+export interface SurveyStats {
+  totalAnswers: number;
+  completedAnswers: number;
+  incompleteAnswers: number;
+  questionCount: number;
+  optionStats: OptionStats[];
+}
+
+export interface User {
+  id: string;
+  email: string;
+  /** @minLength 3 */
+  username: string;
+}
+
+export type UserAccount = User & ({
+  createdAt: string;
+  /** @nullable */
+  deletedAt: string | null;
+});
+
+export interface UserSignup {
+  email: string;
+  /** @minLength 3 */
+  username: string;
+  /** @minLength 5 */
+  password: string;
+  /** @minLength 5 */
+  passwordConfirm: string;
+}
+
+export interface UserLogin {
+  email: string;
+  /** @minLength 5 */
+  password: string;
 }
 
 export type CreateSurveyQuestionsItemType = typeof CreateSurveyQuestionsItemType[keyof typeof CreateSurveyQuestionsItemType];
@@ -134,21 +146,95 @@ export interface CreateSurvey {
   questions: CreateSurveyQuestionsItem[];
 }
 
-export type UpdateSurvey = boolean;
+export type AnswerResponsesItem = {
+  id: number;
+  content: string | number[];
+};
+
+export interface Answer {
+  id: string;
+  /** @nullable */
+  surveyId: string | null;
+  responses: AnswerResponsesItem[];
+  originIp: string;
+  createdAt: string;
+  /** @nullable */
+  deletedAt: string | null;
+}
+
+export type AnswerWithSurvey = Answer & ({
+  /** @nullable */
+  surveys: {
+  name: string;
+  questions: (unknown | null)[];
+} | null;
+});
 
 export type RegisterUser200 = {
-  data: User;
+  data: UserAccount;
 };
 
 export type LoginUser200 = {
+  data: UserAccount;
+};
+
+export type GetCurrentUser200 = {
   data: User;
 };
 
 export type GetAllSurveysParams = {
+active?: GetAllSurveysActive;
 search?: string;
-page?: number;
-limit?: number;
-active?: boolean;
+/**
+ * Creation day, DD/MM/YYYY
+ */
+date?: string;
+/**
+ * Positive integer
+ */
+page?: string;
+/**
+ * Positive integer
+ */
+limit?: string;
+sort?: GetAllSurveysSort;
+};
+
+export type GetAllSurveysActive = typeof GetAllSurveysActive[keyof typeof GetAllSurveysActive];
+
+
+export const GetAllSurveysActive = {
+  true: 'true',
+  false: 'false',
+} as const;
+
+export type GetAllSurveysSort = typeof GetAllSurveysSort[keyof typeof GetAllSurveysSort];
+
+
+export const GetAllSurveysSort = {
+  name: 'name',
+  '-name': '-name',
+  creation: 'creation',
+  '-creation': '-creation',
+} as const;
+
+export type GetAllSurveys200Meta = {
+  results: number;
+  page: number;
+  limit: number;
+};
+
+export type GetAllSurveys200 = {
+  data: Survey[];
+  meta: GetAllSurveys200Meta;
+};
+
+export type CreateSurvey201 = {
+  data: Survey;
+};
+
+export type GetSurveyBySlug200 = {
+  data: Survey;
 };
 
 export type UpdateSurveyBySlugBodyQuestionsItemType = typeof UpdateSurveyBySlugBodyQuestionsItemType[keyof typeof UpdateSurveyBySlugBodyQuestionsItemType];
@@ -183,7 +269,15 @@ export type UpdateSurveyBySlugBody = {
   name?: string;
   /** @minItems 1 */
   questions?: UpdateSurveyBySlugBodyQuestionsItem[];
-  isActive?: UpdateSurvey;
+  isActive?: boolean;
+};
+
+export type UpdateSurveyBySlug200 = {
+  data: Survey;
+};
+
+export type GetSurveyStatsBySlug200 = {
+  data: SurveyStats;
 };
 
 export type CreateSurveyAnswerBodyResponsesItem = {
@@ -195,17 +289,20 @@ export type CreateSurveyAnswerBody = {
   responses: CreateSurveyAnswerBodyResponsesItem[];
 };
 
-export type GetAllSurveyAnswers200Item = {
-  id: string;
-  responses?: unknown | null;
+export type CreateSurveyAnswer201 = {
+  data: Answer;
 };
 
-export type GetSurveyAnswerById200Data = {
-  id: string;
-  responses?: unknown | null;
+export type GetAllSurveyAnswers200Meta = {
+  results: number;
+};
+
+export type GetAllSurveyAnswers200 = {
+  data: Answer[];
+  meta: GetAllSurveyAnswers200Meta;
 };
 
 export type GetSurveyAnswerById200 = {
-  data: GetSurveyAnswerById200Data;
+  data: AnswerWithSurvey;
 };
 

@@ -42,7 +42,7 @@ describe("full flow against PostgreSQL", () => {
     const answer = await request(app)
       .post(`${path}/answers`)
       .send({ responses: [{ id: 1, content: [1] }, { id: 2, content: [2, 3] }] });
-    expect(answer.status).toBe(200);
+    expect(answer.status).toBe(201);
     const repeated = await request(app)
       .post(`${path}/answers`)
       .send({ responses: [{ id: 1, content: [2] }] });

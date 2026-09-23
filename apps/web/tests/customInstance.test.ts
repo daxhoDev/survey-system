@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { customInstance } from "@/lib/api/mutator/customInstance";
 import { mockFetch } from "./helpers";
 
-const url = "http://localhost:3000/api/v1/surveys/some-survey";
+const url = "/api/v1/surveys/some-survey";
 const refresh = "POST /api/v1/users/refresh";
 const unauthorized = { status: 401, body: { status: 401, title: "Token Error" } };
 
@@ -17,12 +17,15 @@ describe("customInstance (FE-09)", () => {
     await expect(customInstance(url, { method: "DELETE" })).resolves.toBeNull();
   });
 
-  it("sends cookies with every request", async () => {
+  it("CFG-09: prefixes relative paths with the API URL and sends cookies", async () => {
     const fetchMock = mockFetch({
       "GET /api/v1/surveys/some-survey": { status: 200, body: {} },
     });
-    await customInstance(url, { method: "GET" });
+    await customInstance(url, { method: "GET", params: { page: "2" } });
 
+    expect(fetchMock.mock.calls[0]![0]).toBe(
+      "http://localhost:3000/api/v1/surveys/some-survey?page=2",
+    );
     expect(fetchMock.mock.calls[0]![1]).toMatchObject({ credentials: "include" });
   });
 
@@ -42,6 +45,9 @@ describe("customInstance (FE-09)", () => {
       "POST",
       "GET",
     ]);
+    expect(fetchMock.mock.calls[1]![0]).toBe(
+      "http://localhost:3000/api/v1/users/refresh",
+    );
   });
 
   it("throws the original error when the refresh fails", async () => {
@@ -66,8 +72,8 @@ describe("customInstance (FE-09)", () => {
     });
 
     await Promise.all([
-      customInstance("http://localhost:3000/api/v1/surveys/a", { method: "GET" }),
-      customInstance("http://localhost:3000/api/v1/surveys/b", { method: "GET" }),
+      customInstance("/api/v1/surveys/a", { method: "GET" }),
+      customInstance("/api/v1/surveys/b", { method: "GET" }),
     ]);
 
     const refreshes = fetchMock.mock.calls.filter((c) =>
@@ -80,7 +86,7 @@ describe("customInstance (FE-09)", () => {
     const fetchMock = mockFetch({ [refresh]: unauthorized });
 
     await expect(
-      customInstance("http://localhost:3000/api/v1/users/refresh", { method: "POST" }),
+      customInstance("/api/v1/users/refresh", { method: "POST" }),
     ).rejects.toEqual(unauthorized.body);
     expect(fetchMock).toHaveBeenCalledOnce();
   });

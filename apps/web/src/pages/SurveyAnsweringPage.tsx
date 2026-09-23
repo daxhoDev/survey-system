@@ -20,7 +20,6 @@ import {
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CheckCircle2, AlertCircle } from "lucide-react";
-import type { Survey } from "@/lib/api/surveySystemAPI.schemas";
 
 interface SurveyFormValues {
   answers: Record<string, string | number[]>;
@@ -40,7 +39,7 @@ export default function SurveyAnsweringPage() {
     },
   });
 
-  const survey = (rawData as any)?.data as Survey | undefined;
+  const survey = rawData?.data;
 
   const {
     control,

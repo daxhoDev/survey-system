@@ -21,13 +21,13 @@ Schemas: `packages/schemas/src/userSchema.ts`, `authSchema.ts`.
 - **AUTH-02** `[implemented]` Only the SHA-256 hex hash of the refresh token is stored (`refresh_tokens.token_hash`), with `expires_at = now + REFRESH_TOKEN_TTL_DAYS days`.
 - **AUTH-03** `[implemented]` A user has at most one refresh token (DB unique `user_id`). Logging in again replaces it, so a new login invalidates the previous session's ability to refresh. `[open: OQ-09]` whether single-session is the intended behavior.
 - **AUTH-04** `[implemented]` Refresh tokens rotate: each successful refresh deletes the used token and issues a new pair.
-- **AUTH-05** `[implemented]` Although OpenAPI declares `bearerAuth`, the API authenticates **only** through the `jwt` cookie; the `Authorization` header is ignored (see BL-01).
+- **AUTH-05** `[implemented]` The API authenticates **only** through the `jwt` cookie; the `Authorization` header is ignored. OpenAPI must declare it as a cookie scheme (API-30).
 
 ## 2. Authentication middleware — `AuthMiddleware.protect`
 
 - **AUTH-06** `[implemented]` Missing `jwt` cookie → `401 Unauthenticated user` ("Please, log in first").
 - **AUTH-07** `[implemented]` Expired token → `401 Token Error` (API-11).
-- **AUTH-08** `[open: OQ-03]` Malformed cookie (not a JWT) → `422`; bad signature → `500`. Target behavior to be decided.
+- **AUTH-08** `[implemented]` Malformed cookie (not a JWT) or bad signature → `401 Invalid token` ("Please, log in again"), clearing the `jwt` and `refresh` cookies.
 - **AUTH-09** `[implemented]` On success sets `req.user = { id, username, email }` (`ProtectedRequest`) and adds `userId` to the request logger. The token is not checked against the database (a deleted user keeps access until the JWT expires).
 
 ## 2.1 Optional authentication middleware — `AuthMiddleware.optionalAuth`
@@ -47,7 +47,7 @@ Body (`createUserSchema`, strict):
 | `password` | string, min 5 |
 | `passwordConfirm` | must equal `password` (error on `passwordConfirm`) |
 
-- **AUTH-10** `[implemented]` Email already used by a non-deleted user → `400 Conflict`. Same for username. `[open: OQ-04]` for the status code.
+- **AUTH-10** `[implemented]` Email already used by a non-deleted user → `409 Conflict`. Same for username.
 - **AUTH-11** `[implemented]` Password stored with bcrypt, cost 10. User id is UUID v7.
 - **AUTH-12** `[implemented]` On success: creates refresh token, sets both cookies, responds `200 { data: { id, username, email, createdAt, deletedAt } }`. The password is never returned.
 - **AUTH-13** `[pending: BL-03]` Public signup will be replaced by an **invitation-based account creation flow**. Until then the endpoint stays public. The flow's design is not specified yet and must be agreed with the owner before implementation.
@@ -72,7 +72,7 @@ Body (`loginDataSchema`, strict): `email` (valid email), `password` (string, min
 
 ### GET `/api/v1/users/me` — authenticated
 
-- **AUTH-21** `[implemented]` Returns the JWT payload `{ id, username, email }` (from the token, not the DB) with status `200`, **without** the `{data}` envelope (`[open: OQ-07]`).
+- **AUTH-21** `[implemented]` Returns the JWT payload `{ id, username, email }` (from the token, not the DB) with status `200`, wrapped as `{ data: { id, username, email } }`.
 
 ## 4. Rate limiting
 

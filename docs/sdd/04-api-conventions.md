@@ -35,7 +35,7 @@
 - **API-05** `[implemented]` Single resources are wrapped: `{ "data": <resource> }`.
 - **API-06** `[implemented]` Collections are wrapped with metadata: `{ "data": [...], "meta": { "results": n, ... } }` (surveys add `page` and `limit`).
 - **API-07** `[implemented]` `204 No Content` responses have no meaningful body.
-- **API-08** `[open: OQ-07]` Exceptions to the envelope: `GET /users/me` returns the user object unwrapped. `POST .../answers` returns `200` instead of `201`.
+- **API-08** `[implemented]` There are no exceptions to the envelope: `GET /users/me` returns `200 { data: user }` and `POST …/answers` returns `201 { data: Answer }`.
 
 ## 3. Errors — RFC 9457 Problem Details
 
@@ -55,8 +55,8 @@
 - **API-13** `[implemented]` In `development`, the response also includes `error` and `stack`.
 - **API-14** `[implemented]` In `production`, operational errors are returned with their own status and fields; non-operational errors return exactly one generic `500 { title: "Unexpected error", detail: "Something went wrong" }`. The handler must send exactly one response.
 - **API-15** `[implemented]` `NODE_ENV` is always `development` or `production` (validated at startup), so the error handler always responds.
-- **API-16** `[open: OQ-03]` Malformed/invalid access tokens: a cookie that is not a JWT currently yields `422` (Zod `jwtSchema`), and an invalid signature yields a non-operational `500`.
-- **API-17** `[open: OQ-04]` Conflict status codes are inconsistent: duplicated email/username → `400`; duplicated survey name on create → `409`, on update → `400`.
+- **API-16** `[implemented]` On protected routes, an access token that is not a JWT or has an invalid signature → `401 Invalid token` ("Please, log in again") and both session cookies are cleared (AUTH-08).
+- **API-17** `[implemented]` Every uniqueness conflict (duplicated email or username, survey name on create or rename) → `409 Conflict`.
 
 ## 4. Validation
 
@@ -85,6 +85,6 @@
 ## 8. OpenAPI
 
 - **API-29** `[implemented]` Every endpoint is registered in `apps/api/src/lib/openapi.ts` with `registry.registerPath`, tagged (`Users`, `Surveys`, `Answers`), with an `operationId` (used by Orval to name hooks) and `...defaultResponses` (400, 401, 404, 422, 500 as `application/problem+json`).
-- **API-30** `[implemented]` Protected endpoints declare `security: [{ bearerAuth: [] }]`. (Note: the real mechanism is the `jwt` cookie, see AUTH-05/BL-01.)
-- **API-31** `[pending: BL-01]` The OpenAPI document must match the real API: response envelopes (`{data}`, `{data, meta}`), `201`/`204` codes, the `servers` URL, cookie-based auth, the stats and answers payloads, and the `429`/`403`/`409` responses actually emitted.
+- **API-30** `[implemented]` Protected endpoints declare `security: [{ cookieAuth: [] }]`, an `apiKey` scheme in the `jwt` cookie (AUTH-05); `GET /surveys/:slug` declares that the session is optional.
+- **API-31** `[implemented]` The OpenAPI document must match the real API: response envelopes (`{data}`, `{data, meta}`), `201`/`204` codes, the `servers` URL, cookie-based auth, the stats and answers payloads, and the `429`/`403`/`409` responses actually emitted. `servers` is the relative URL `/` (the document is served by the API itself), and paths are generated for the web client without a host (CFG-09).
 - **API-32** `[implemented]` Any endpoint change must update `openapi.ts` in the same change, then the web client must be regenerated (`pnpm generate:api`, see [30-dev-workflow.md](30-dev-workflow.md)).
