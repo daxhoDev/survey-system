@@ -30,6 +30,10 @@ Schemas: `packages/schemas/src/userSchema.ts`, `authSchema.ts`.
 - **AUTH-08** `[open: OQ-03]` Malformed cookie (not a JWT) → `422`; bad signature → `500`. Target behavior to be decided.
 - **AUTH-09** `[implemented]` On success sets `req.user = { id, username, email }` (`ProtectedRequest`) and adds `userId` to the request logger. The token is not checked against the database (a deleted user keeps access until the JWT expires).
 
+## 2.1 Optional authentication middleware — `AuthMiddleware.optionalAuth`
+
+- **AUTH-22** `[pending: BL-08]` Used by routes that are public but behave differently with a session (SURV-12). It never throws: no `jwt` cookie → anonymous; valid token → sets `req.user` and adds `userId` to the request logger, as in AUTH-09; expired token → anonymous with `req.sessionExpired = true`; malformed token or invalid signature → anonymous, logged at `warn`. The route decides whether an expired session matters.
+
 ## 3. Endpoints
 
 ### POST `/api/v1/users/signup` — public
