@@ -1,4 +1,4 @@
-import type { NextFunction, Request, Response } from "express";
+import type { NextFunction, Response } from "express";
 import AppError from "../utils/appError.js";
 import jwt from "jsonwebtoken";
 import z from "zod";
