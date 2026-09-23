@@ -30,7 +30,7 @@ allowed by `.gitignore`.
 | `REFRESH_COOKIE_EXPIRES_IN` | days | `REFRESH_TOKEN_TTL_DAYS` |
 
 `DATABASE_URL`, `PORT`, `NODE_ENV` and `JWT_SECRET` exist today without validation;
-`CORS_ORIGIN` (BL-14) and `LOG_LEVEL` do not exist yet (origin hardcoded, level `info`).
+`CORS_ORIGIN` and `LOG_LEVEL` do not exist yet (origin hardcoded, level `info`).
 
 ### 1.3 Requirements
 
@@ -39,7 +39,7 @@ allowed by `.gitignore`.
 - **CFG-03** `[pending: BL-05]` Code reads configuration only from the exported, typed config object — never from `process.env` directly (no `as string` casts). Numeric values are coerced (`z.coerce.number().int().positive()`).
 - **CFG-04** `[pending: BL-05]` `NODE_ENV` accepts only `development` or `production` (API-15).
 - **CFG-05** `[pending: BL-05]` `apps/api/.env.example` documents every variable with safe example values and is kept in sync with the schema.
-- **CFG-06** `[pending: BL-14]` The CORS origin comes from `CORS_ORIGIN` (API-24); in `production` it is required, in `development` it defaults to `http://localhost:5173`.
+- **CFG-06** `[pending: BL-05]` The CORS origin comes from `CORS_ORIGIN` (API-24); in `production` it is required, in `development` it defaults to `http://localhost:5173`.
 - **CFG-08** `[pending: BL-05]` `apps/api/prisma.config.ts` is executed by the Prisma CLI and keeps reading `DATABASE_URL` from `process.env`; it is outside the runtime schema.
 
 ## 2. Web configuration
