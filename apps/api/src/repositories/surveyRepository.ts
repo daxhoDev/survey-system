@@ -156,10 +156,10 @@ export default class SurveyRepository implements ISurveyRepository {
     data: UpdateSurveyDataWithMetadata,
   ): Promise<Survey | null> {
     const dbData = {
-      name: data.name,
+      ...(data.name !== undefined && { name: data.name }),
       slug: data.slug,
       questions: data.questions as Question[],
-      is_active: data.isActive,
+      ...(data.isActive !== undefined && { is_active: data.isActive }),
       updated_at: data.updatedAt,
       activated_at: data.activatedAt,
     };
