@@ -95,7 +95,7 @@ export default class RefreshTokenRepository implements IRefreshTokenRepository {
   }
 
   async deleteByUserId(userId: string): Promise<void> {
-    await prisma.refresh_tokens.delete({
+    await prisma.refresh_tokens.deleteMany({
       where: { user_id: userId },
     });
   }

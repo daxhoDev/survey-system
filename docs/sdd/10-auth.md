@@ -57,7 +57,7 @@ Body (`loginDataSchema`, strict): `email` (valid email), `password` (string, min
 
 ### POST `/api/v1/users/logout` — authenticated
 
-- **AUTH-16** `[pending: BL-10]` Logout is idempotent: it deletes the user's refresh token if one exists, clears both cookies (with the same options they were set with) and responds `204`, whether or not a refresh token existed. (Currently a missing refresh token yields `500 Invalid token`.)
+- **AUTH-16** `[implemented]` Logout is idempotent: it deletes the user's refresh token if one exists, clears both cookies (with the same options they were set with) and responds `204`, whether or not a refresh token existed.
 - **AUTH-17** `[implemented]` Requires a valid access JWT. With an expired JWT the web client first refreshes and then retries (see [20-frontend.md](20-frontend.md)).
 
 ### POST `/api/v1/users/refresh` — refresh cookie
