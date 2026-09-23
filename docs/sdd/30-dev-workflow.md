@@ -42,4 +42,6 @@ Dev URLs: API `http://localhost:3000` (Swagger at `/api/v1/docs`), web `http://l
 
 ## 6. Git
 
-- Default branch: `master`. Commit messages follow Conventional Commits (`feat:`, `fix:`, …) as in the existing history.
+- Default branch: `master`. Integration branch: `development`.
+- **DEV-WF-05** `[implemented]` Every change is developed on a branch created from `development` and merged through a PR whose base is `development`. Only the owner merges `development` into `master`, manually; agents never open PRs against or merge into `master`.
+- Commit messages follow Conventional Commits (`feat:`, `fix:`, …) as in the existing history.

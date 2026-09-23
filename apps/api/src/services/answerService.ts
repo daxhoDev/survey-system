@@ -39,18 +39,6 @@ export default class AnswerService implements IAnswerService {
     const { success, error, data } = z.safeParse(createAnswerSchema, answer);
     if (!success) throw error;
 
-    const existingIp = await this.answerRepo.getIpAndSlugByIpAndSlug(
-      originIp,
-      slug,
-    );
-    if (existingIp?.slug === slug) {
-      throw new AppError(
-        "You already submitted an answer",
-        "Your IP already submitted an answer for this survey",
-        403,
-      );
-    }
-
     const referencedSurvey = await this.surveyRepo.getBySlug(slug);
     if (!referencedSurvey)
       throw new AppError(
@@ -58,6 +46,18 @@ export default class AnswerService implements IAnswerService {
         "The survey you are trying to answer doesn't exist",
         404,
       );
+
+    const existingIp = await this.answerRepo.getIpBySurveyIdAndIp(
+      referencedSurvey.id,
+      originIp,
+    );
+    if (existingIp) {
+      throw new AppError(
+        "You already submitted an answer",
+        "Your IP already submitted an answer for this survey",
+        403,
+      );
+    }
 
     const serializedData = this.validateAnswerCreation(referencedSurvey, data);
 

@@ -62,16 +62,7 @@ import {
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Survey, SurveyStats } from "@/lib/api/surveySystemAPI.schemas";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 
 interface AnswerItem {
@@ -293,20 +284,6 @@ export default function SurveyDetailsPage() {
             </DialogTrigger>
           </div>
         </div>
-        {/*<DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirma tu acción</DialogTitle>
-            <DialogDescription>{`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="destructive" onClick={handleDeleteSurvey}>
-              Eliminar
-            </Button>
-            <DialogClose asChild>
-              <Button variant="secondary">Cancelar</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>*/}
         <ConfirmationDialog
           confirmText="Eliminar"
           description={`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}
@@ -698,31 +675,16 @@ export default function SurveyDetailsPage() {
                       <span>Eliminar respuesta</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Confirma tu acción</DialogTitle>
-                      <DialogDescription>
-                        ¿Seguro que deseas eliminar esta respuesta?
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button
-                        variant="destructive"
-                        disabled={deleteAnswer.isPending}
-                        onClick={() =>
-                          deleteAnswer.mutate({
-                            slug: survey.slug,
-                            id: selectedAnswer.id,
-                          })
-                        }
-                      >
-                        Eliminar
-                      </Button>
-                      <DialogClose asChild>
-                        <Button variant="secondary">Cancelar</Button>
-                      </DialogClose>
-                    </DialogFooter>
-                  </DialogContent>
+                  <ConfirmationDialog
+                    confirmText="Eliminar"
+                    description="¿Seguro que deseas eliminar esta respuesta?"
+                    onConfirm={() =>
+                      deleteAnswer.mutate({
+                        slug: survey.slug,
+                        id: selectedAnswer.id,
+                      })
+                    }
+                  />
                 </Dialog>
               </div>
             </div>

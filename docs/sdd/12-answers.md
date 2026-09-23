@@ -30,7 +30,7 @@ Processing order (target):
 
 - **ANS-01** `[implemented]` Body shape validated → `422` on failure.
 - **ANS-02** `[implemented]` Unknown or deleted survey → `404 Not found`.
-- **ANS-03** `[pending: BL-06]` If an answer from the same IP already exists **for this survey** → `403 You already submitted an answer` ("Your IP already submitted an answer for this survey"). Answers from the same IP to other surveys are allowed. Enforced both in the service and by the DB composite unique `(survey_id, origin_ip)` (DATA-07). (Currently checked globally, before resolving the survey.)
+- **ANS-03** `[implemented]` If an answer from the same IP already exists **for this survey** → `403 You already submitted an answer` ("Your IP already submitted an answer for this survey"). Answers from the same IP to other surveys are allowed. Enforced both in the service and by the DB composite unique `(survey_id, origin_ip)` (DATA-07). The check runs after resolving the survey (ANS-02).
 - **ANS-04** `[open: OQ-12]` Whether soft-deleted answers still count for the IP uniqueness check (currently they do, since the DB unique index includes them).
 - **ANS-05** `[pending: BL-07]` Inactive surveys (`isActive = false`) reject answers with `404`, **identical** to the not-found response of ANS-02: for a respondent an inactive survey does not exist (consistent with SURV-12). (Currently accepted.)
 - **ANS-06** `[implemented]` Semantic validation against the survey (`AnswerService.validateAnswerCreation`), each failing with `400 Validation error`:
