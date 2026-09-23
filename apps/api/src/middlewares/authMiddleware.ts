@@ -35,4 +35,40 @@ export default class AuthMiddleware {
     const childLogger = getLogger().child({ userId: userInfo.id });
     requestContext.run({ logger: childLogger }, next);
   }
+
+  // Never fails: routes that are public but depend on the session (AUTH-22).
+  async optionalAuth(
+    req: ProtectedRequest,
+    _res: Response,
+    next: NextFunction,
+  ) {
+    const { jwt: token } = req.cookies;
+    if (!token) return next();
+
+    let decoded: UserPayload;
+    try {
+      decoded = jwt.verify(
+        token,
+        process.env.JWT_SECRET as string,
+      ) as UserPayload;
+    } catch (err) {
+      if (err instanceof jwt.TokenExpiredError) {
+        req.sessionExpired = true;
+      } else {
+        getLogger().warn({ err }, "Ignoring invalid access token");
+      }
+      return next();
+    }
+
+    const userInfo = {
+      id: decoded.id,
+      username: decoded.username,
+      email: decoded.email,
+    };
+
+    req.user = userInfo;
+
+    const childLogger = getLogger().child({ userId: userInfo.id });
+    requestContext.run({ logger: childLogger }, next);
+  }
 }

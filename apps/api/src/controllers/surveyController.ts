@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { json } from "../utils/json.js";
-import type { ISurveyService, ProtectedRequest } from "../types.js";
+import type { ISurveyService, ProtectedRequest, Session } from "../types.js";
 import { queryStringSchema } from "@survey-system/schemas";
 import z from "zod";
 import { getLogger } from "../context/requestContext.js";
@@ -46,9 +46,17 @@ export default class SurveyController {
       );
   }
 
-  async getBySlug(req: Request, res: Response, next: NextFunction) {
+  async getBySlug(req: ProtectedRequest, res: Response, next: NextFunction) {
     getLogger().info({ slug: req.params.slug }, `Fetching survey by slug...`);
-    const survey = await this.service.getBySlug(req.params.slug as string);
+    const session: Session = req.user
+      ? "authenticated"
+      : req.sessionExpired
+        ? "expired"
+        : "anonymous";
+    const survey = await this.service.getBySlug(
+      req.params.slug as string,
+      session,
+    );
     res
       .type("json")
       .status(200)

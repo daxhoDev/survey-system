@@ -58,7 +58,7 @@ Order is normative:
 10. Catch-all `app.all("/*splat")` → `AppError` 404.
 11. `ErrorMiddleware.handleGlobalError`.
 
-- **ARCH-10** `[implemented]` `AuthMiddleware.protect` adds `userId` to the request-scoped logger after authenticating (see [10-auth.md](10-auth.md)).
+- **ARCH-10** `[implemented]` `AuthMiddleware.protect` and `AuthMiddleware.optionalAuth` (when a session is present) add `userId` to the request-scoped logger after authenticating (see [10-auth.md](10-auth.md)).
 - **ARCH-11** `[implemented]` Code obtains the logger with `getLogger()` (`context/requestContext.ts`) so every log line carries `requestId` (and `userId` when authenticated).
 
 ## 4. Frontend

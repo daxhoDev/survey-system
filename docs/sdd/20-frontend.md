@@ -71,4 +71,4 @@
 ### Answering — `pages/SurveyAnsweringPage.tsx` (`/surveys/:slug`, public)
 
 - **FE-23** `[implemented]` Loads the survey by slug; shows "Encuesta no encontrada" on error. Renders textarea (`TEXT_ANSWER`), radio group (`SINGLE_SELECT`, value sent as `[optionId]`) or checkboxes (`MULTI_SELECT`). Required questions are marked with `*` and validated client-side; empty responses are omitted from the payload. On success shows a thank-you card; on error toasts `error.detail`.
-- **FE-24** `[pending: BL-08]` Once inactive surveys return `404` publicly and reject answers, the page must present that case (currently covered by the generic "no existe o no está disponible" message).
+- **FE-24** `[implemented]` An inactive survey is indistinguishable from a missing one for respondents: loading it shows the same "Encuesta no encontrada — no existe o no está disponible" view as FE-23, and a submission rejected with `404` (the survey was deactivated meanwhile) shows the API `detail` in a toast, like any other error.

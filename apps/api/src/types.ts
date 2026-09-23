@@ -86,11 +86,13 @@ export interface IRefreshTokenRepository {
 
 export interface ISurveyService extends Omit<
   ISurveyRepository,
+  | "getBySlug"
   | "getSlugBySlug"
   | "getActivatedAtBySlug"
   | "getResponsesOptionsStatsBySlug"
   | "getSurveyStatsBySlug"
 > {
+  getBySlug(slug: string, session: Session): Promise<Survey>;
   getStatsBySlug(slug: string): Promise<SurveyStats>;
 }
 export interface IAnswerService {
@@ -173,7 +175,10 @@ export type QueryString = z.infer<typeof queryStringSchema>;
 
 export interface ProtectedRequest extends Request {
   user?: UserPayload;
+  sessionExpired?: boolean;
 }
+
+export type Session = "authenticated" | "expired" | "anonymous";
 export type LoginData = z.infer<typeof loginDataSchema>;
 
 export type CreateRefreshTokenData = {

@@ -70,7 +70,7 @@ Body (`createSurveySchema`, strict): `name` (string, min 5), `questions` (non-em
 ### GET `/api/v1/surveys/:slug` — public, optional session
 
 - **SURV-11** `[implemented]` Unknown or deleted slug → `404 Not found`.
-- **SURV-12** `[pending: BL-08]` Without a valid session, only **active** surveys are returned; an inactive survey returns `404` (same response as not found). With a valid session, any non-deleted survey is returned. This requires an optional-authentication middleware that never fails the request. (Currently inactive surveys are returned to anyone.)
+- **SURV-12** `[implemented]` Uses `optionalAuth` (AUTH-22). With a valid session, any non-deleted survey is returned. Without one, only **active** surveys are returned and an inactive survey returns `404`, the same response as not found. Exception: if the access token is **expired** and the survey is inactive → `401 Token Error` ("This token expired, please log in again"), so the web client silently refreshes the session and retries (FE-09). Respondents send no cookie and are unaffected.
 - **SURV-13** `[implemented]` Response `200 { data: Survey }`.
 
 ### PATCH `/api/v1/surveys/:slug` — authenticated

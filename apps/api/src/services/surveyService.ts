@@ -5,6 +5,7 @@ import type {
   ISurveyRepository,
   ISurveyService,
   QueryString,
+  Session,
   Survey,
   UpdateSurveyData,
 } from "../types.js";
@@ -21,9 +22,19 @@ export default class SurveyService implements ISurveyService {
     return results;
   }
 
-  async getBySlug(slug: string): Promise<Survey> {
+  async getBySlug(slug: string, session: Session): Promise<Survey> {
     const survey = await this.repo.getBySlug(slug);
-    if (!survey) {
+    const isVisible =
+      survey && (survey.isActive || session === "authenticated");
+
+    if (survey && !isVisible && session === "expired") {
+      throw new AppError(
+        "Token Error",
+        "This token expired, please log in again",
+        401,
+      );
+    }
+    if (!isVisible) {
       throw new AppError(
         "Not found",
         "The requested survey doesn't exist",
