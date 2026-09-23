@@ -56,7 +56,7 @@ Query string (`queryStringSchema`; all optional, all received as strings):
 | `sort` | `name` \| `-name` \| `creation` \| `-creation` | `name` asc/desc (tie-break `created_at` desc); `creation` = `created_at` asc/desc (tie-break `name` asc). No default order |
 
 - **SURV-05** `[implemented]` Deleted surveys are excluded. Invalid query params → `422`.
-- **SURV-06** `[pending: BL-11]` Offset is `(page - 1) * limit`. (Currently `(page - 1) * 10` regardless of `limit`.)
+- **SURV-06** `[implemented]` Offset is `(page - 1) * limit`.
 - **SURV-07** `[implemented]` Response `200 { data: Survey[], meta: { results, page, limit } }` where `results` is the number of items in this page (not the total).
 
 ### POST `/api/v1/surveys` — authenticated

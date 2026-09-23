@@ -73,10 +73,11 @@ export default class SurveyRepository implements ISurveyRepository {
       };
     }
 
+    const take = limit ? limit : this.defaultTake;
     const results = await prisma.surveys.findMany({
       where,
-      take: limit ? limit : this.defaultTake,
-      skip: page ? (page - 1) * this.defaultTake : this.defaultSkip,
+      take,
+      skip: page ? (page - 1) * take : this.defaultSkip,
       orderBy,
     });
 
