@@ -23,7 +23,7 @@ Dev URLs: API `http://localhost:3000` (Swagger at `/api/v1/docs`), web `http://l
 
 - **DEV-WF-01** `[pending: BL-17]` `apps/api` script `seed` (`tsx src/scripts/seed.ts`) and Prisma's seed (`tsx prisma/seed.ts`) point to files that do not exist. `apps/web` script `generate:api` uses `openapi-typescript`, which is not installed and is superseded by the root Orval command.
 
-- **DEV-WF-04** `[pending: BL-20]` `pnpm build` in `apps/api` must typecheck with zero errors (it also compiles `packages/schemas`). (Currently `tsc` reports 9 errors: 8 in `packages/schemas` and 1 in `apps/api/src/repositories/surveyRepository.ts`.)
+- **DEV-WF-04** `[pending: BL-20]` `pnpm build` in `apps/api` must typecheck with zero errors (it also compiles `packages/schemas`). (Currently `tsc` reports 10 errors: 8 in `packages/schemas`, 1 in `apps/api/src/repositories/surveyRepository.ts` and 1 in `apps/api/src/lib/openapi.ts`.)
 
 ## 3. Changing things
 
