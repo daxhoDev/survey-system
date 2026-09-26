@@ -88,7 +88,7 @@
 
 ## 8. OpenAPI
 
-- **API-29** `[implemented]` Every endpoint is registered in `apps/api/src/lib/openapi.ts` with `registry.registerPath`, tagged (`Users`, `Surveys`, `Answers`), with an `operationId` (used by Orval to name hooks) and `...defaultResponses` (400, 401, 404, 422, 500 as `application/problem+json`).
+- **API-29** `[implemented]` Every endpoint is registered in `apps/api/src/lib/openapi.ts` with `registry.registerPath`, tagged (`Users`, `Invitations`, `Surveys`, `Answers`), with an `operationId` (used by Orval to name hooks) and `...defaultResponses` (400, 401, 404, 422, 500 as `application/problem+json`).
 - **API-30** `[implemented]` Protected endpoints declare `security: [{ cookieAuth: [] }]`, an `apiKey` scheme in the `jwt` cookie (AUTH-05); `GET /surveys/:slug` declares that the session is optional.
 - **API-31** `[implemented]` The OpenAPI document must match the real API: response envelopes (`{data}`, `{data, meta}`), `201`/`204` codes, the `servers` URL, cookie-based auth, the stats and answers payloads, and the `429`/`403`/`409` responses actually emitted. `servers` is the relative URL `/` (the document is served by the API itself), and paths are generated for the web client without a host (CFG-09).
 - **API-32** `[implemented]` Any endpoint change must update `openapi.ts` in the same change, then the web client must be regenerated (`pnpm generate:api`, see [30-dev-workflow.md](30-dev-workflow.md)).

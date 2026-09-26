@@ -1,6 +1,7 @@
 import { v7 } from "uuid";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import AnswerRepository from "../../src/repositories/answerRepository.js";
+import InvitationRepository from "../../src/repositories/invitationRepository.js";
 import RefreshTokenRepository from "../../src/repositories/refreshTokenRepository.js";
 import SurveyRepository from "../../src/repositories/surveyRepository.js";
 import UserRepository from "../../src/repositories/userRepository.js";
@@ -11,6 +12,7 @@ const surveys = new SurveyRepository();
 const answers = new AnswerRepository();
 const users = new UserRepository();
 const refreshTokens = new RefreshTokenRepository();
+const invitations = new InvitationRepository();
 
 async function createSurvey(name: string, extra: Record<string, unknown> = {}) {
   const slug = name.toLowerCase().replaceAll(" ", "-");
@@ -224,5 +226,124 @@ describe("users and refresh tokens", () => {
 
   it("AUTH-16: deleteByUserId succeeds when there is no token", async () => {
     await expect(refreshTokens.deleteByUserId(v7())).resolves.toBeUndefined();
+  });
+});
+
+describe("InvitationRepository (AUTH-23…AUTH-29)", () => {
+  const HOUR = 60 * 60 * 1000;
+  let inviterId: string;
+
+  beforeEach(async () => {
+    inviterId = v7();
+    await users.createOne({
+      id: inviterId,
+      email: "owner@example.com",
+      username: "owner",
+      password: "hash",
+    });
+  });
+
+  const invite = (email: string, tokenHash: string, expiresAt = new Date(Date.now() + 48 * HOUR)) =>
+    invitations.createReplacingPending({ id: v7(), email, tokenHash, invitedBy: inviterId, expiresAt });
+
+  const account = (username = "newuser") => ({
+    id: v7(),
+    email: "new@example.com",
+    username,
+    password: "hash",
+  });
+
+  it("creates an invitation with its inviter and without exposing the hash", async () => {
+    const created = await invite("new@example.com", "hash-1");
+
+    expect(created).toMatchObject({
+      email: "new@example.com",
+      invitedBy: { id: inviterId, username: "owner" },
+      acceptedAt: null,
+      revokedAt: null,
+    });
+    expect(created).not.toHaveProperty("tokenHash");
+    expect(await invitations.getByTokenHash("hash-1")).toEqual(created);
+    expect(await invitations.getById(created.id)).toEqual(created);
+    expect(await invitations.getByTokenHash("unknown")).toBeNull();
+  });
+
+  it("AUTH-23: token hashes are unique", async () => {
+    await invite("a@example.com", "same");
+    await expect(invite("b@example.com", "same")).rejects.toThrow();
+  });
+
+  it("AUTH-24: revokes only the pending invitation of the same email", async () => {
+    const expired = await invite("new@example.com", "h-expired", new Date(Date.now() - 1000));
+    const pending = await invite("new@example.com", "h-pending");
+    const other = await invite("other@example.com", "h-other");
+    const replacement = await invite("new@example.com", "h-new");
+
+    expect((await invitations.getById(pending.id))!.revokedAt).toBeInstanceOf(Date);
+    expect((await invitations.getById(expired.id))!.revokedAt).toBeNull();
+    expect((await invitations.getById(other.id))!.revokedAt).toBeNull();
+    expect((await invitations.getById(replacement.id))!.revokedAt).toBeNull();
+  });
+
+  it("AUTH-25: getAll lists every invitation, newest first", async () => {
+    const first = await invite("a@example.com", "h-a");
+    const second = await invite("b@example.com", "h-b");
+    await prisma.invitations.update({
+      where: { id: first.id },
+      data: { created_at: new Date(Date.now() - HOUR) },
+    });
+
+    expect((await invitations.getAll()).map((i) => i.id)).toEqual([second.id, first.id]);
+  });
+
+  it("AUTH-26: revoke sets revoked_at", async () => {
+    const created = await invite("new@example.com", "h");
+    await invitations.revoke(created.id);
+    expect((await invitations.getById(created.id))!.revokedAt).toBeInstanceOf(Date);
+  });
+
+  it("DATA: deleting the inviter keeps the invitation with invitedBy null", async () => {
+    const created = await invite("new@example.com", "h");
+    await prisma.users.delete({ where: { id: inviterId } });
+    expect((await invitations.getById(created.id))!.invitedBy).toBeNull();
+  });
+
+  it("AUTH-29: acceptWithNewUser creates the user and marks the invitation accepted", async () => {
+    const created = await invite("new@example.com", "h");
+    const data = account();
+
+    const user = await invitations.acceptWithNewUser(created.id, data);
+
+    expect(user).toEqual({
+      id: data.id,
+      email: data.email,
+      username: data.username,
+      createdAt: expect.any(Date),
+      deletedAt: null,
+    });
+    expect((await invitations.getById(created.id))!.acceptedAt).toBeInstanceOf(Date);
+  });
+
+  it.each([
+    ["accepted", { accepted_at: new Date() }],
+    ["revoked", { revoked_at: new Date() }],
+    ["expired", { expires_at: new Date(Date.now() - 1000) }],
+  ])("AUTH-29: acceptWithNewUser returns null for an %s invitation", async (_kind, data) => {
+    const created = await invite("new@example.com", "h");
+    await prisma.invitations.update({ where: { id: created.id }, data });
+
+    expect(await invitations.acceptWithNewUser(created.id, account())).toBeNull();
+    expect(await prisma.users.count()).toBe(1);
+  });
+
+  it("AUTH-29: accepting is atomic: if the user cannot be created the invitation stays pending", async () => {
+    const created = await invite("new@example.com", "h");
+    // Longer than users.username VARCHAR(50).
+    await expect(
+      invitations.acceptWithNewUser(created.id, account("u".repeat(51))),
+    ).rejects.toThrow();
+
+    expect((await invitations.getById(created.id))!.acceptedAt).toBeNull();
+    expect(await prisma.users.count()).toBe(1);
   });
 });

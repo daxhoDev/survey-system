@@ -28,7 +28,7 @@ is listed here. Start with the process document before touching anything.
 | 03 | [Data model](03-data-model.md) | Database tables, JSON document shapes, soft delete, IDs |
 | 04 | [API conventions](04-api-conventions.md) | Routing, response envelope, errors (RFC 9457), rate limiting, logging, OpenAPI |
 | 05 | [Configuration](05-configuration.md) | Environment variables and their validation |
-| 10 | [Authentication](10-auth.md) | Signup, login, logout, refresh, current user, cookies, tokens |
+| 10 | [Authentication](10-auth.md) | Invitations, `create-user`, login, logout, refresh, current user, cookies, tokens |
 | 11 | [Surveys](11-surveys.md) | Survey CRUD, questions, activation and locking, listing |
 | 12 | [Answers](12-answers.md) | Submitting and managing answers, validation rules, IP uniqueness |
 | 13 | [Statistics](13-stats.md) | Survey statistics endpoint and its computation |

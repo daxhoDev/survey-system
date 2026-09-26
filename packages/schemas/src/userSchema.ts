@@ -3,7 +3,10 @@ import { z } from "./zod-setup.js";
 export const createUserSchema = z
   .strictObject({
     email: z.string().email("Must be a valid email"),
-    username: z.string().min(3, "Must be a string"),
+    username: z
+      .string()
+      .min(3, "Must have at least 3 characters")
+      .max(50, "Must have at most 50 characters"),
     password: z.string().min(5, "Must have at least 5 characters"),
     passwordConfirm: z.string().min(5, "Must be a string"),
   })

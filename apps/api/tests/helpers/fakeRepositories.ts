@@ -6,6 +6,10 @@ import type {
   CreateRefreshTokenData,
   CreateSurveyData,
   IAnswerRepository,
+  IInvitationRepository,
+  InvitationRow,
+  NewAccount,
+  NewInvitation,
   IRefreshTokenRepository,
   ISurveyRepository,
   IUserRepository,
@@ -21,6 +25,7 @@ export const store = {
   refreshTokens: [] as RefreshToken[],
   surveys: [] as Survey[],
   answers: [] as Answer[],
+  invitations: [] as (InvitationRow & { tokenHash: string })[],
 };
 
 export function resetStore() {
@@ -28,6 +33,7 @@ export function resetStore() {
   store.refreshTokens = [];
   store.surveys = [];
   store.answers = [];
+  store.invitations = [];
 }
 
 const liveSurvey = (slug: string) =>
@@ -158,5 +164,53 @@ export class FakeAnswerRepository implements IAnswerRepository {
       (a) => a.surveyId === surveyId && a.originIp === ip,
     );
     return answer ? { originIp: answer.originIp } : null;
+  }
+}
+
+const isPending = (i: InvitationRow) =>
+  !i.acceptedAt && !i.revokedAt && i.expiresAt.getTime() > Date.now();
+
+const withoutHash = ({ tokenHash: _hash, ...row }: InvitationRow & { tokenHash: string }) => row;
+
+export class FakeInvitationRepository implements IInvitationRepository {
+  async createReplacingPending(invitation: NewInvitation) {
+    for (const i of store.invitations) {
+      if (i.email === invitation.email && isPending(i)) i.revokedAt = new Date();
+    }
+    const inviter = store.users.find((u) => u.id === invitation.invitedBy);
+    const row = {
+      id: invitation.id,
+      email: invitation.email,
+      tokenHash: invitation.tokenHash,
+      invitedBy: inviter ? { id: inviter.id, username: inviter.username } : null,
+      createdAt: new Date(),
+      expiresAt: invitation.expiresAt,
+      acceptedAt: null,
+      revokedAt: null,
+    };
+    store.invitations.push(row);
+    return withoutHash(row);
+  }
+  async getAll() {
+    return [...store.invitations]
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+      .map(withoutHash);
+  }
+  async getById(id: string) {
+    const row = store.invitations.find((i) => i.id === id);
+    return row ? withoutHash(row) : null;
+  }
+  async getByTokenHash(tokenHash: string) {
+    const row = store.invitations.find((i) => i.tokenHash === tokenHash);
+    return row ? withoutHash(row) : null;
+  }
+  async revoke(id: string) {
+    store.invitations.find((i) => i.id === id)!.revokedAt = new Date();
+  }
+  async acceptWithNewUser(invitationId: string, account: NewAccount) {
+    const invitation = store.invitations.find((i) => i.id === invitationId);
+    if (!invitation || !isPending(invitation)) return null;
+    invitation.acceptedAt = new Date();
+    return new FakeUserRepository().createOne(account);
   }
 }

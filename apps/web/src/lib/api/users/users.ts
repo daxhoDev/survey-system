@@ -23,9 +23,7 @@ import type {
   GetCurrentUser200,
   LoginUser200,
   Problem,
-  RegisterUser200,
-  UserLogin,
-  UserSignup
+  UserLogin
 } from '../surveySystemAPI.schemas';
 
 import { customInstance } from '.././mutator/customInstance';
@@ -39,76 +37,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 
 
-export const getRegisterUserUrl = () => {
-
-
-
-
-  return `/api/v1/users/signup`
-}
-
-/**
- * @summary Register a new user
- */
-export const registerUser = async (userSignup?: UserSignup, options?: RequestInit): Promise<RegisterUser200> => {
-
-  return customInstance<RegisterUser200>(getRegisterUserUrl(),
-  {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    body: JSON.stringify(userSignup)
-  }
-);}
-
-
-
-
-export const getRegisterUserMutationOptions = <TError = Problem,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerUser>>, TError,{data?: UserSignup}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof registerUser>>, TError,{data?: UserSignup}, TContext> => {
-
-const mutationKey = ['registerUser'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
-
-
-
-
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof registerUser>>, {data?: UserSignup}> = (props) => {
-          const {data} = props ?? {};
-
-          return  registerUser(data,requestOptions)
-        }
-
-
-
-
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type RegisterUserMutationResult = NonNullable<Awaited<ReturnType<typeof registerUser>>>
-    export type RegisterUserMutationBody = UserSignup | undefined
-    export type RegisterUserMutationError = Problem
-
-    /**
- * @summary Register a new user
- */
-export const useRegisterUser = <TError = Problem,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof registerUser>>, TError,{data?: UserSignup}, TContext>, request?: SecondParameter<typeof customInstance>}
- ): UseMutationResult<
-        Awaited<ReturnType<typeof registerUser>>,
-        TError,
-        {data?: UserSignup},
-        TContext
-      > => {
-      return useMutation(getRegisterUserMutationOptions(options));
-    }
-    export const getLoginUserUrl = () => {
+export const getLoginUserUrl = () => {
 
 
 

@@ -7,6 +7,9 @@ import type {
   UserWithTokens,
   IRefreshTokenRepository,
   FreshTokens,
+  NewAccount,
+  UserPayload,
+  UserWithoutPassword,
 } from "../types.js";
 import { createUserSchema, loginDataSchema } from "@survey-system/schemas";
 import bcrypt from "bcrypt";
@@ -26,16 +29,9 @@ export default class AuthService implements IAuthService {
     private refreshRepo: IRefreshTokenRepository,
   ) {}
 
-  async signup(data: CreateUserData): Promise<UserWithTokens> {
-    const {
-      success,
-      data: validData,
-      error,
-    } = z.safeParse(createUserSchema, data);
-
-    if (!success) {
-      throw error;
-    }
+  // Validates a new account and hashes its password (AUTH-10, AUTH-11).
+  async prepareAccount(data: CreateUserData): Promise<NewAccount> {
+    const validData = z.parse(createUserSchema, data);
 
     const emailExists = await this.userRepo.getByEmail(validData.email);
     if (emailExists) {
@@ -56,27 +52,23 @@ export default class AuthService implements IAuthService {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(validData.password, 10);
-
-    const userId = v7();
-    const user = await this.userRepo.createOne({
-      id: userId,
+    return {
+      id: v7(),
       email: validData.email,
       username: validData.username,
-      password: hashedPassword,
-    });
+      password: await bcrypt.hash(validData.password, 10),
+    };
+  }
 
-    const refreshToken = await this.createRefreshToken(userId);
-    const accessToken = this.createSignedJwt(
-      userId,
-      validData.username,
-      validData.email,
-    );
+  // Used by the create-user command (AUTH-31).
+  async createAccount(data: CreateUserData): Promise<UserWithoutPassword> {
+    return this.userRepo.createOne(await this.prepareAccount(data));
+  }
 
+  async issueTokens(user: UserPayload): Promise<FreshTokens> {
     return {
-      user,
-      accessToken,
-      refreshToken,
+      accessToken: this.createSignedJwt(user.id, user.username, user.email),
+      refreshToken: await this.createRefreshToken(user.id),
     };
   }
 

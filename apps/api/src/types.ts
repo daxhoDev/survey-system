@@ -12,7 +12,11 @@ import type {
   createAnswerSchema,
   responseSchema,
 } from "@survey-system/schemas";
-import type { createUserSchema, loginDataSchema } from "@survey-system/schemas";
+import type {
+  acceptInvitationSchema,
+  createUserSchema,
+  loginDataSchema,
+} from "@survey-system/schemas";
 import type { Logger } from "pino";
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,8 +120,32 @@ export interface IAnswerService {
   ): CreateAnswerData;
 }
 
+export interface IInvitationRepository {
+  createReplacingPending(invitation: NewInvitation): Promise<InvitationRow>;
+  getAll(): Promise<InvitationRow[]>;
+  getById(id: string): Promise<InvitationRow | null>;
+  getByTokenHash(tokenHash: string): Promise<InvitationRow | null>;
+  revoke(id: string): Promise<void>;
+  // Creates the user and marks the invitation accepted atomically; null if
+  // the invitation was accepted or revoked meanwhile.
+  acceptWithNewUser(
+    invitationId: string,
+    account: NewAccount,
+  ): Promise<UserWithoutPassword | null>;
+}
+
+export interface IInvitationService {
+  create(email: string, invitedBy: string): Promise<{ invitation: Invitation; token: string }>;
+  getAll(): Promise<Invitation[]>;
+  revoke(id: string): Promise<void>;
+  getByToken(token: string): Promise<Pick<Invitation, "email" | "expiresAt">>;
+  accept(token: string, data: AcceptInvitationData): Promise<UserWithTokens>;
+}
+
 export interface IAuthService {
-  signup(data: CreateUserData): Promise<UserWithTokens>;
+  prepareAccount(data: CreateUserData): Promise<NewAccount>;
+  createAccount(data: CreateUserData): Promise<UserWithoutPassword>;
+  issueTokens(user: UserPayload): Promise<FreshTokens>;
   login(data: LoginData): Promise<UserWithTokens>;
   logout(id: string): Promise<void>;
   refresh(token: string): Promise<FreshTokens>;
@@ -228,3 +256,25 @@ export interface RequestContext {
   // userId?: string;
   logger: Logger;
 }
+
+export type AcceptInvitationData = z.infer<typeof acceptInvitationSchema>;
+// A validated, hashed account ready to insert (AUTH-10, AUTH-11).
+export type NewAccount = { id: string; email: string; username: string; password: string };
+export type NewInvitation = {
+  id: string;
+  email: string;
+  tokenHash: string;
+  invitedBy: string;
+  expiresAt: Date;
+};
+export type InvitationRow = {
+  id: string;
+  email: string;
+  invitedBy: { id: string; username: string } | null;
+  createdAt: Date;
+  expiresAt: Date;
+  acceptedAt: Date | null;
+  revokedAt: Date | null;
+};
+export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
+export type Invitation = InvitationRow & { status: InvitationStatus };

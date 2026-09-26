@@ -22,30 +22,36 @@ describe("OpenAPI document (API-30, API-31)", () => {
     expect(doc.servers).toEqual([{ url: "/" }]);
   });
 
-  it("documents the 15 endpoints with the operationIds used by the web client", () => {
+  it("documents the 19 endpoints with the operationIds used by the web client", () => {
     expect(operations.map((o) => o.operationId).sort()).toEqual(
       [
+        "acceptInvitation",
+        "createInvitation",
         "createSurvey",
         "createSurveyAnswer",
         "deleteSurveyAnswerById",
         "deleteSurveyBySlug",
+        "getAllInvitations",
         "getAllSurveyAnswers",
         "getAllSurveys",
         "getCurrentUser",
+        "getInvitationByToken",
         "getSurveyAnswerById",
         "getSurveyBySlug",
         "getSurveyStatsBySlug",
         "loginUser",
         "logoutUser",
         "refreshAuthToken",
-        "registerUser",
+        "revokeInvitation",
         "updateSurveyBySlug",
       ].sort(),
     );
   });
 
   it.each([
-    ["registerUser", "200"],
+    ["createInvitation", "201"],
+    ["acceptInvitation", "201"],
+    ["revokeInvitation", "204"],
     ["createSurvey", "201"],
     ["createSurveyAnswer", "201"],
     ["deleteSurveyBySlug", "204"],
@@ -58,10 +64,16 @@ describe("OpenAPI document (API-30, API-31)", () => {
   });
 
   it("documents 409 for uniqueness conflicts and 403 for repeated answers", () => {
-    expect(op("registerUser").responses).toHaveProperty("409");
+    expect(op("createInvitation").responses).toHaveProperty("409");
+    expect(op("acceptInvitation").responses).toHaveProperty("409");
+    expect(op("revokeInvitation").responses).toHaveProperty("409");
     expect(op("createSurvey").responses).toHaveProperty("409");
     expect(op("updateSurveyBySlug").responses).toHaveProperty("409");
     expect(op("createSurveyAnswer").responses).toHaveProperty("403");
+  });
+
+  it("AUTH-13: there is no public signup", () => {
+    expect(Object.keys(doc.paths ?? {})).not.toContain("/api/v1/users/signup");
   });
 
   it("every operation documents 429 and 500", () => {
@@ -71,8 +83,13 @@ describe("OpenAPI document (API-30, API-31)", () => {
     }
   });
 
-  it("GET /surveys/{slug} and POST answers are public; the rest need the cookie", () => {
-    const publicOps = ["registerUser", "loginUser", "createSurveyAnswer"];
+  it("GET /surveys/{slug}, POST answers and the invitation token routes are public; the rest need the cookie", () => {
+    const publicOps = [
+      "loginUser",
+      "createSurveyAnswer",
+      "getInvitationByToken",
+      "acceptInvitation",
+    ];
     for (const o of operations) {
       if (publicOps.includes(o.operationId)) expect(o.security).toBeUndefined();
       else if (o.operationId === "getSurveyBySlug")

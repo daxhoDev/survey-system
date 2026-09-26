@@ -18,6 +18,7 @@
 | root | `pnpm generate:api` | Run Orval: regenerate `apps/web/src/lib/api` from `http://localhost:3000/api/v1/docs-raw` (API must be running) |
 | `apps/api` | `pnpm exec prisma migrate dev` | Create/apply migrations |
 | `apps/api` | `pnpm seed` | Load the demo data into the development database (DEV-WF-01) |
+| `apps/api` | `pnpm create-user` | Create an account interactively, e.g. the first one (AUTH-31) |
 | `apps/api` | `pnpm exec prisma generate` | Regenerate the Prisma client in `src/generated/prisma` |
 | `apps/api` | `pnpm build` / `pnpm start` | `tsc` → `dist/`, run `node dist/server.js` |
 | `apps/api` | `pnpm test` / `pnpm test:watch` / `pnpm test:coverage` | Vitest: one run / watch mode / one run with a v8 coverage report (`coverage/`) |
@@ -41,7 +42,7 @@ Dev URLs: API `http://localhost:3000` (Swagger at `/api/v1/docs`), web `http://l
 
 - **DEV-WF-02** `[implemented]` Tests use **Vitest** in both apps. Test files live outside `src` (`apps/api/tests`, `apps/web/tests`) and name the requirement IDs they cover.
   - **API, `unit` project** (`apps/api/tests/unit`, no database): services with fake repositories; middlewares and the error handler on a small Express app with Supertest; `config/env.ts`; HTTP tests of the real `app` with the repository modules replaced by in-memory fakes (`vi.mock`, `tests/helpers/fakeRepositories.ts`). Rate limiters are mocked out except in `rateLimit.test.ts`.
-  - **API, `db` project** (`apps/api/tests/db`, real PostgreSQL): repositories and full HTTP flows against `TEST_DATABASE_URL`. A global setup rebuilds that database with `prisma migrate reset --force` once per run and refuses to run unless the database name contains `test` and differs from `DATABASE_URL`; every test starts from truncated tables. Without `TEST_DATABASE_URL` the `db` project is skipped with a warning. Files run one at a time because they share the database.
+  - **API, `db` project** (`apps/api/tests/db`, real PostgreSQL): repositories, full HTTP flows and the command-line scripts (seed, `create-user`) against `TEST_DATABASE_URL`. A global setup rebuilds that database with `prisma migrate reset --force` once per run and refuses to run unless the database name contains `test` and differs from `DATABASE_URL`; every test starts from truncated tables. Without `TEST_DATABASE_URL` the `db` project is skipped with a warning. Files run one at a time because they share the database.
   - **Web** (`apps/web/tests`, jsdom + Testing Library): components and pages rendered with a fresh `QueryClient` and `MemoryRouter`; `fetch` is replaced by a route table (`tests/helpers.tsx`). Covered today: `ConfirmationDialog`, `SurveyAnsweringPage`, the login form and `customInstance`.
   - Tests set their own configuration (`NODE_ENV=development`, `LOG_LEVEL=silent`, test secrets); `.env` is only read for `TEST_DATABASE_URL`.
   - Coverage is reported (`pnpm test:coverage` in `apps/api`) without a minimum threshold. There is no CI: tests run locally.

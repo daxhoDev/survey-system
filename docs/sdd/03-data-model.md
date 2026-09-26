@@ -37,7 +37,7 @@ model; differences with the current schema are tagged.
 | `created_at` | TIMESTAMPTZ | default now |
 | `expires_at` | TIMESTAMPTZ | now + `REFRESH_TOKEN_TTL_DAYS` days |
 
-### `invitations` `[pending: BL-03]`
+### `invitations`
 
 | Column | Type | Notes |
 |--------|------|-------|
