@@ -59,4 +59,4 @@ Processing order (target):
 
 ## 3. Survey scoping
 
-- **ANS-08** `[implemented]` Every answer route resolves the survey by `:slug` among **non-deleted** surveys first → `404` if not found. For `/:id` routes, the answer must exist, be non-deleted **and belong to that survey**; otherwise `404`. Details: survey not found → `Not found` / "The requested survey doesn't exist"; answer not found → `Not found` / "The requested answer doesn't exist".
+- **ANS-08** `[implemented]` On `/:id` routes, an id that is not a UUID is rejected with `422` before anything else (API-34). Every answer route resolves the survey by `:slug` among **non-deleted** surveys first → `404` if not found. For `/:id` routes, the answer must exist, be non-deleted **and belong to that survey**; otherwise `404`. Details: survey not found → `Not found` / "The requested survey doesn't exist"; answer not found → `Not found` / "The requested answer doesn't exist".

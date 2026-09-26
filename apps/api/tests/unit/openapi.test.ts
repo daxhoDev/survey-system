@@ -67,6 +67,12 @@ describe("OpenAPI document (API-30, API-31)", () => {
     expect(op("createInvitation").responses).toHaveProperty("409");
     expect(op("acceptInvitation").responses).toHaveProperty("409");
     expect(op("revokeInvitation").responses).toHaveProperty("409");
+  });
+
+  it("API-34: routes with an :id parameter document 422 for an invalid UUID", () => {
+    for (const id of ["revokeInvitation", "getSurveyAnswerById", "deleteSurveyAnswerById"]) {
+      expect(op(id).responses, id).toHaveProperty("422");
+    }
     expect(op("createSurvey").responses).toHaveProperty("409");
     expect(op("updateSurveyBySlug").responses).toHaveProperty("409");
     expect(op("createSurveyAnswer").responses).toHaveProperty("403");

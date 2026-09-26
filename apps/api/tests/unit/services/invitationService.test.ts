@@ -66,6 +66,18 @@ describe("InvitationService.create (AUTH-23, AUTH-24)", () => {
     });
   });
 
+  it("AUTH-32: stores the email in lowercase", async () => {
+    const { invitation } = await service.create("New.User@Example.COM", user.id);
+    expect(invitation.email).toBe("new.user@example.com");
+    expect(store.invitations[0]!.email).toBe("new.user@example.com");
+  });
+
+  it("AUTH-32: the existing-user check ignores the case of the email", async () => {
+    await expect(
+      service.create(user.email.toUpperCase(), user.id),
+    ).rejects.toMatchObject({ status: 409 });
+  });
+
   it("AUTH-24: 409 Conflict for the email of an existing user", async () => {
     await expect(service.create(user.email, user.id)).rejects.toMatchObject({
       status: 409,
@@ -76,7 +88,7 @@ describe("InvitationService.create (AUTH-23, AUTH-24)", () => {
   });
 
   it("AUTH-24: a new invitation revokes the pending one for the same email", async () => {
-    const first = await service.create("new@example.com", user.id);
+    const first = await service.create("NEW@example.com", user.id);
     const second = await service.create("new@example.com", user.id);
     await service.create("other@example.com", user.id);
 
@@ -115,6 +127,12 @@ describe("InvitationService.revoke (AUTH-26)", () => {
     const { invitation } = await service.create("new@example.com", user.id);
     await service.revoke(invitation.id);
     expect(store.invitations[0]!.revokedAt).toBeInstanceOf(Date);
+  });
+
+  it("API-34: an id that is not a UUID is a validation error", async () => {
+    await expect(service.revoke("not-a-uuid")).rejects.toMatchObject({
+      name: "ZodError",
+    });
   });
 
   it("404 for an unknown id", async () => {

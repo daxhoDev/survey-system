@@ -4,3 +4,4 @@ export * from "./queryStringsSchema.js";
 export * from "./surveySchema.js";
 export * from "./userSchema.js";
 export * from "./invitationSchema.js";
+export * from "./paramsSchema.js";

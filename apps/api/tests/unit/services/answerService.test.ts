@@ -187,6 +187,19 @@ describe("AnswerService.validateAnswerCreation (ANS-06)", () => {
 });
 
 describe("AnswerService answer routes (ANS-08)", () => {
+  const unknownId = "0190a0a0-0000-7000-8000-0000000000ff";
+
+  it("API-34: an id that is not a UUID is a validation error, before any lookup", async () => {
+    for (const call of [
+      () => service.getById(active.slug, "not-a-uuid"),
+      () => service.deleteById(active.slug, "not-a-uuid"),
+    ]) {
+      await expect(call()).rejects.toMatchObject({ name: "ZodError" });
+    }
+    expect(answerRepo.getById).not.toHaveBeenCalled();
+    expect(answerRepo.deleteById).not.toHaveBeenCalled();
+  });
+
   it("lists the answers of the resolved survey", async () => {
     await service.getAllFromSurvey(active.slug);
     expect(answerRepo.getAllFromSurvey).toHaveBeenCalledWith(active.id);
@@ -197,7 +210,7 @@ describe("AnswerService answer routes (ANS-08)", () => {
       status: 404,
       detail: "The requested survey doesn't exist",
     });
-    await expect(service.getById("missing", "a")).rejects.toMatchObject({
+    await expect(service.getById("missing", unknownId)).rejects.toMatchObject({
       status: 404,
       detail: "The requested survey doesn't exist",
     });
@@ -212,7 +225,7 @@ describe("AnswerService answer routes (ANS-08)", () => {
   });
 
   it("404 when the answer is missing, deleted or from another survey", async () => {
-    await expect(service.getById(active.slug, "nope")).rejects.toMatchObject({
+    await expect(service.getById(active.slug, unknownId)).rejects.toMatchObject({
       status: 404,
       title: "Not found",
       detail: "The requested answer doesn't exist",
@@ -220,13 +233,13 @@ describe("AnswerService answer routes (ANS-08)", () => {
   });
 
   it("deletes only an answer that belongs to the survey", async () => {
-    await expect(service.deleteById(active.slug, "nope")).rejects.toMatchObject({
+    await expect(service.deleteById(active.slug, unknownId)).rejects.toMatchObject({
       status: 404,
     });
     expect(answerRepo.deleteById).not.toHaveBeenCalled();
 
     answerRepo.getById.mockResolvedValue(buildAnswer());
-    await service.deleteById(active.slug, "a1");
-    expect(answerRepo.deleteById).toHaveBeenCalledWith("a1");
+    await service.deleteById(active.slug, buildAnswer().id);
+    expect(answerRepo.deleteById).toHaveBeenCalledWith(buildAnswer().id);
   });
 });

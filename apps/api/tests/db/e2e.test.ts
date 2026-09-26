@@ -162,4 +162,46 @@ describe("full flow against PostgreSQL", () => {
     expect(await prisma.users.count()).toBe(1);
     expect((await request(app).get(`/api/v1/invitations/token/${token}`)).status).toBe(200);
   });
+
+  it("API-34: ids that are not UUIDs are 422, not a database error", async () => {
+    await createOwner();
+    const jwt = jwtOf(await login());
+    const created = await request(app)
+      .post("/api/v1/surveys")
+      .set("Cookie", jwt)
+      .send({ name: "Employee Satisfaction Survey", questions });
+    const answers = `/api/v1/surveys/${created.body.data.slug}/answers/not-a-uuid`;
+
+    for (const res of [
+      await request(app).delete("/api/v1/invitations/not-a-uuid").set("Cookie", jwt),
+      await request(app).get(answers).set("Cookie", jwt),
+      await request(app).delete(answers).set("Cookie", jwt),
+    ]) {
+      expect(res.status).toBe(422);
+      expect(res.body.title).toBe("Validation Error");
+    }
+  });
+
+  it("AUTH-32: emails are stored and compared in lowercase", async () => {
+    await createOwner();
+    const jwt = jwtOf(await login(owner.email.toUpperCase()));
+
+    const taken = await request(app)
+      .post("/api/v1/invitations")
+      .set("Cookie", jwt)
+      .send({ email: "Owner@Example.com" });
+    expect(taken.status).toBe(409);
+
+    const created = await request(app)
+      .post("/api/v1/invitations")
+      .set("Cookie", jwt)
+      .send({ email: "New.User@Example.COM" });
+    await request(app)
+      .post(`/api/v1/invitations/token/${created.body.data.token}/accept`)
+      .send({ username: "newuser", password: "password123", passwordConfirm: "password123" });
+
+    const emails = (await prisma.users.findMany({ select: { email: true } })).map((u) => u.email);
+    expect(emails.sort()).toEqual(["new.user@example.com", "owner@example.com"]);
+    expect((await prisma.invitations.findFirstOrThrow()).email).toBe("new.user@example.com");
+  });
 });

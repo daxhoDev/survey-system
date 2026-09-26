@@ -344,6 +344,15 @@ describe("answer endpoints", () => {
     expect(gone.body.detail).toBe("The requested answer doesn't exist");
   });
 
+  it("API-34: an answer id that is not a UUID is 422", async () => {
+    const { jwt } = await activeSurvey();
+    for (const method of ["get", "delete"] as const) {
+      const res = await request(app)[method](`${answersPath}/not-a-uuid`).set("Cookie", jwt);
+      expect(res.status).toBe(422);
+      expect(res.body.errors).toEqual([{ field: "id", message: "Must be a valid UUID" }]);
+    }
+  });
+
   it("SURV-18: answers of a deleted survey are unreachable", async () => {
     const { jwt } = await activeSurvey();
     await request(app).post(answersPath).send(body);
@@ -449,6 +458,30 @@ describe("invitation endpoints", () => {
       422,
     );
     expect((await accept({ ...newAccount, username: account.username })).status).toBe(409);
+  });
+
+  it("API-34: revoking an id that is not a UUID is 422", async () => {
+    const { jwt } = await signup();
+    const res = await request(app).delete("/api/v1/invitations/not-a-uuid").set("Cookie", jwt);
+    expect(res.status).toBe(422);
+    expect(res.body.errors).toEqual([{ field: "id", message: "Must be a valid UUID" }]);
+  });
+
+  it("AUTH-32: emails are handled in lowercase (invite, accept, login)", async () => {
+    const { jwt } = await signup();
+    expect((await invite(jwt, account.email.toUpperCase())).status).toBe(409);
+
+    const { token, invitation } = (await invite(jwt, "New.User@Example.com")).body.data;
+    expect(invitation.email).toBe(invitee);
+    const accepted = await request(app)
+      .post(`/api/v1/invitations/token/${token}/accept`)
+      .send(newAccount);
+    expect(accepted.body.data.email).toBe(invitee);
+
+    const login = await request(app)
+      .post("/api/v1/users/login")
+      .send({ email: "NEW.USER@EXAMPLE.COM", password: newAccount.password });
+    expect(login.status).toBe(200);
   });
 
   it("AUTH-27: an unknown token is 404", async () => {

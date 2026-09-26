@@ -37,6 +37,13 @@ describe("create-user command (AUTH-31)", () => {
     expect(await prisma.users.count()).toBe(1);
   });
 
+  it("AUTH-32: stores the email in lowercase", async () => {
+    const run = runCreateUser("Owner@Example.COM", "owner", "password123", "password123");
+
+    expect(run.status).toBe(0);
+    expect(await prisma.users.findFirstOrThrow()).toMatchObject({ email: "owner@example.com" });
+  });
+
   it("AUTH-11: reports validation errors and creates nothing", async () => {
     const run = runCreateUser("not-an-email", "ab", "password123", "different");
 

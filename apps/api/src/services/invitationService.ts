@@ -4,8 +4,10 @@ import z from "zod";
 import {
   acceptInvitationSchema,
   createInvitationSchema,
+  idParamSchema,
 } from "@survey-system/schemas";
 import AppError from "../utils/appError.js";
+import { normalizeEmail } from "../utils/email.js";
 import type {
   AcceptInvitationData,
   IAuthService,
@@ -48,8 +50,9 @@ export default class InvitationService implements IInvitationService {
 
   async create(email: string, invitedBy: string) {
     const data = z.parse(createInvitationSchema, { email });
+    const normalized = normalizeEmail(data.email);
 
-    if (await this.userRepo.getByEmail(data.email)) {
+    if (await this.userRepo.getByEmail(normalized)) {
       throw new AppError(
         "Conflict",
         "There is already an user with this email",
@@ -60,7 +63,7 @@ export default class InvitationService implements IInvitationService {
     const token = crypto.randomBytes(32).toString("base64url");
     const row = await this.invitationRepo.createReplacingPending({
       id: v7(),
-      email: data.email,
+      email: normalized,
       tokenHash: hashToken(token),
       invitedBy,
       expiresAt: new Date(Date.now() + INVITATION_TTL_MS),
@@ -73,6 +76,7 @@ export default class InvitationService implements IInvitationService {
   }
 
   async revoke(id: string): Promise<void> {
+    z.parse(idParamSchema, { id });
     const row = await this.invitationRepo.getById(id);
     if (!row) {
       throw new AppError(

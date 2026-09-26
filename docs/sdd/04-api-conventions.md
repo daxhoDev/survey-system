@@ -66,6 +66,7 @@
 
 - **API-18** `[implemented]` Inputs (bodies, query strings, cookies' JWT shape) are validated with the shared Zod schemas using `z.safeParse`; on failure the `ZodError` is thrown and mapped by API-11.
 - **API-19** `[implemented]` Body objects are strict (`z.strictObject`): unknown properties are rejected with `422`. Exception: `updateSurveySchema` is non-strict (`z.object`) — unknown keys are stripped.
+- **API-34** `[implemented]` Path parameters that are ids (`:id` of answers and invitations) are validated with `idParamSchema` (`packages/schemas/src/paramsSchema.ts`) before any lookup: a value that is not a UUID → `422 Validation Error` with `errors: [{ field: "id", message: "Must be a valid UUID" }]`, never a database error. A valid UUID that does not exist is still `404`.
 
 ## 5. Rate limiting (`apps/api/src/utils/limiter.ts`)
 

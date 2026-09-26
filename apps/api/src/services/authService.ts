@@ -13,6 +13,7 @@ import type {
 } from "../types.js";
 import { createUserSchema, loginDataSchema } from "@survey-system/schemas";
 import bcrypt from "bcrypt";
+import { normalizeEmail } from "../utils/email.js";
 import { v7 } from "uuid";
 import AppError from "../utils/appError.js";
 import { env } from "../config/env.js";
@@ -32,8 +33,9 @@ export default class AuthService implements IAuthService {
   // Validates a new account and hashes its password (AUTH-10, AUTH-11).
   async prepareAccount(data: CreateUserData): Promise<NewAccount> {
     const validData = z.parse(createUserSchema, data);
+    const email = normalizeEmail(validData.email);
 
-    const emailExists = await this.userRepo.getByEmail(validData.email);
+    const emailExists = await this.userRepo.getByEmail(email);
     if (emailExists) {
       throw new AppError(
         "Conflict",
@@ -54,7 +56,7 @@ export default class AuthService implements IAuthService {
 
     return {
       id: v7(),
-      email: validData.email,
+      email,
       username: validData.username,
       password: await bcrypt.hash(validData.password, 10),
     };
@@ -83,7 +85,7 @@ export default class AuthService implements IAuthService {
       throw error;
     }
 
-    const user = await this.userRepo.getByEmail(validData.email);
+    const user = await this.userRepo.getByEmail(normalizeEmail(validData.email));
 
     const passwordIsCorrect = await this.comparePassword(
       validData.password,

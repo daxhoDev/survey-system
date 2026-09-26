@@ -11,6 +11,7 @@ import {
   createAnswerSchema,
   createInvitationSchema,
   createSurveySchema,
+  idParamSchema,
   invitationSchema,
   invitationTokenInfoSchema,
   loginDataSchema,
@@ -90,9 +91,7 @@ const data = (schema: z.ZodType) => z.object({ data: schema });
 const slugParam = z.object({
   slug: z.string().openapi({ example: "employee-satisfaction-survey" }),
 });
-const answerParams = slugParam.extend({
-  id: z.uuid().openapi({ example: "0192a0a0-0000-7000-8000-000000000001" }),
-});
+const answerParams = slugParam.extend(idParamSchema.shape);
 
 registry.register("Survey", surveySchema);
 registry.register("SurveyStats", surveyStatsSchema);
@@ -201,10 +200,10 @@ registry.registerPath({
   summary: "Revoke a pending invitation",
   operationId: "revokeInvitation",
   security: cookieAuth,
-  request: { params: z.object({ id: z.uuid() }) },
+  request: { params: idParamSchema },
   responses: {
     204: { description: "Invitation revoked" },
-    ...problems(401, 404, 409),
+    ...problems(401, 404, 409, 422),
   },
 });
 
@@ -391,7 +390,7 @@ registry.registerPath({
   request: { params: answerParams },
   responses: {
     200: json("Answer with its survey's name and questions", data(answerWithSurveySchema)),
-    ...problems(401, 404),
+    ...problems(401, 404, 422),
   },
 });
 
@@ -405,7 +404,7 @@ registry.registerPath({
   request: { params: answerParams },
   responses: {
     204: { description: "Answer deleted (soft)" },
-    ...problems(401, 404),
+    ...problems(401, 404, 422),
   },
 });
 

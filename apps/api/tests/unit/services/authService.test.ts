@@ -70,6 +70,15 @@ describe("AuthService.login", () => {
     }
   });
 
+  it("AUTH-32: the email is compared in lowercase", async () => {
+    const result = await service.login({
+      email: user.email.toUpperCase(),
+      password: PASSWORD,
+    });
+    expect(userRepo.getByEmail).toHaveBeenCalledWith(user.email);
+    expect(result.user).toMatchObject({ id: user.id });
+  });
+
   it("AUTH-14: runs bcrypt even when the email is unknown", async () => {
     const compare = vi.spyOn(service, "comparePassword");
     await service
@@ -134,6 +143,15 @@ describe("AuthService account creation (AUTH-10, AUTH-11, AUTH-31)", () => {
     await expect(
       service.prepareAccount({ ...body, email: user.email }),
     ).rejects.toMatchObject({ status: 409, title: "Conflict" });
+  });
+
+  it("AUTH-32: the email is stored in lowercase and checked in lowercase", async () => {
+    const account = await service.prepareAccount({ ...body, email: "New@Example.COM" });
+    expect(account.email).toBe("new@example.com");
+
+    await expect(
+      service.prepareAccount({ ...body, email: user.email.toUpperCase() }),
+    ).rejects.toMatchObject({ status: 409 });
   });
 
   it("AUTH-10: 409 Conflict when the username is taken", async () => {
