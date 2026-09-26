@@ -8,11 +8,15 @@
 
 | Method | Path | Auth | Spec |
 |--------|------|------|------|
-| POST | `/api/v1/users/signup` | public | [AUTH](10-auth.md) |
 | POST | `/api/v1/users/login` | public | [AUTH](10-auth.md) |
 | POST | `/api/v1/users/logout` | required | [AUTH](10-auth.md) |
 | POST | `/api/v1/users/refresh` | refresh cookie | [AUTH](10-auth.md) |
 | GET | `/api/v1/users/me` | required | [AUTH](10-auth.md) |
+| POST | `/api/v1/invitations` | required | [AUTH](10-auth.md) |
+| GET | `/api/v1/invitations` | required | [AUTH](10-auth.md) |
+| DELETE | `/api/v1/invitations/:id` | required | [AUTH](10-auth.md) |
+| GET | `/api/v1/invitations/token/:token` | public | [AUTH](10-auth.md) |
+| POST | `/api/v1/invitations/token/:token/accept` | public | [AUTH](10-auth.md) |
 | GET | `/api/v1/surveys` | required | [SURV](11-surveys.md) |
 | POST | `/api/v1/surveys` | required | [SURV](11-surveys.md) |
 | GET | `/api/v1/surveys/:slug` | public (optional session) | [SURV](11-surveys.md) |
@@ -62,6 +66,7 @@
 
 - **API-18** `[implemented]` Inputs (bodies, query strings, cookies' JWT shape) are validated with the shared Zod schemas using `z.safeParse`; on failure the `ZodError` is thrown and mapped by API-11.
 - **API-19** `[implemented]` Body objects are strict (`z.strictObject`): unknown properties are rejected with `422`. Exception: `updateSurveySchema` is non-strict (`z.object`) — unknown keys are stripped.
+- **API-34** `[implemented]` Path parameters that are ids (`:id` of answers and invitations) are validated with `idParamSchema` (`packages/schemas/src/paramsSchema.ts`) before any lookup: a value that is not a UUID → `422 Validation Error` with `errors: [{ field: "id", message: "Must be a valid UUID" }]`, never a database error. A valid UUID that does not exist is still `404`.
 
 ## 5. Rate limiting (`apps/api/src/utils/limiter.ts`)
 
@@ -80,11 +85,11 @@
 - **API-26** `[implemented]` `development`: pretty-printed to stdout. Otherwise: JSON to `logs/app.log` (relative to the API working directory, created if missing).
 - **API-27** `[implemented]` Redaction: `*.password`, `req.headers.cookie`, `res.headers.set-cookie` → `[REDACTED]`.
 - **API-28** `[implemented]` Each request gets a UUID v4 `requestId` included in all its log lines (ARCH-11).
-- **API-33** `[implemented]` The API server code (`apps/api/src`) does not write to the console directly (`console.*`); command-line scripts such as the seed (`apps/api/prisma/seed.ts`) print their output normally; every log line, including the startup message in `apps/api/src/server.ts`, goes through pino (`getLogger()` or the base logger). Only exception: `apps/api/src/config/env.ts` writes the configuration validation errors to stderr with `console.error` before exiting (CFG-02), because the logger itself depends on the validated configuration.
+- **API-33** `[implemented]` The API server code (`apps/api/src`) does not write to the console directly (`console.*`); command-line scripts such as the seed (`apps/api/prisma/seed.ts`) and `create-user` (`apps/api/src/scripts`) print their output normally; every log line, including the startup message in `apps/api/src/server.ts`, goes through pino (`getLogger()` or the base logger). Only exception: `apps/api/src/config/env.ts` writes the configuration validation errors to stderr with `console.error` before exiting (CFG-02), because the logger itself depends on the validated configuration.
 
 ## 8. OpenAPI
 
-- **API-29** `[implemented]` Every endpoint is registered in `apps/api/src/lib/openapi.ts` with `registry.registerPath`, tagged (`Users`, `Surveys`, `Answers`), with an `operationId` (used by Orval to name hooks) and `...defaultResponses` (400, 401, 404, 422, 500 as `application/problem+json`).
+- **API-29** `[implemented]` Every endpoint is registered in `apps/api/src/lib/openapi.ts` with `registry.registerPath`, tagged (`Users`, `Invitations`, `Surveys`, `Answers`), with an `operationId` (used by Orval to name hooks) and `...defaultResponses` (400, 401, 404, 422, 500 as `application/problem+json`).
 - **API-30** `[implemented]` Protected endpoints declare `security: [{ cookieAuth: [] }]`, an `apiKey` scheme in the `jwt` cookie (AUTH-05); `GET /surveys/:slug` declares that the session is optional.
 - **API-31** `[implemented]` The OpenAPI document must match the real API: response envelopes (`{data}`, `{data, meta}`), `201`/`204` codes, the `servers` URL, cookie-based auth, the stats and answers payloads, and the `429`/`403`/`409` responses actually emitted. `servers` is the relative URL `/` (the document is served by the API itself), and paths are generated for the web client without a host (CFG-09).
 - **API-32** `[implemented]` Any endpoint change must update `openapi.ts` in the same change, then the web client must be regenerated (`pnpm generate:api`, see [30-dev-workflow.md](30-dev-workflow.md)).

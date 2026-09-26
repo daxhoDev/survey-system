@@ -70,6 +70,15 @@ describe("AuthService.login", () => {
     }
   });
 
+  it("AUTH-32: the email is compared in lowercase", async () => {
+    const result = await service.login({
+      email: user.email.toUpperCase(),
+      password: PASSWORD,
+    });
+    expect(userRepo.getByEmail).toHaveBeenCalledWith(user.email);
+    expect(result.user).toMatchObject({ id: user.id });
+  });
+
   it("AUTH-14: runs bcrypt even when the email is unknown", async () => {
     const compare = vi.spyOn(service, "comparePassword");
     await service
@@ -122,7 +131,7 @@ describe("AuthService.login", () => {
   });
 });
 
-describe("AuthService.signup", () => {
+describe("AuthService account creation (AUTH-10, AUTH-11, AUTH-31)", () => {
   const body = {
     email: "new@example.com",
     username: "newuser",
@@ -132,24 +141,63 @@ describe("AuthService.signup", () => {
 
   it("AUTH-10: 409 Conflict when the email is taken", async () => {
     await expect(
-      service.signup({ ...body, email: user.email }),
+      service.prepareAccount({ ...body, email: user.email }),
     ).rejects.toMatchObject({ status: 409, title: "Conflict" });
+  });
+
+  it("AUTH-32: the email is stored in lowercase and checked in lowercase", async () => {
+    const account = await service.prepareAccount({ ...body, email: "New@Example.COM" });
+    expect(account.email).toBe("new@example.com");
+
+    await expect(
+      service.prepareAccount({ ...body, email: user.email.toUpperCase() }),
+    ).rejects.toMatchObject({ status: 409 });
   });
 
   it("AUTH-10: 409 Conflict when the username is taken", async () => {
     userRepo.getByUsernameOnly.mockResolvedValue({ username: body.username });
-    await expect(service.signup(body)).rejects.toMatchObject({
+    await expect(service.prepareAccount(body)).rejects.toMatchObject({
       status: 409,
       title: "Conflict",
     });
   });
 
-  it("AUTH-11: stores a bcrypt hash, never the password", async () => {
-    await service.signup(body);
+  it("AUTH-11: rejects a username longer than 50 characters", async () => {
+    await expect(
+      service.prepareAccount({ ...body, username: "u".repeat(51) }),
+    ).rejects.toThrow();
+  });
+
+  it("AUTH-11: prepareAccount hashes the password with bcrypt and a UUID v7 id", async () => {
+    const account = await service.prepareAccount(body);
+
+    expect(account).toMatchObject({ email: body.email, username: body.username });
+    expect(account).not.toHaveProperty("passwordConfirm");
+    expect(account.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-7/);
+    expect(account.password).not.toBe(body.password);
+    await expect(bcrypt.compare(body.password, account.password)).resolves.toBe(true);
+    expect(userRepo.createOne).not.toHaveBeenCalled();
+  });
+
+  it("AUTH-31: createAccount stores the prepared account, never the password", async () => {
+    const created = await service.createAccount(body);
     const stored = userRepo.createOne.mock.calls[0]![0];
 
+    expect(created).toMatchObject({ email: body.email, username: body.username });
     expect(stored.password).not.toBe(body.password);
     await expect(bcrypt.compare(body.password, stored.password)).resolves.toBe(true);
+    expect(refreshRepo.createOne).not.toHaveBeenCalled();
+  });
+
+  it("AUTH-01, AUTH-02: issueTokens signs the JWT and stores the refresh token hash", async () => {
+    const { accessToken, refreshToken } = await service.issueTokens(user);
+    const stored = refreshRepo.createOne.mock.calls[0]![0];
+
+    expect(jwt.decode(accessToken)).toMatchObject(user);
+    expect(stored).toMatchObject({
+      userId: user.id,
+      tokenHash: crypto.createHash("sha256").update(refreshToken).digest("hex"),
+    });
   });
 });
 

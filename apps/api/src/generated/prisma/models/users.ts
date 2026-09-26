@@ -191,6 +191,7 @@ export type usersWhereInput = {
   created_at?: Prisma.DateTimeFilter<"users"> | Date | string
   deleted_at?: Prisma.DateTimeNullableFilter<"users"> | Date | string | null
   refresh_tokens?: Prisma.XOR<Prisma.Refresh_tokensNullableScalarRelationFilter, Prisma.refresh_tokensWhereInput> | null
+  invitations?: Prisma.InvitationsListRelationFilter
 }
 
 export type usersOrderByWithRelationInput = {
@@ -201,6 +202,7 @@ export type usersOrderByWithRelationInput = {
   created_at?: Prisma.SortOrder
   deleted_at?: Prisma.SortOrderInput | Prisma.SortOrder
   refresh_tokens?: Prisma.refresh_tokensOrderByWithRelationInput
+  invitations?: Prisma.invitationsOrderByRelationAggregateInput
 }
 
 export type usersWhereUniqueInput = Prisma.AtLeast<{
@@ -214,6 +216,7 @@ export type usersWhereUniqueInput = Prisma.AtLeast<{
   created_at?: Prisma.DateTimeFilter<"users"> | Date | string
   deleted_at?: Prisma.DateTimeNullableFilter<"users"> | Date | string | null
   refresh_tokens?: Prisma.XOR<Prisma.Refresh_tokensNullableScalarRelationFilter, Prisma.refresh_tokensWhereInput> | null
+  invitations?: Prisma.InvitationsListRelationFilter
 }, "id">
 
 export type usersOrderByWithAggregationInput = {
@@ -248,6 +251,7 @@ export type usersCreateInput = {
   created_at?: Date | string
   deleted_at?: Date | string | null
   refresh_tokens?: Prisma.refresh_tokensCreateNestedOneWithoutUsersInput
+  invitations?: Prisma.invitationsCreateNestedManyWithoutUsersInput
 }
 
 export type usersUncheckedCreateInput = {
@@ -258,6 +262,7 @@ export type usersUncheckedCreateInput = {
   created_at?: Date | string
   deleted_at?: Date | string | null
   refresh_tokens?: Prisma.refresh_tokensUncheckedCreateNestedOneWithoutUsersInput
+  invitations?: Prisma.invitationsUncheckedCreateNestedManyWithoutUsersInput
 }
 
 export type usersUpdateInput = {
@@ -268,6 +273,7 @@ export type usersUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.refresh_tokensUpdateOneWithoutUsersNestedInput
+  invitations?: Prisma.invitationsUpdateManyWithoutUsersNestedInput
 }
 
 export type usersUncheckedUpdateInput = {
@@ -278,6 +284,7 @@ export type usersUncheckedUpdateInput = {
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   refresh_tokens?: Prisma.refresh_tokensUncheckedUpdateOneWithoutUsersNestedInput
+  invitations?: Prisma.invitationsUncheckedUpdateManyWithoutUsersNestedInput
 }
 
 export type usersCreateManyInput = {
@@ -339,6 +346,11 @@ export type UsersScalarRelationFilter = {
   isNot?: Prisma.usersWhereInput
 }
 
+export type UsersNullableScalarRelationFilter = {
+  is?: Prisma.usersWhereInput | null
+  isNot?: Prisma.usersWhereInput | null
+}
+
 export type usersCreateNestedOneWithoutRefresh_tokensInput = {
   create?: Prisma.XOR<Prisma.usersCreateWithoutRefresh_tokensInput, Prisma.usersUncheckedCreateWithoutRefresh_tokensInput>
   connectOrCreate?: Prisma.usersCreateOrConnectWithoutRefresh_tokensInput
@@ -353,6 +365,22 @@ export type usersUpdateOneRequiredWithoutRefresh_tokensNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.usersUpdateToOneWithWhereWithoutRefresh_tokensInput, Prisma.usersUpdateWithoutRefresh_tokensInput>, Prisma.usersUncheckedUpdateWithoutRefresh_tokensInput>
 }
 
+export type usersCreateNestedOneWithoutInvitationsInput = {
+  create?: Prisma.XOR<Prisma.usersCreateWithoutInvitationsInput, Prisma.usersUncheckedCreateWithoutInvitationsInput>
+  connectOrCreate?: Prisma.usersCreateOrConnectWithoutInvitationsInput
+  connect?: Prisma.usersWhereUniqueInput
+}
+
+export type usersUpdateOneWithoutInvitationsNestedInput = {
+  create?: Prisma.XOR<Prisma.usersCreateWithoutInvitationsInput, Prisma.usersUncheckedCreateWithoutInvitationsInput>
+  connectOrCreate?: Prisma.usersCreateOrConnectWithoutInvitationsInput
+  upsert?: Prisma.usersUpsertWithoutInvitationsInput
+  disconnect?: Prisma.usersWhereInput | boolean
+  delete?: Prisma.usersWhereInput | boolean
+  connect?: Prisma.usersWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.usersUpdateToOneWithWhereWithoutInvitationsInput, Prisma.usersUpdateWithoutInvitationsInput>, Prisma.usersUncheckedUpdateWithoutInvitationsInput>
+}
+
 export type usersCreateWithoutRefresh_tokensInput = {
   id: string
   username: string
@@ -360,6 +388,7 @@ export type usersCreateWithoutRefresh_tokensInput = {
   password: string
   created_at?: Date | string
   deleted_at?: Date | string | null
+  invitations?: Prisma.invitationsCreateNestedManyWithoutUsersInput
 }
 
 export type usersUncheckedCreateWithoutRefresh_tokensInput = {
@@ -369,6 +398,7 @@ export type usersUncheckedCreateWithoutRefresh_tokensInput = {
   password: string
   created_at?: Date | string
   deleted_at?: Date | string | null
+  invitations?: Prisma.invitationsUncheckedCreateNestedManyWithoutUsersInput
 }
 
 export type usersCreateOrConnectWithoutRefresh_tokensInput = {
@@ -394,6 +424,7 @@ export type usersUpdateWithoutRefresh_tokensInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invitations?: Prisma.invitationsUpdateManyWithoutUsersNestedInput
 }
 
 export type usersUncheckedUpdateWithoutRefresh_tokensInput = {
@@ -403,8 +434,94 @@ export type usersUncheckedUpdateWithoutRefresh_tokensInput = {
   password?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  invitations?: Prisma.invitationsUncheckedUpdateManyWithoutUsersNestedInput
 }
 
+export type usersCreateWithoutInvitationsInput = {
+  id: string
+  username: string
+  email: string
+  password: string
+  created_at?: Date | string
+  deleted_at?: Date | string | null
+  refresh_tokens?: Prisma.refresh_tokensCreateNestedOneWithoutUsersInput
+}
+
+export type usersUncheckedCreateWithoutInvitationsInput = {
+  id: string
+  username: string
+  email: string
+  password: string
+  created_at?: Date | string
+  deleted_at?: Date | string | null
+  refresh_tokens?: Prisma.refresh_tokensUncheckedCreateNestedOneWithoutUsersInput
+}
+
+export type usersCreateOrConnectWithoutInvitationsInput = {
+  where: Prisma.usersWhereUniqueInput
+  create: Prisma.XOR<Prisma.usersCreateWithoutInvitationsInput, Prisma.usersUncheckedCreateWithoutInvitationsInput>
+}
+
+export type usersUpsertWithoutInvitationsInput = {
+  update: Prisma.XOR<Prisma.usersUpdateWithoutInvitationsInput, Prisma.usersUncheckedUpdateWithoutInvitationsInput>
+  create: Prisma.XOR<Prisma.usersCreateWithoutInvitationsInput, Prisma.usersUncheckedCreateWithoutInvitationsInput>
+  where?: Prisma.usersWhereInput
+}
+
+export type usersUpdateToOneWithWhereWithoutInvitationsInput = {
+  where?: Prisma.usersWhereInput
+  data: Prisma.XOR<Prisma.usersUpdateWithoutInvitationsInput, Prisma.usersUncheckedUpdateWithoutInvitationsInput>
+}
+
+export type usersUpdateWithoutInvitationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refresh_tokens?: Prisma.refresh_tokensUpdateOneWithoutUsersNestedInput
+}
+
+export type usersUncheckedUpdateWithoutInvitationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.StringFieldUpdateOperationsInput | string
+  created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  refresh_tokens?: Prisma.refresh_tokensUncheckedUpdateOneWithoutUsersNestedInput
+}
+
+
+/**
+ * Count Type UsersCountOutputType
+ */
+
+export type UsersCountOutputType = {
+  invitations: number
+}
+
+export type UsersCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  invitations?: boolean | UsersCountOutputTypeCountInvitationsArgs
+}
+
+/**
+ * UsersCountOutputType without action
+ */
+export type UsersCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UsersCountOutputType
+   */
+  select?: Prisma.UsersCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * UsersCountOutputType without action
+ */
+export type UsersCountOutputTypeCountInvitationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.invitationsWhereInput
+}
 
 
 export type usersSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -415,6 +532,8 @@ export type usersSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   created_at?: boolean
   deleted_at?: boolean
   refresh_tokens?: boolean | Prisma.users$refresh_tokensArgs<ExtArgs>
+  invitations?: boolean | Prisma.users$invitationsArgs<ExtArgs>
+  _count?: boolean | Prisma.UsersCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["users"]>
 
 export type usersSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -447,6 +566,8 @@ export type usersSelectScalar = {
 export type usersOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "email" | "password" | "created_at" | "deleted_at", ExtArgs["result"]["users"]>
 export type usersInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   refresh_tokens?: boolean | Prisma.users$refresh_tokensArgs<ExtArgs>
+  invitations?: boolean | Prisma.users$invitationsArgs<ExtArgs>
+  _count?: boolean | Prisma.UsersCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type usersIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
 export type usersIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -455,6 +576,7 @@ export type $usersPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   name: "users"
   objects: {
     refresh_tokens: Prisma.$refresh_tokensPayload<ExtArgs> | null
+    invitations: Prisma.$invitationsPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -858,6 +980,7 @@ readonly fields: usersFieldRefs;
 export interface Prisma__usersClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   refresh_tokens<T extends Prisma.users$refresh_tokensArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.users$refresh_tokensArgs<ExtArgs>>): Prisma.Prisma__refresh_tokensClient<runtime.Types.Result.GetResult<Prisma.$refresh_tokensPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  invitations<T extends Prisma.users$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.users$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$invitationsPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1302,6 +1425,30 @@ export type users$refresh_tokensArgs<ExtArgs extends runtime.Types.Extensions.In
    */
   include?: Prisma.refresh_tokensInclude<ExtArgs> | null
   where?: Prisma.refresh_tokensWhereInput
+}
+
+/**
+ * users.invitations
+ */
+export type users$invitationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the invitations
+   */
+  select?: Prisma.invitationsSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the invitations
+   */
+  omit?: Prisma.invitationsOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.invitationsInclude<ExtArgs> | null
+  where?: Prisma.invitationsWhereInput
+  orderBy?: Prisma.invitationsOrderByWithRelationInput | Prisma.invitationsOrderByWithRelationInput[]
+  cursor?: Prisma.invitationsWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.InvitationsScalarFieldEnum | Prisma.InvitationsScalarFieldEnum[]
 }
 
 /**

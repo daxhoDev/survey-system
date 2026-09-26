@@ -98,20 +98,62 @@ export type UserAccount = User & ({
   deletedAt: string | null;
 });
 
-export interface UserSignup {
-  email: string;
-  /** @minLength 3 */
-  username: string;
-  /** @minLength 5 */
-  password: string;
-  /** @minLength 5 */
-  passwordConfirm: string;
-}
-
 export interface UserLogin {
   email: string;
   /** @minLength 5 */
   password: string;
+}
+
+export type InvitationStatus = typeof InvitationStatus[keyof typeof InvitationStatus];
+
+
+export const InvitationStatus = {
+  pending: 'pending',
+  accepted: 'accepted',
+  revoked: 'revoked',
+  expired: 'expired',
+} as const;
+
+/**
+ * @nullable
+ */
+export type InvitationInvitedBy = {
+  id: string;
+  username: string;
+} | null;
+
+export interface Invitation {
+  id: string;
+  email: string;
+  status: InvitationStatus;
+  /** @nullable */
+  invitedBy: InvitationInvitedBy;
+  createdAt: string;
+  expiresAt: string;
+  /** @nullable */
+  acceptedAt: string | null;
+  /** @nullable */
+  revokedAt: string | null;
+}
+
+export interface CreateInvitation {
+  email: string;
+}
+
+export interface InvitationTokenInfo {
+  email: string;
+  expiresAt: string;
+}
+
+export interface AcceptInvitation {
+  /**
+     * @minLength 3
+     * @maxLength 50
+     */
+  username: string;
+  /** @minLength 5 */
+  password: string;
+  passwordConfirm: string;
 }
 
 export type CreateSurveyQuestionsItemType = typeof CreateSurveyQuestionsItemType[keyof typeof CreateSurveyQuestionsItemType];
@@ -172,16 +214,38 @@ export type AnswerWithSurvey = Answer & ({
 } | null;
 });
 
-export type RegisterUser200 = {
-  data: UserAccount;
-};
-
 export type LoginUser200 = {
   data: UserAccount;
 };
 
 export type GetCurrentUser200 = {
   data: User;
+};
+
+export type CreateInvitation201Data = {
+  invitation: Invitation;
+  token: string;
+};
+
+export type CreateInvitation201 = {
+  data: CreateInvitation201Data;
+};
+
+export type GetAllInvitations200Meta = {
+  results: number;
+};
+
+export type GetAllInvitations200 = {
+  data: Invitation[];
+  meta: GetAllInvitations200Meta;
+};
+
+export type GetInvitationByToken200 = {
+  data: InvitationTokenInfo;
+};
+
+export type AcceptInvitation201 = {
+  data: UserAccount;
 };
 
 export type GetAllSurveysParams = {

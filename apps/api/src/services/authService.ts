@@ -7,9 +7,13 @@ import type {
   UserWithTokens,
   IRefreshTokenRepository,
   FreshTokens,
+  NewAccount,
+  UserPayload,
+  UserWithoutPassword,
 } from "../types.js";
 import { createUserSchema, loginDataSchema } from "@survey-system/schemas";
 import bcrypt from "bcrypt";
+import { normalizeEmail } from "../utils/email.js";
 import { v7 } from "uuid";
 import AppError from "../utils/appError.js";
 import { env } from "../config/env.js";
@@ -26,18 +30,12 @@ export default class AuthService implements IAuthService {
     private refreshRepo: IRefreshTokenRepository,
   ) {}
 
-  async signup(data: CreateUserData): Promise<UserWithTokens> {
-    const {
-      success,
-      data: validData,
-      error,
-    } = z.safeParse(createUserSchema, data);
+  // Validates a new account and hashes its password (AUTH-10, AUTH-11).
+  async prepareAccount(data: CreateUserData): Promise<NewAccount> {
+    const validData = z.parse(createUserSchema, data);
+    const email = normalizeEmail(validData.email);
 
-    if (!success) {
-      throw error;
-    }
-
-    const emailExists = await this.userRepo.getByEmail(validData.email);
+    const emailExists = await this.userRepo.getByEmail(email);
     if (emailExists) {
       throw new AppError(
         "Conflict",
@@ -56,27 +54,23 @@ export default class AuthService implements IAuthService {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(validData.password, 10);
-
-    const userId = v7();
-    const user = await this.userRepo.createOne({
-      id: userId,
-      email: validData.email,
-      username: validData.username,
-      password: hashedPassword,
-    });
-
-    const refreshToken = await this.createRefreshToken(userId);
-    const accessToken = this.createSignedJwt(
-      userId,
-      validData.username,
-      validData.email,
-    );
-
     return {
-      user,
-      accessToken,
-      refreshToken,
+      id: v7(),
+      email,
+      username: validData.username,
+      password: await bcrypt.hash(validData.password, 10),
+    };
+  }
+
+  // Used by the create-user command (AUTH-31).
+  async createAccount(data: CreateUserData): Promise<UserWithoutPassword> {
+    return this.userRepo.createOne(await this.prepareAccount(data));
+  }
+
+  async issueTokens(user: UserPayload): Promise<FreshTokens> {
+    return {
+      accessToken: this.createSignedJwt(user.id, user.username, user.email),
+      refreshToken: await this.createRefreshToken(user.id),
     };
   }
 
@@ -91,7 +85,7 @@ export default class AuthService implements IAuthService {
       throw error;
     }
 
-    const user = await this.userRepo.getByEmail(validData.email);
+    const user = await this.userRepo.getByEmail(normalizeEmail(validData.email));
 
     const passwordIsCorrect = await this.comparePassword(
       validData.password,

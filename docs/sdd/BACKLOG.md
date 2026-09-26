@@ -14,7 +14,7 @@
 | ID | Item | Specs |
 |----|------|-------|
 | BL-02 | **Dockerfile / containerized deployment** (design agreed 2026-09-23, specified with the change): not built yet. Must install pnpm, handle the workspace (`packages/schemas`), not bake `.env` into the image, fix `CMD`, pin Node version. Design to be agreed. | DEV-WF-03, ANS-07 |
-| BL-03 | **Invitation-based account creation flow** replacing public `POST /users/signup`, plus its UI (design agreed 2026-09-23, specified with the change). | AUTH-13, FE-14 |
+| BL-03 | **Invitation-based account creation flow** replacing public `POST /users/signup`, plus its UI (design agreed 2026-09-23, specified with the change). API, `create-user` command and generated web client done 2026-09-26 (AUTH-13, AUTH-23…31); **pending: the web UI** (invitations page, acceptance page, header button). | FE-14, FE-16, FE-27, FE-28 |
 
 ## Open questions
 

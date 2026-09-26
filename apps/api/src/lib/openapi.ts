@@ -5,11 +5,15 @@ import {
 } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
 import {
+  acceptInvitationSchema,
   answerSchema,
   answerWithSurveySchema,
   createAnswerSchema,
+  createInvitationSchema,
   createSurveySchema,
-  createUserSchema,
+  idParamSchema,
+  invitationSchema,
+  invitationTokenInfoSchema,
   loginDataSchema,
   surveySchema,
   surveyStatsSchema,
@@ -87,28 +91,13 @@ const data = (schema: z.ZodType) => z.object({ data: schema });
 const slugParam = z.object({
   slug: z.string().openapi({ example: "employee-satisfaction-survey" }),
 });
-const answerParams = slugParam.extend({
-  id: z.uuid().openapi({ example: "0192a0a0-0000-7000-8000-000000000001" }),
-});
+const answerParams = slugParam.extend(idParamSchema.shape);
 
 registry.register("Survey", surveySchema);
 registry.register("SurveyStats", surveyStatsSchema);
 registry.register("User", userSchema);
 
 // Users
-registry.registerPath({
-  tags: ["Users"],
-  method: "post",
-  path: "/api/v1/users/signup",
-  summary: "Register a new user",
-  operationId: "registerUser",
-  request: jsonBody(createUserSchema),
-  responses: {
-    200: json("User registered; sets the jwt and refresh cookies", data(userAccountSchema)),
-    ...problems(409, 422),
-  },
-});
-
 registry.registerPath({
   tags: ["Users"],
   method: "post",
@@ -158,6 +147,92 @@ registry.registerPath({
   responses: {
     200: json("Current user (from the access token)", data(userSchema)),
     ...problems(401),
+  },
+});
+
+// Invitations (AUTH-23…AUTH-30)
+const tokenParam = z.object({
+  token: z.string().openapi({ description: "Raw invitation token from the link" }),
+});
+
+registry.registerPath({
+  tags: ["Invitations"],
+  method: "post",
+  path: "/api/v1/invitations",
+  summary: "Invite an email to create an account",
+  description:
+    "Replaces a pending invitation for the same email. The token is returned only here; the link is /auth/invite/{token}.",
+  operationId: "createInvitation",
+  security: cookieAuth,
+  request: jsonBody(createInvitationSchema),
+  responses: {
+    201: json(
+      "Invitation created",
+      data(z.object({ invitation: invitationSchema, token: z.string() })),
+    ),
+    ...problems(401, 409, 422),
+  },
+});
+
+registry.registerPath({
+  tags: ["Invitations"],
+  method: "get",
+  path: "/api/v1/invitations",
+  summary: "List invitations",
+  operationId: "getAllInvitations",
+  security: cookieAuth,
+  responses: {
+    200: json(
+      "Invitations, newest first",
+      z.object({
+        data: z.array(invitationSchema),
+        meta: z.object({ results: z.number().int() }),
+      }),
+    ),
+    ...problems(401),
+  },
+});
+
+registry.registerPath({
+  tags: ["Invitations"],
+  method: "delete",
+  path: "/api/v1/invitations/{id}",
+  summary: "Revoke a pending invitation",
+  operationId: "revokeInvitation",
+  security: cookieAuth,
+  request: { params: idParamSchema },
+  responses: {
+    204: { description: "Invitation revoked" },
+    ...problems(401, 404, 409, 422),
+  },
+});
+
+registry.registerPath({
+  tags: ["Invitations"],
+  method: "get",
+  path: "/api/v1/invitations/token/{token}",
+  summary: "Get a pending invitation by token",
+  operationId: "getInvitationByToken",
+  request: { params: tokenParam },
+  responses: {
+    200: json("Pending invitation", data(invitationTokenInfoSchema)),
+    ...problems(404),
+  },
+});
+
+registry.registerPath({
+  tags: ["Invitations"],
+  method: "post",
+  path: "/api/v1/invitations/token/{token}/accept",
+  summary: "Create the account of an invitation",
+  operationId: "acceptInvitation",
+  request: { params: tokenParam, ...jsonBody(acceptInvitationSchema) },
+  responses: {
+    201: json(
+      "Account created; sets the jwt and refresh cookies",
+      data(userAccountSchema),
+    ),
+    ...problems(404, 409, 422),
   },
 });
 
@@ -315,7 +390,7 @@ registry.registerPath({
   request: { params: answerParams },
   responses: {
     200: json("Answer with its survey's name and questions", data(answerWithSurveySchema)),
-    ...problems(401, 404),
+    ...problems(401, 404, 422),
   },
 });
 
@@ -329,7 +404,7 @@ registry.registerPath({
   request: { params: answerParams },
   responses: {
     204: { description: "Answer deleted (soft)" },
-    ...problems(401, 404),
+    ...problems(401, 404, 422),
   },
 });
 

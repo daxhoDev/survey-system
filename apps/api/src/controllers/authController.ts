@@ -15,14 +15,6 @@ import {
 export default class AuthController {
   constructor(private service: IAuthService) {}
 
-  async signup(req: Request, res: Response) {
-    getLogger().info({ user: req.body }, `Registering user...`);
-    const userData = req.body;
-    const { user, accessToken, refreshToken } =
-      await this.service.signup(userData);
-    this.sendTokenAndUser(res, user, accessToken, refreshToken);
-  }
-
   async login(req: Request, res: Response) {
     getLogger().info({ email: req.body.email }, `Logging in user...`);
     const userData = req.body;

@@ -54,7 +54,8 @@ export const ModelName = {
   answers: 'answers',
   surveys: 'surveys',
   users: 'users',
-  refresh_tokens: 'refresh_tokens'
+  refresh_tokens: 'refresh_tokens',
+  invitations: 'invitations'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -122,6 +123,20 @@ export const Refresh_tokensScalarFieldEnum = {
 } as const
 
 export type Refresh_tokensScalarFieldEnum = (typeof Refresh_tokensScalarFieldEnum)[keyof typeof Refresh_tokensScalarFieldEnum]
+
+
+export const InvitationsScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  token_hash: 'token_hash',
+  invited_by: 'invited_by',
+  created_at: 'created_at',
+  expires_at: 'expires_at',
+  accepted_at: 'accepted_at',
+  revoked_at: 'revoked_at'
+} as const
+
+export type InvitationsScalarFieldEnum = (typeof InvitationsScalarFieldEnum)[keyof typeof InvitationsScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -19,7 +19,7 @@ and review results and statistics.
 
 In scope:
 
-- User accounts and cookie-based session management — [10-auth.md](10-auth.md).
+- User accounts created by invitation (or the `create-user` command) and cookie-based session management — [10-auth.md](10-auth.md).
 - Survey authoring with three question types — [11-surveys.md](11-surveys.md).
 - Survey lifecycle: draft → active ⇄ inactive, locking after first activation — [11-surveys.md](11-surveys.md).
 - Anonymous answer collection, one answer per IP per survey — [12-answers.md](12-answers.md).
@@ -28,7 +28,7 @@ In scope:
 
 Planned (see [BACKLOG.md](BACKLOG.md)):
 
-- Invitation-based account creation replacing public signup (BL-03).
+- Web UI for invitations: management page and invitation acceptance page (BL-03, see 20-frontend FE-27, FE-28; the API is implemented).
 - Containerized deployment (BL-02).
 
 Out of scope: roles/permissions, multi-tenancy, respondent accounts, email

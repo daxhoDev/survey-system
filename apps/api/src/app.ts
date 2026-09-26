@@ -1,6 +1,7 @@
 import express, { type Express, type Request, type Response } from "express";
 import surveyRouter from "./routes/surveyRouter.js";
 import userRouter from "./routes/userRouter.js";
+import invitationRouter from "./routes/invitationRouter.js";
 import { ErrorMiddleware } from "./middlewares/errorMiddleware.js";
 import cookieParser from "cookie-parser";
 import AppError from "./utils/appError.js";
@@ -32,6 +33,7 @@ app.use("/api/", limiter(false));
 
 app.use("/api/v1/surveys", surveyRouter);
 app.use("/api/v1/users", limiter(true), userRouter);
+app.use("/api/v1/invitations", invitationRouter);
 
 app.use(
   "/api/v1/docs",

@@ -12,7 +12,6 @@ const userService = new AuthService(userRepo, refreshRepo);
 const authController = new AuthController(userService);
 const authMiddleware = new AuthMiddleware();
 
-router.post("/signup", authController.signup.bind(authController));
 router.post("/login", authController.login.bind(authController));
 router.post(
   "/logout",

@@ -11,13 +11,14 @@ answers (one per IP per survey) and review answers and statistics.
 ## Features
 
 - Cookie-based authentication with short-lived access JWT and rotating refresh token.
+- No public signup: accounts are created from single-use invitation links (48 h) or with the `create-user` command.
 - Surveys with free-text, single-choice and multiple-choice questions, required or optional.
 - Survey lifecycle: draft → active ⇄ inactive; a survey is locked for editing once activated.
 - Public answering page; answers validated against the survey's questions.
 - Per-survey statistics (completed/incomplete answers, votes per option) with charts.
 - Interactive API documentation (Swagger UI).
 
-Planned work (invitation-based accounts, Docker deployment, and more) is tracked in
+Planned work (the invitations web UI, Docker deployment, and more) is tracked in
 [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
 
 ## Tech stack
@@ -46,7 +47,8 @@ docker compose up -d
 cd apps/api
 pnpm exec prisma migrate dev
 pnpm exec prisma generate
-pnpm seed   # optional demo data: log in as demo@example.com / demo12345
+pnpm seed          # optional demo data: log in as demo@example.com / demo12345
+pnpm create-user   # or create your own first account (asks email, username, password)
 cd ../..
 
 # Run API (http://localhost:3000) and web (http://localhost:5173)

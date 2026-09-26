@@ -1,5 +1,5 @@
 import z from "zod";
-import { createAnswerSchema } from "@survey-system/schemas";
+import { createAnswerSchema, idParamSchema } from "@survey-system/schemas";
 import AppError from "../utils/appError.js";
 import {
   type Answer,
@@ -28,6 +28,7 @@ export default class AnswerService implements IAnswerService {
     surveySlug: string,
     id: string,
   ): Promise<Answer & { surveys: Pick<Survey, "name" | "questions"> | null }> {
+    z.parse(idParamSchema, { id });
     const survey = await this.getSurveyBySlug(surveySlug);
     const answer = await this.answerRepo.getById(survey.id, id);
     if (!answer)

@@ -11,7 +11,8 @@
     "seed": "prisma db seed",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "create-user": "tsx src/scripts/createUser.ts"
   },
   "keywords": [
     "API",
