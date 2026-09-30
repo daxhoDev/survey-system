@@ -28,7 +28,6 @@ In scope:
 
 Planned (see [BACKLOG.md](BACKLOG.md)):
 
-- Web UI for invitations: management page and invitation acceptance page (BL-03, see 20-frontend FE-27, FE-28; the API is implemented).
 - Containerized deployment (BL-02).
 
 Out of scope: roles/permissions, multi-tenancy, respondent accounts, email
