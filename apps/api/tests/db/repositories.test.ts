@@ -5,6 +5,7 @@ import InvitationRepository from "../../src/repositories/invitationRepository.js
 import RefreshTokenRepository from "../../src/repositories/refreshTokenRepository.js";
 import SurveyRepository from "../../src/repositories/surveyRepository.js";
 import UserRepository from "../../src/repositories/userRepository.js";
+import UniqueViolationError from "../../src/utils/uniqueViolationError.js";
 import { questions } from "../helpers/fixtures.js";
 import { prisma, resetDatabase } from "../helpers/database.js";
 
@@ -16,11 +17,11 @@ const invitations = new InvitationRepository();
 
 async function createSurvey(name: string, extra: Record<string, unknown> = {}) {
   const slug = name.toLowerCase().replaceAll(" ", "-");
-  await surveys.createOne({ id: v7(), slug, name, questions } as never);
+  const { id } = await surveys.createOne({ id: v7(), slug, name, questions } as never);
   if (Object.keys(extra).length) {
-    await prisma.surveys.update({ where: { slug }, data: extra });
+    await prisma.surveys.update({ where: { id }, data: extra });
   }
-  return (await prisma.surveys.findUniqueOrThrow({ where: { slug } })).id;
+  return id;
 }
 
 beforeEach(resetDatabase);
@@ -120,6 +121,63 @@ describe("SurveyRepository single survey", () => {
   });
 });
 
+describe("soft-deleted surveys (DATA-06, SURV-17)", () => {
+  it("DATA-06: a deleted survey frees its slug, and a second live one is rejected", async () => {
+    const deletedId = await createSurvey("Alpha survey", { deleted_at: new Date() });
+    const liveId = await createSurvey("Alpha survey");
+
+    expect(liveId).not.toBe(deletedId);
+    expect(await surveys.getBySlug("alpha-survey")).toMatchObject({ id: liveId });
+    await expect(createSurvey("Alpha survey")).rejects.toBeInstanceOf(
+      UniqueViolationError,
+    );
+  });
+
+  it("DATA-06: renaming onto a live slug is a UniqueViolationError", async () => {
+    await createSurvey("Alpha survey");
+    await createSurvey("Beta survey");
+    await expect(
+      surveys.updateOneBySlug("beta-survey", { slug: "alpha-survey", updatedAt: new Date() }),
+    ).rejects.toBeInstanceOf(UniqueViolationError);
+  });
+
+  it("SURV-17: deleting deactivates the live survey and keeps activatedAt and isLocked", async () => {
+    const activatedAt = new Date("2026-01-05T00:00:00Z");
+    const oldDeletedAt = new Date("2026-01-01T00:00:00Z");
+    const oldId = await createSurvey("Alpha survey", { deleted_at: oldDeletedAt });
+    const id = await createSurvey("Alpha survey", {
+      is_active: true,
+      is_locked: true,
+      activated_at: activatedAt,
+    });
+
+    await surveys.deleteOneBySlug("alpha-survey");
+
+    expect(await prisma.surveys.findUniqueOrThrow({ where: { id } })).toMatchObject({
+      is_active: false,
+      is_locked: true,
+      activated_at: activatedAt,
+      deleted_at: expect.any(Date),
+    });
+    expect(
+      (await prisma.surveys.findUniqueOrThrow({ where: { id: oldId } })).deleted_at,
+    ).toEqual(oldDeletedAt);
+    expect(await surveys.getBySlug("alpha-survey")).toBeNull();
+  });
+
+  it("updateOneBySlug returns null and touches nothing when only a deleted survey has the slug", async () => {
+    await createSurvey("Alpha survey", { deleted_at: new Date() });
+    expect(
+      await surveys.updateOneBySlug("alpha-survey", {
+        slug: "alpha-survey",
+        updatedAt: new Date(),
+        isActive: true,
+      }),
+    ).toBeNull();
+    expect(await prisma.surveys.count({ where: { is_active: true } })).toBe(0);
+  });
+});
+
 describe("statistics", () => {
   it("STAT-02, STAT-04, STAT-07: counts answers and selected options", async () => {
     const surveyId = await createSurvey("Stats survey", { is_active: true });
@@ -159,6 +217,41 @@ describe("statistics", () => {
       2: { Gym: 1, Lunch: 1, Training: 0 },
     });
   });
+
+  it("STAT-06: every count ignores deleted answers and deleted surveys with the same slug", async () => {
+    const deletedSurvey = await createSurvey("Stats survey", { deleted_at: new Date() });
+    await answers.createOne({
+      id: v7(),
+      surveyId: deletedSurvey,
+      originIp: "10.0.0.9",
+      responses: [{ id: 1, content: [1] }],
+    });
+    const surveyId = await createSurvey("Stats survey", { is_active: true });
+    const deletedAnswer = v7();
+    await answers.createOne({
+      id: deletedAnswer,
+      surveyId,
+      originIp: "10.0.0.1",
+      responses: [{ id: 1, content: [1] }],
+    });
+    await answers.createOne({
+      id: v7(),
+      surveyId,
+      originIp: "10.0.0.2",
+      responses: [{ id: 1, content: [2] }],
+    });
+    await answers.deleteById(deletedAnswer);
+
+    expect(await surveys.getSurveyStatsBySlug("stats-survey")).toMatchObject({
+      totalAnswers: 1n,
+    });
+    const options = await surveys.getResponsesOptionsStatsBySlug("stats-survey");
+    expect(options).toHaveLength(2);
+    expect(options[0]!.options).toEqual([
+      { optionContent: "Yes", responseCount: 0 },
+      { optionContent: "No", responseCount: 1 },
+    ]);
+  });
 });
 
 describe("AnswerRepository", () => {
@@ -177,6 +270,23 @@ describe("AnswerRepository", () => {
       originIp: "10.0.0.1",
     });
     expect(await answers.getIpBySurveyIdAndIp(first, "10.0.0.2")).toBeNull();
+  });
+
+  it("DATA-07, ANS-04: a deleted answer does not block its IP", async () => {
+    const surveyId = await createSurvey("First survey");
+    const answer = { responses: [{ id: 1, content: [1] }], originIp: "10.0.0.1" };
+    const id = v7();
+    await answers.createOne({ id, surveyId, ...answer });
+    await expect(
+      answers.createOne({ id: v7(), surveyId, ...answer }),
+    ).rejects.toBeInstanceOf(UniqueViolationError);
+
+    await answers.deleteById(id);
+    expect(await answers.getIpBySurveyIdAndIp(surveyId, "10.0.0.1")).toBeNull();
+    await answers.createOne({ id: v7(), surveyId, ...answer });
+    expect(await answers.getIpBySurveyIdAndIp(surveyId, "10.0.0.1")).toEqual({
+      originIp: "10.0.0.1",
+    });
   });
 
   it("ANS-08: getById only finds non-deleted answers of the given survey", async () => {

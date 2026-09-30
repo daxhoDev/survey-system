@@ -326,7 +326,7 @@ registry.registerPath({
   security: cookieAuth,
   request: { params: slugParam },
   responses: {
-    204: { description: "Survey deleted (soft)" },
+    204: { description: "Survey deactivated and deleted (soft)" },
     ...problems(401, 404),
   },
 });

@@ -63,7 +63,7 @@ Query string (`queryStringSchema`; all optional, all received as strings):
 
 Body (`createSurveySchema`, strict): `name` (string, min 5), `questions` (non-empty array of Question).
 
-- **SURV-08** `[implemented]` `slug = slugify(name, { lower: true, strict: true })`. If a non-deleted survey has that slug → `409 Conflict` ("This survey name is not avaliable"). See also OQ-05 (deleted surveys).
+- **SURV-08** `[implemented]` `slug = slugify(name, { lower: true, strict: true })`. If a non-deleted survey has that slug → `409 Conflict` ("This survey name is not avaliable"). Deleted surveys do not reserve their name or slug (DATA-06). If the DB unique index rejects the insert (concurrent creation), the response is the same `409`.
 - **SURV-09** `[implemented]` Select questions (`SINGLE_SELECT`, `MULTI_SELECT`) must have non-empty `options`; `TEXT_ANSWER` must not have `options` → `422`.
 - **SURV-10** `[implemented]` Response `201 { data: Survey }`.
 
@@ -81,7 +81,7 @@ Body (`updateSurveySchema`, non-strict): `name?`, `questions?`, `isActive?` (boo
   1. Unknown or deleted slug → `404`.
   2. If the survey is locked and the body contains `name` or `questions` → `400 Survey already activated` ("This survey was already activated, it can't be modified anymore").
   3. Body validated with `updateSurveySchema` → `422` on failure.
-  4. If `name` changes the slug and the new slug is taken by a non-deleted survey → `409 Conflict` (API-17).
+  4. If `name` changes the slug and the new slug is taken by a non-deleted survey → `409 Conflict` (API-17), also when the DB unique index rejects the update (concurrent rename).
   5. `isActive: true` → `is_active = true`, `activated_at = now`, `is_locked = true`.
      `isActive: false` → `is_active = false`, `activated_at = null`.
      `isActive` absent → `is_active`, `activated_at`, `is_locked` unchanged.
@@ -92,9 +92,9 @@ Body (`updateSurveySchema`, non-strict): `name?`, `questions?`, `isActive?` (boo
 
 ### DELETE `/api/v1/surveys/:slug` — authenticated
 
-- **SURV-17** `[implemented]` Unknown or deleted slug → `404`. Otherwise soft delete (`deleted_at = now`), `204`.
+- **SURV-17** `[implemented]` Unknown or deleted slug → `404`. Otherwise, in a single update: `is_active = false`, `deleted_at = now`; `activated_at` and `is_locked` are kept for auditing. Response `204`.
 - **SURV-18** `[implemented]` Answers of a deleted survey are kept (not soft-deleted) but are unreachable through the API: every answer route first resolves a **non-deleted** survey by slug and returns `404` otherwise (ANS-08).
-- **SURV-19** `[open: OQ-08]` Whether locked/active surveys may be deleted is undecided (currently allowed).
+- **SURV-19** `[implemented]` Any survey may be deleted, including active and locked ones; an active survey is deactivated as part of the deletion (SURV-17). There is no restore: if one is ever added, it must reject with `409 Conflict` when a non-deleted survey holds the same slug.
 
 ### GET `/api/v1/surveys/:slug/stats`
 

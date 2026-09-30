@@ -5,6 +5,7 @@ import type {
   IAnswerRepository,
   ISurveyRepository,
 } from "../../../src/types.js";
+import UniqueViolationError from "../../../src/utils/uniqueViolationError.js";
 import { buildAnswer, buildSurvey } from "../../helpers/fixtures.js";
 
 const active = buildSurvey();
@@ -96,6 +97,17 @@ describe("AnswerService.createOne", () => {
       active.id,
       "1.1.1.1",
     );
+  });
+
+  it("ANS-03: 403 when the DB unique index rejects a concurrent answer from the same IP", async () => {
+    answerRepo.createOne.mockRejectedValue(new UniqueViolationError());
+
+    await expect(
+      service.createOne(validAnswer as never, active.slug, "1.1.1.1"),
+    ).rejects.toMatchObject({
+      status: 403,
+      title: "You already submitted an answer",
+    });
   });
 
   it("ANS-03: checks the IP only after resolving the survey (ANS-02 first)", async () => {
