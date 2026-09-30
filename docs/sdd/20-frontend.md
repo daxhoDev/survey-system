@@ -40,7 +40,7 @@
 | `/surveys/:slug` | `SurveyAnsweringPage` | public |
 
 - **FE-13** `[implemented]` `DashboardPage` is the session guard: it calls `useGetCurrentUser`; while loading shows "Loading dashboard...", on error navigates to `/auth/login`. Layout: `DashboardHeader` + centered `<Outlet />` (max width 6xl).
-- **FE-14** `[pending: BL-03]` Accounts are created only from an invitation link (FE-28); there is no signup page.
+- **FE-14** `[implemented]` Accounts are created only from an invitation link (FE-28); there is no signup page.
 
 ## 4. Pages
 
@@ -50,7 +50,7 @@
 
 ### Header — `components/DashboardHeader.tsx`
 
-- **FE-16** `[implemented]` Shows logo, "Dashboard", the user's initial and username. An "Invitaciones" button leads to `/dashboard/invitations` `[pending: BL-03]`. Logout asks for confirmation in a dialog; on success clears the whole query cache and navigates to `/auth/login`.
+- **FE-16** `[implemented]` Shows logo, "Dashboard" (a link to `/dashboard`), the user's initial and username. An "Invitaciones" button leads to `/dashboard/invitations`. Logout asks for confirmation in a dialog; on success clears the whole query cache and navigates to `/auth/login`.
 
 ### Survey list — `components/Surveys.tsx` (`/dashboard`)
 
@@ -73,11 +73,11 @@
 
 ### Invitations — `pages/InvitationsPage.tsx` (`/dashboard/invitations`)
 
-- **FE-27** `[pending: BL-03]` Reached from an "Invitaciones" button in the header (FE-16). A form with the email creates an invitation; on success it shows the link `${window.location.origin}/auth/invite/${token}` with a copy button and the note that it is shown only once and expires in 48 hours; `409` shows the API detail in a toast. Below, a table of invitations (email, status badge — Pendiente / Aceptada / Revocada / Caducada —, invited by, created and expiry dates) with a "Revocar" action on pending ones, confirmed with `ConfirmationDialog` (FE-25).
+- **FE-27** `[implemented]` Reached from an "Invitaciones" button in the header (FE-16). A form with the email creates an invitation; on success it shows the link `${window.location.origin}/auth/invite/${token}` with a copy button and the note that it is shown only once and expires in 48 hours; `409` shows the API detail in a toast. Below, a table of invitations (email, status badge — Pendiente / Aceptada / Revocada / Caducada —, invited by, created and expiry dates) with a "Revocar" action on pending ones, confirmed with `ConfirmationDialog` (FE-25). The link of the last created invitation stays visible until another one is created or the page is left. Above the table, a status filter (Todas / Pendiente / Aceptada / Revocada / Caducada, default Todas) filters on the client: the API returns every invitation (AUTH-25).
 
 ### Accept invitation — `pages/AcceptInvitationPage.tsx` (`/auth/invite/:token`, public)
 
-- **FE-28** `[pending: BL-03]` Loads the invitation by token. If it is invalid shows "Invitación no válida o caducada". Otherwise shows the email (read only) and a form with username, password and password confirmation, validated with the shared schema. On success stores the user in the `getCurrentUser` cache (`{ data: user }`) and navigates to `/dashboard`; on error shows the API detail in a toast. UI copy in Spanish (FE-06).
+- **FE-28** `[implemented]` Loads the invitation by token. If it is invalid shows "Invitación no válida o caducada". If the visitor already has a session (`getCurrentUser` succeeds), the form is not shown: the page says that there is a session open as that username and must be closed to accept the invitation, with a "Cerrar sesión" button confirmed with `ConfirmationDialog` (FE-25); after logging out the query cache is cleared and the form appears. Otherwise shows the email (read only) and a form with username, password and password confirmation, validated with the shared schema. On success stores the user in the `getCurrentUser` cache (`{ data: user }`) and navigates to `/dashboard`; on error shows the API detail in a toast. UI copy in Spanish (FE-06).
 
 ### Answering — `pages/SurveyAnsweringPage.tsx` (`/surveys/:slug`, public)
 

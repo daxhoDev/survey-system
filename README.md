@@ -18,7 +18,7 @@ answers (one per IP per survey) and review answers and statistics.
 - Per-survey statistics (completed/incomplete answers, votes per option) with charts.
 - Interactive API documentation (Swagger UI).
 
-Planned work (the invitations web UI, Docker deployment, and more) is tracked in
+Planned work (Docker deployment and more) is tracked in
 [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
 
 ## Tech stack
