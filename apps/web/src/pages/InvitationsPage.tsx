@@ -16,7 +16,7 @@ import {
   InvitationStatus,
   type CreateInvitation,
   type Invitation,
-} from "@/lib/api/surveySystemAPI.schemas";
+} from "@/lib/api/sondixAPI.schemas";
 import { Button } from "@/components/ui/button";
 import {
   Card,

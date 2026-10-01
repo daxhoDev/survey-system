@@ -13,7 +13,7 @@ import {
   useGetCurrentUser,
   useLogoutUser,
 } from "@/lib/api/users/users";
-import type { AcceptInvitation } from "@/lib/api/surveySystemAPI.schemas";
+import type { AcceptInvitation } from "@/lib/api/sondixAPI.schemas";
 import { Button } from "@/components/ui/button";
 import {
   Card,

@@ -5,7 +5,7 @@ import {
 } from "@/lib/api/surveys/surveys";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Survey } from "@/lib/api/surveySystemAPI.schemas";
+import type { Survey } from "@/lib/api/sondixAPI.schemas";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "./ui/data-table";
 import { cn } from "@/lib/utils";

@@ -1,4 +1,4 @@
-# Survey System — Agent Instructions
+# Sondix (survey-system) — Agent Instructions
 
 These rules are **mandatory** for any agent (and human) working in this repository.
 
@@ -55,4 +55,5 @@ These rules are **mandatory** for any agent (and human) working in this reposito
 | Environment variables | [05-configuration.md](docs/sdd/05-configuration.md) |
 | Auth, surveys, answers, stats | [10](docs/sdd/10-auth.md) · [11](docs/sdd/11-surveys.md) · [12](docs/sdd/12-answers.md) · [13](docs/sdd/13-stats.md) |
 | Web app | [20-frontend.md](docs/sdd/20-frontend.md) |
+| Brand, colors, themes, typography | [21-brand.md](docs/sdd/21-brand.md) |
 | Commands, codegen, migrations, testing, deployment | [30-dev-workflow.md](docs/sdd/30-dev-workflow.md) |

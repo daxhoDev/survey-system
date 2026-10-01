@@ -1,6 +1,8 @@
-# survey-system
+# Sondix
 
-University project: an enterprise system to create and manage employee surveys.
+*La información comienza escuchando.*
+
+Sondix (repository `survey-system`) is a university project: an enterprise system to create and manage employee surveys.
 Managers build surveys in a web dashboard, share a public link, collect anonymous
 answers (one per IP per survey) and review answers and statistics.
 
@@ -18,7 +20,7 @@ answers (one per IP per survey) and review answers and statistics.
 - Per-survey statistics (completed/incomplete answers, votes per option) with charts.
 - Interactive API documentation (Swagger UI).
 
-Planned work (Docker deployment and more) is tracked in
+Planned work (Sondix brand identity in the web app, Docker deployment and more) is tracked in
 [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
 
 ## Tech stack
