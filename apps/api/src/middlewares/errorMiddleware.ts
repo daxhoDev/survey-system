@@ -56,6 +56,18 @@ export class ErrorMiddleware {
   };
 
   sendErrorDev(err: AppError, res: Response) {
+    if (!err.isOperational) {
+      // Same generic body as production, plus the debugging fields.
+      res.status(500).type("application/problem+json").json({
+        type: err.type,
+        status: 500,
+        title: "Unexpected error",
+        detail: "Something went wrong",
+        error: err,
+        stack: err.stack,
+      });
+      return;
+    }
     res
       .status(err.status)
       .type("application/problem+json")

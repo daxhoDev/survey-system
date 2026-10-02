@@ -5,6 +5,35 @@ const baseURL = env.API_URL;
 
 let activeRefreshPromise: Promise<boolean> | null = null;
 
+// Every thrown error is a problem object with a `detail`, so toasts that show
+// `error.detail` are never empty (FE-09).
+const networkProblem = {
+  type: "about:blank",
+  status: 0,
+  title: "Network error",
+  detail: "No se pudo conectar con el servidor. Inténtalo de nuevo.",
+};
+
+async function request(url: string, init: RequestInit): Promise<Response> {
+  try {
+    return await fetch(url, init);
+  } catch {
+    throw networkProblem;
+  }
+}
+
+async function readProblem(response: Response) {
+  const problem = await response.json().catch(() => null);
+  return {
+    type: "about:blank",
+    status: response.status,
+    title: "Unexpected error",
+    ...problem,
+    detail:
+      problem?.detail || "El servidor respondió con un error inesperado.",
+  };
+}
+
 export const customInstance = async <T>(
   url: string,
   {
@@ -26,7 +55,7 @@ export const customInstance = async <T>(
     targetUrl += "?" + new URLSearchParams(params);
   }
 
-  const response = await fetch(targetUrl, {
+  const response = await request(targetUrl, {
     method,
     body,
     headers,
@@ -34,7 +63,7 @@ export const customInstance = async <T>(
   });
 
   if (!response.ok) {
-    const errorData = await response.json();
+    const errorData = await readProblem(response);
 
     // If 401 Unauthorized, try to refresh the token and retry the request
     if (response.status === 401 && !url.includes("/users/refresh")) {
@@ -56,7 +85,7 @@ export const customInstance = async <T>(
         const refreshSuccessful = await activeRefreshPromise;
 
         if (refreshSuccessful) {
-          const retryResponse = await fetch(targetUrl, {
+          const retryResponse = await request(targetUrl, {
             method,
             body,
             headers,
@@ -66,7 +95,7 @@ export const customInstance = async <T>(
           if (retryResponse.ok) {
             return retryResponse.json();
           } else {
-            const retryError = await retryResponse.json();
+            const retryError = await readProblem(retryResponse);
             throw retryError;
           }
         }
