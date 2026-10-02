@@ -40,9 +40,9 @@ const statusLabels: Record<InvitationStatus, string> = {
 };
 
 const statusStyles: Record<InvitationStatus, string> = {
-  pending: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  accepted: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-  revoked: "bg-destructive/10 text-destructive border-destructive/20",
+  pending: "bg-warning/10 text-warning-text border-warning/30",
+  accepted: "bg-success/10 text-success-text border-success/30",
+  revoked: "bg-destructive/10 text-destructive-text border-destructive/30",
   expired: "bg-muted text-muted-foreground border-border",
 };
 
@@ -62,7 +62,7 @@ function StatusBadge({ status }: { status: InvitationStatus }) {
   return (
     <span
       className={cn(
-        "px-3 py-0.5 border rounded-full w-fit text-[10px] font-semibold tracking-wide uppercase",
+        "px-3 py-0.5 border rounded-full w-fit text-xs font-semibold tracking-wide uppercase",
         statusStyles[status],
       )}
     >
@@ -93,7 +93,7 @@ function RevokeButton({ invitation }: { invitation: Invitation }) {
           variant="ghost"
           size="sm"
           disabled={revoke.isPending}
-          className="cursor-pointer gap-1.5 text-destructive hover:text-destructive hover:bg-destructive/10"
+          className="cursor-pointer gap-1.5 text-destructive-text hover:text-destructive-text hover:bg-destructive/10"
         >
           <XCircle className="size-3.5" />
           <span>Revocar</span>
@@ -169,7 +169,7 @@ export default function InvitationsPage() {
         queryClient.invalidateQueries({ queryKey: getGetAllInvitationsQueryKey() });
       },
       onError(error) {
-        toast.error(<p className="text-destructive">{error.detail}</p>);
+        toast.error(<p className="text-destructive-text">{error.detail}</p>);
       },
     },
   });
@@ -195,7 +195,7 @@ export default function InvitationsPage() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Invitaciones</h1>
+        <h1 className="text-h1">Invitaciones</h1>
         <p className="text-sm text-muted-foreground">
           Invita a otras personas a crear su cuenta en el sistema.
         </p>
@@ -215,8 +215,8 @@ export default function InvitationsPage() {
             onSubmit={handleSubmit((values) => create.mutate({ data: values }))}
           >
             <Field className="flex-1">
-              <FieldLabel htmlFor="invitation-email" className="sr-only">
-                Email
+              <FieldLabel htmlFor="invitation-email">
+                Correo electrónico
               </FieldLabel>
               <Input
                 id="invitation-email"
@@ -229,7 +229,7 @@ export default function InvitationsPage() {
             <Button
               type="submit"
               disabled={create.isPending}
-              className="cursor-pointer gap-2"
+              className="cursor-pointer gap-2 sm:mt-6.75"
             >
               <Send className="size-4" />
               <span>Invitar</span>
@@ -246,6 +246,7 @@ export default function InvitationsPage() {
                   size="icon"
                   onClick={handleCopy}
                   title="Copiar enlace"
+                  aria-label="Copiar enlace"
                   className="cursor-pointer shrink-0"
                 >
                   {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
@@ -260,7 +261,7 @@ export default function InvitationsPage() {
       </Card>
 
       {isError && (
-        <p className="text-destructive">Error al cargar las invitaciones</p>
+        <p className="text-destructive-text">Error al cargar las invitaciones</p>
       )}
       {isSuccess && (
         <div className="space-y-4">

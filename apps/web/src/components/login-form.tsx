@@ -48,7 +48,7 @@ export function LoginForm({
         navigate("/dashboard");
       },
       onError(error) {
-        toast.error(<p className="text-destructive">{error.detail}</p>);
+        toast.error(<p className="text-destructive-text">{error.detail}</p>);
       },
     },
   });
@@ -58,7 +58,7 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center flex flex-col items-center">
           <img src={isotype} alt="Sondix" className="w-15 mb-5" />
-          <CardTitle className="text-xl">Welcome back</CardTitle>
+          <CardTitle className="text-h3">Welcome back</CardTitle>
           {/* <CardDescription>
             Login with your Apple or Google account
           </CardDescription> */}

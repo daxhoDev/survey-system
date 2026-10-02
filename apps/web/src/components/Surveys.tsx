@@ -74,10 +74,10 @@ export default function Surveys() {
           <div className="flex items-center gap-2">
             <span
               className={cn(
-                "px-3 py-0.5 border rounded-full flex items-center justify-center w-fit gap-1.5 text-[10px] font-semibold tracking-wide uppercase",
+                "px-3 py-0.5 border rounded-full flex items-center justify-center w-fit gap-1.5 text-xs font-semibold tracking-wide uppercase",
                 isActive
-                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                  : "bg-destructive/10 text-destructive border-destructive/20",
+                  ? "bg-success/10 text-success-text border-success/30"
+                  : "bg-destructive/10 text-destructive-text border-destructive/30",
               )}
             >
               {isActive ? (
@@ -111,7 +111,7 @@ export default function Surveys() {
                 className="cursor-pointer h-8 w-8"
               >
                 <MoreHorizontal className="size-4" />
-                <span className="sr-only">Open actions menu</span>
+                <span className="sr-only">Abrir menú de acciones</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
@@ -156,13 +156,13 @@ export default function Surveys() {
   return (
     <div className="p-6 space-y-6">
       {isError && (
-        <p className="text-destructive">Error al cargar las encuestas</p>
+        <p className="text-destructive-text">Error al cargar las encuestas</p>
       )}
       {isSuccess && (
         <>
           <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Encuestas</h1>
+              <h1 className="text-h1">Encuestas</h1>
               <p className="text-sm text-muted-foreground">
                 Administra y monitorea tus encuestas creadas.
               </p>

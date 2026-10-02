@@ -15,6 +15,7 @@ import logoLight from "@/assets/brand/logo-light.svg";
 import logoDark from "@/assets/brand/logo-dark.svg";
 import { Dialog, DialogTrigger } from "./ui/dialog";
 import ConfirmationDialog from "./ConfirmationDialog";
+import ThemeSelector from "./ThemeSelector";
 
 export default function DashboardHeader() {
   const { data, isLoading, isRefetching } = useGetCurrentUser({});
@@ -30,7 +31,7 @@ export default function DashboardHeader() {
         navigate("/auth/login");
       },
       onError(error) {
-        toast.error(<p className="text-destructive">{error.detail}</p>);
+        toast.error(<p className="text-destructive-text">{error.detail}</p>);
       },
       mutationKey: [getGetCurrentUserQueryKey],
     },
@@ -59,18 +60,19 @@ export default function DashboardHeader() {
 
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild className="gap-2">
-          <Link to="/dashboard/invitations">
+          <Link to="/dashboard/invitations" aria-label="Invitaciones">
             <UserPlus className="size-4" />
             <span className="hidden sm:inline">Invitaciones</span>
           </Link>
         </Button>
+        <ThemeSelector />
         {showLoading ? (
           <div className="flex items-center gap-2">
             <Skeleton className="h-8 w-8 rounded-full" />
             <Skeleton className="h-4 w-24" />
           </div>
         ) : !user ? (
-          <span className="text-xs text-destructive">Redirecting...</span>
+          <span className="text-xs text-destructive-text">Redirecting...</span>
         ) : (
           <Dialog>
             <div className="flex items-center gap-3">
@@ -95,8 +97,9 @@ export default function DashboardHeader() {
                   variant="ghost"
                   size="icon-sm"
                   disabled={logout.isPending}
-                  title="Logout"
-                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                  title="Cerrar sesión"
+                  aria-label="Cerrar sesión"
+                  className="text-muted-foreground hover:text-destructive-text hover:bg-destructive/10 cursor-pointer"
                 >
                   <LogOut className="size-4" />
                 </Button>
