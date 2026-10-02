@@ -35,7 +35,7 @@ and agents alike.
    Wait for explicit decisions. Do not proceed on assumptions.
 5. **Update the specs first** so they describe the approved target behavior
    (new/changed requirement IDs, status tags `[pending: BL-xx]`).
-6. **Implement** the change in code.
+6. **Implement** the change in code, with its tests (DEV-WF-06).
 7. **Synchronize** everything that mentions it (see PROC-03). Flip status tags
    to `[implemented]` and close/remove the backlog item.
 8. **Record deviations**: if the implementation cannot or does not fully match

@@ -26,7 +26,7 @@ services/      Business rules and validation (Zod safeParse + domain checks), th
 repositories/  Data access with Prisma; map snake_case DB rows ⇄ camelCase domain objects
 middlewares/   auth, error, logging, request context
 lib/           prisma client, openapi registry/generator, zod setup
-config/        pino logger
+config/        env (validated configuration), pino logger
 context/       AsyncLocalStorage request context (per-request child logger)
 utils/         AppError, rate limiter factory, BigInt-safe JSON serializer
 types.ts       Domain types (inferred from Zod) and repository/service interfaces
@@ -58,7 +58,7 @@ Order is normative:
 10. Catch-all `app.all("/*splat")` → `AppError` 404.
 11. `ErrorMiddleware.handleGlobalError`.
 
-- **ARCH-10** `[implemented]` `AuthMiddleware.protect` adds `userId` to the request-scoped logger after authenticating (see [10-auth.md](10-auth.md)).
+- **ARCH-10** `[implemented]` `AuthMiddleware.protect` and `AuthMiddleware.optionalAuth` (when a session is present) add `userId` to the request-scoped logger after authenticating (see [10-auth.md](10-auth.md)).
 - **ARCH-11** `[implemented]` Code obtains the logger with `getLogger()` (`context/requestContext.ts`) so every log line carries `requestId` (and `userId` when authenticated).
 
 ## 4. Frontend
@@ -78,4 +78,4 @@ packages/schemas (Zod) ──► apps/api validation (services/controllers)
                                                 apps/web/src/lib/api (generated hooks + types)
 ```
 
-- **ARCH-12** `[pending: BL-01]` The OpenAPI document must describe the real responses (envelope, status codes, server URL). Until BL-01 is done, the generated web client types may not match the actual payloads and the web code casts responses (`as any`, `as unknown as`).
+- **ARCH-12** `[implemented]` The OpenAPI document must describe the real responses (envelope, status codes, server URL, cookie auth), so the generated web client types match the actual payloads and the web code needs no response casts (FE-11).

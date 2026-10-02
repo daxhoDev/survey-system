@@ -15,11 +15,11 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { useForm } from "react-hook-form";
-import type { UserLogin } from "@/lib/api/surveySystemAPI.schemas";
+import type { UserLogin } from "@/lib/api/sondixAPI.schemas";
 import { useLoginUser, getGetCurrentUserQueryKey } from "@/lib/api/users/users";
 import { loginDataSchema } from "@survey-system/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import logo from "@/assets/logo.png";
+import isotype from "@/assets/brand/isotype-gradient.svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -43,7 +43,8 @@ export function LoginForm({
   const login = useLoginUser({
     mutation: {
       onSuccess(data) {
-        queryClient.setQueryData(getGetCurrentUserQueryKey(), data.data);
+        // Same shape as GET /users/me: { data: user } (AUTH-21).
+        queryClient.setQueryData(getGetCurrentUserQueryKey(), { data: data.data });
         navigate("/dashboard");
       },
       onError(error) {
@@ -56,7 +57,7 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center flex flex-col items-center">
-          <img src={logo} className="w-15 mb-5"></img>
+          <img src={isotype} alt="Sondix" className="w-15 mb-5" />
           <CardTitle className="text-xl">Welcome back</CardTitle>
           {/* <CardDescription>
             Login with your Apple or Google account

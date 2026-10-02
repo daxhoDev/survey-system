@@ -7,13 +7,22 @@ import type {
   UserWithTokens,
   IRefreshTokenRepository,
   FreshTokens,
+  NewAccount,
+  UserPayload,
+  UserWithoutPassword,
 } from "../types.js";
 import { createUserSchema, loginDataSchema } from "@survey-system/schemas";
 import bcrypt from "bcrypt";
+import { normalizeEmail } from "../utils/email.js";
 import { v7 } from "uuid";
 import AppError from "../utils/appError.js";
+import { env } from "../config/env.js";
 import jwt from "jsonwebtoken";
 import crypto, { randomUUID } from "crypto";
+
+// Compared against when the email is unknown, so login takes the same time
+// whether or not the user exists (AUTH-14).
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync(randomUUID(), 10);
 
 export default class AuthService implements IAuthService {
   constructor(
@@ -21,23 +30,17 @@ export default class AuthService implements IAuthService {
     private refreshRepo: IRefreshTokenRepository,
   ) {}
 
-  async signup(data: CreateUserData): Promise<UserWithTokens> {
-    const {
-      success,
-      data: validData,
-      error,
-    } = z.safeParse(createUserSchema, data);
+  // Validates a new account and hashes its password (AUTH-10, AUTH-11).
+  async prepareAccount(data: CreateUserData): Promise<NewAccount> {
+    const validData = z.parse(createUserSchema, data);
+    const email = normalizeEmail(validData.email);
 
-    if (!success) {
-      throw error;
-    }
-
-    const emailExists = await this.userRepo.getByEmail(validData.email);
+    const emailExists = await this.userRepo.getByEmail(email);
     if (emailExists) {
       throw new AppError(
         "Conflict",
         "There is already an user with this email",
-        400,
+        409,
       );
     }
     const usernameExists = await this.userRepo.getByUsernameOnly(
@@ -47,31 +50,27 @@ export default class AuthService implements IAuthService {
       throw new AppError(
         "Conflict",
         "There is already an user with this username",
-        400,
+        409,
       );
     }
 
-    const hashedPassword = await bcrypt.hash(validData.password, 10);
-
-    const userId = v7();
-    const user = await this.userRepo.createOne({
-      id: userId,
-      email: validData.email,
-      username: validData.username,
-      password: hashedPassword,
-    });
-
-    const refreshToken = await this.createRefreshToken(userId);
-    const accessToken = this.createSignedJwt(
-      userId,
-      validData.username,
-      validData.email,
-    );
-
     return {
-      user,
-      accessToken,
-      refreshToken,
+      id: v7(),
+      email,
+      username: validData.username,
+      password: await bcrypt.hash(validData.password, 10),
+    };
+  }
+
+  // Used by the create-user command (AUTH-31).
+  async createAccount(data: CreateUserData): Promise<UserWithoutPassword> {
+    return this.userRepo.createOne(await this.prepareAccount(data));
+  }
+
+  async issueTokens(user: UserPayload): Promise<FreshTokens> {
+    return {
+      accessToken: this.createSignedJwt(user.id, user.username, user.email),
+      refreshToken: await this.createRefreshToken(user.id),
     };
   }
 
@@ -86,21 +85,17 @@ export default class AuthService implements IAuthService {
       throw error;
     }
 
-    const user = await this.userRepo.getByEmail(validData.email);
-
-    if (!user) {
-      throw new AppError("Not found", "This email is not registered", 404);
-    }
+    const user = await this.userRepo.getByEmail(normalizeEmail(validData.email));
 
     const passwordIsCorrect = await this.comparePassword(
       validData.password,
-      user.password,
+      user?.password ?? DUMMY_PASSWORD_HASH,
     );
 
-    if (!passwordIsCorrect) {
+    if (!user || !passwordIsCorrect) {
       throw new AppError(
-        "Incorrect credentials",
-        "Your password is incorrect, try again",
+        "Invalid credentials",
+        "Invalid email or password",
         401,
       );
     }
@@ -181,10 +176,8 @@ export default class AuthService implements IAuthService {
         username,
         email,
       },
-      process.env.JWT_SECRET as string,
-      {
-        expiresIn: process.env.JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"],
-      } as jwt.SignOptions,
+      env.JWT_SECRET,
+      { expiresIn: env.ACCESS_TOKEN_TTL_MINUTES * 60 },
     );
     return token;
   }
@@ -194,8 +187,7 @@ export default class AuthService implements IAuthService {
     const token = randomUUID();
     const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const expiresAt = new Date(
-      Date.now() +
-        Number(process.env.REFRESH_EXPIRES_IN /* days */) * 24 * 60 * 60 * 1000,
+      Date.now() + env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
     );
 
     await this.refreshRepo.createOne({

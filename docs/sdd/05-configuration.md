@@ -7,7 +7,7 @@
 Loaded with `dotenv/config`. `.env` files are git-ignored; `.env.example` is
 allowed by `.gitignore`.
 
-### 1.1 Target variables `[pending: BL-05]`
+### 1.1 Variables `[implemented]`
 
 | Variable | Required | Default | Format / values | Meaning |
 |----------|----------|---------|-----------------|---------|
@@ -20,38 +20,28 @@ allowed by `.gitignore`.
 | `CORS_ORIGIN` | in `production` | `http://localhost:5173` in `development` | single URL | Allowed CORS origin (one origin only) |
 | `LOG_LEVEL` | no | `info` | pino level (`fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`) | Logger level |
 
-### 1.2 Current variables (to be replaced by BL-05)
+`TEST_DATABASE_URL` is read only by the API tests (not by the runtime schema): the database the `db` test project rebuilds and uses (DEV-WF-02). It must be a dedicated database whose name contains `test`.
 
-| Variable | Current format | Replaced by |
-|----------|----------------|-------------|
-| `JWT_EXPIRES_IN` | passed verbatim to jsonwebtoken `expiresIn`; a bare number string such as `"15"` is interpreted as **milliseconds** | `ACCESS_TOKEN_TTL_MINUTES` |
-| `JWT_COOKIE_EXPIRES_IN` | minutes | `ACCESS_TOKEN_TTL_MINUTES` |
-| `REFRESH_EXPIRES_IN` | days | `REFRESH_TOKEN_TTL_DAYS` |
-| `REFRESH_COOKIE_EXPIRES_IN` | days | `REFRESH_TOKEN_TTL_DAYS` |
+### 1.2 Requirements
 
-`DATABASE_URL`, `PORT`, `NODE_ENV` and `JWT_SECRET` exist today without validation;
-`CORS_ORIGIN` (BL-14) and `LOG_LEVEL` do not exist yet (origin hardcoded, level `info`).
-
-### 1.3 Requirements
-
-- **CFG-01** `[pending: BL-05]` The schema lives in `apps/api/src/config/env.ts` (API-only; not in `packages/schemas`). It is validated at startup, before `app` is imported and before the server listens.
-- **CFG-02** `[pending: BL-05]` On validation failure the process prints **every** issue (variable + message) and exits with code `1`. Secret values are never printed.
-- **CFG-03** `[pending: BL-05]` Code reads configuration only from the exported, typed config object — never from `process.env` directly (no `as string` casts). Numeric values are coerced (`z.coerce.number().int().positive()`).
-- **CFG-04** `[pending: BL-05]` `NODE_ENV` accepts only `development` or `production` (API-15).
-- **CFG-05** `[pending: BL-05]` `apps/api/.env.example` documents every variable with safe example values and is kept in sync with the schema.
-- **CFG-06** `[pending: BL-14]` The CORS origin comes from `CORS_ORIGIN` (API-24); in `production` it is required, in `development` it defaults to `http://localhost:5173`.
-- **CFG-08** `[pending: BL-05]` `apps/api/prisma.config.ts` is executed by the Prisma CLI and keeps reading `DATABASE_URL` from `process.env`; it is outside the runtime schema.
+- **CFG-01** `[implemented]` The schema lives in `apps/api/src/config/env.ts` (API-only; not in `packages/schemas`). It is validated at startup, before `app` is imported and before the server listens.
+- **CFG-02** `[implemented]` On validation failure the process prints **every** issue (variable + message) to stderr with `console.error` (the only exception to API-33) and exits with code `1`. Secret values are never printed.
+- **CFG-03** `[implemented]` Code reads configuration only from the exported, typed config object — never from `process.env` directly (no `as string` casts). Numeric values are coerced (`z.coerce.number().int().positive()`).
+- **CFG-04** `[implemented]` `NODE_ENV` accepts only `development` or `production` (API-15).
+- **CFG-05** `[implemented]` `apps/api/.env.example` documents every variable with safe example values and is kept in sync with the schema.
+- **CFG-06** `[implemented]` The CORS origin comes from `CORS_ORIGIN` (API-24); in `production` it is required, in `development` it defaults to `http://localhost:5173`.
+- **CFG-08** `[implemented]` `apps/api/prisma.config.ts` is executed by the Prisma CLI and keeps reading `DATABASE_URL` from `process.env`; it is outside the runtime schema.
 
 ## 2. Web configuration
 
 | Variable | Meaning | Status |
 |----------|---------|--------|
-| `VITE_API_URL` | Base URL of the API used by the generated client | `[pending: BL-14]` |
+| `VITE_API_URL` | Base URL of the API used by the generated client | `[implemented]` |
 
-- **CFG-07** `[pending: BL-14]` The API base URL used by the web app is configurable (`VITE_API_URL`) instead of being hardcoded as `http://localhost:3000` in the generated client (`orval.config.ts` `baseUrl`) and empty `baseURL` in `apps/web/src/lib/api/mutator/customInstance.ts`.
-- **CFG-09** `[open: OQ-17]` How `VITE_API_URL` is applied and validated (e.g. Orval generating relative paths and `customInstance` prefixing `VITE_API_URL`; Zod validation of `import.meta.env` in the web).
+- **CFG-07** `[implemented]` The API base URL used by the web app is configurable (`VITE_API_URL`, template in `apps/web/.env.example`); nothing in the web hardcodes the API host.
+- **CFG-09** `[implemented]` Orval generates paths without a host (`/api/v1/...`) and `customInstance` prefixes them with `VITE_API_URL`. The web validates `import.meta.env` with Zod when it starts (`apps/web/src/config/env.ts`): `VITE_API_URL` must be a URL; it defaults to `http://localhost:3000` in development and is required in a production build.
 
 ## 3. Code generation configuration
 
 - `orval.config.ts` (root): input `http://localhost:3000/api/v1/docs-raw`, output `apps/web/src/lib/api`, mode `tags-split`, client `react-query`, http client `fetch`, mutator `customInstance`. See [30-dev-workflow.md](30-dev-workflow.md).
-- `apps/api/prisma.config.ts`: schema `prisma/schema.prisma`, migrations `prisma/migrations`, seed command `tsx prisma/seed.ts` (file does not exist — BL-17).
+- `apps/api/prisma.config.ts`: schema `prisma/schema.prisma`, migrations `prisma/migrations`, seed command `tsx prisma/seed.ts` (DEV-WF-01).

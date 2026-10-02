@@ -1,4 +1,7 @@
-const baseURL = ""; // use your own URL or environment variable
+import { env } from "@/config/env";
+
+// Generated paths are relative (/api/v1/...); the host comes from VITE_API_URL.
+const baseURL = env.API_URL;
 
 let activeRefreshPromise: Promise<boolean> | null = null;
 
@@ -37,9 +40,7 @@ export const customInstance = async <T>(
     if (response.status === 401 && !url.includes("/users/refresh")) {
       try {
         if (!activeRefreshPromise) {
-          const apiIndex = url.indexOf("/api/v1/");
-          const host = apiIndex !== -1 ? url.substring(0, apiIndex) : "";
-          const refreshUrl = `${host}/api/v1/users/refresh`;
+          const refreshUrl = `${baseURL}/api/v1/users/refresh`;
 
           activeRefreshPromise = fetch(refreshUrl, {
             method: "POST",

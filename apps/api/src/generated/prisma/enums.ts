@@ -9,10 +9,7 @@
 * 🟢 You can import this file directly.
 */
 
-export const answer_type = {
-  TEXT_RESPONSE: 'TEXT_RESPONSE',
-  SINGLE_SELECT: 'SINGLE_SELECT',
-  MULTI_SELECT: 'MULTI_SELECT'
-} as const
 
-export type answer_type = (typeof answer_type)[keyof typeof answer_type]
+
+// This file is empty because there are no enums in the schema.
+export {}

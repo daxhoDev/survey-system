@@ -3,14 +3,9 @@ import {
   useUpdateSurveyBySlug,
   getGetAllSurveysQueryKey,
 } from "@/lib/api/surveys/surveys";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Survey } from "@/lib/api/surveySystemAPI.schemas";
+import type { Survey } from "@/lib/api/sondixAPI.schemas";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DataTable } from "./ui/data-table";
 import { cn } from "@/lib/utils";
@@ -34,6 +29,7 @@ import {
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import LockedBadge from "@/components/LockedBadge";
 
 export default function Surveys() {
   const { data, isError, isSuccess } = useGetAllSurveys({});
@@ -54,12 +50,7 @@ export default function Surveys() {
     },
   });
 
-  const surveys = data as unknown as {
-    message: string;
-    data: Survey[];
-    status: string;
-    statusCode: number;
-  };
+  const surveys = data?.data ?? [];
 
   const columns: ColumnDef<Survey>[] = [
     {
@@ -80,26 +71,29 @@ export default function Surveys() {
       cell: ({ row }) => {
         const isActive = row.getValue("isActive") as boolean;
         return (
-          <span
-            className={cn(
-              "px-3 py-0.5 border rounded-full flex items-center justify-center w-fit gap-1.5 text-[10px] font-semibold tracking-wide uppercase",
-              isActive
-                ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                : "bg-destructive/10 text-destructive border-destructive/20",
-            )}
-          >
-            {isActive ? (
-              <>
-                <CheckCircle className="size-3.5" />
-                <span>Activa</span>
-              </>
-            ) : (
-              <>
-                <CircleX className="size-3.5" />
-                <span>Inactiva</span>
-              </>
-            )}
-          </span>
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "px-3 py-0.5 border rounded-full flex items-center justify-center w-fit gap-1.5 text-[10px] font-semibold tracking-wide uppercase",
+                isActive
+                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                  : "bg-destructive/10 text-destructive border-destructive/20",
+              )}
+            >
+              {isActive ? (
+                <>
+                  <CheckCircle className="size-3.5" />
+                  <span>Activa</span>
+                </>
+              ) : (
+                <>
+                  <CircleX className="size-3.5" />
+                  <span>Inactiva</span>
+                </>
+              )}
+            </span>
+            {row.original.isLocked && <LockedBadge />}
+          </div>
         );
       },
     },
@@ -190,7 +184,7 @@ export default function Surveys() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold">
-                {surveys.data.length}
+                {surveys.length}
               </CardContent>
             </Card>
             <Card className="w-full max-w-60 py-6">
@@ -200,18 +194,16 @@ export default function Surveys() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-3xl font-bold text-primary">
-                {surveys.data.filter((survey) => survey.isActive === true)
-                  .length}
+                {surveys.filter((survey) => survey.isActive === true).length}
               </CardContent>
             </Card>
           </div>
 
           <div className="mt-8">
-            <DataTable columns={columns} data={surveys.data} />
+            <DataTable columns={columns} data={surveys} />
           </div>
         </>
       )}
     </div>
   );
 }
-

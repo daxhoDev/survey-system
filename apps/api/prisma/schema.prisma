@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client"
+  previewFeatures = ["partialIndexes"]
   output   = "../src/generated/prisma"
 }
 
@@ -11,10 +12,12 @@ model answers {
   id         String    @id @db.Uuid
   survey_id  String?   @db.Uuid
   responses  Json
-  origin_ip  String    @unique @db.Inet
+  origin_ip  String    @db.Inet
   created_at DateTime  @default(now()) @db.Timestamptz(6)
   deleted_at DateTime? @db.Timestamptz(6)
   surveys    surveys?  @relation(fields: [survey_id], references: [id])
+
+  @@unique([survey_id, origin_ip], where: raw("deleted_at IS NULL"))
 }
 
 model surveys {
@@ -24,10 +27,13 @@ model surveys {
   is_active    Boolean   @default(false)
   created_at   DateTime  @default(now()) @db.Timestamptz(6)
   deleted_at   DateTime? @db.Timestamptz(6)
-  slug         String    @unique(map: "is_unique")
+  slug         String
   updated_at   DateTime? @db.Timestamptz(6)
   activated_at DateTime? @db.Timestamptz(6)
+  is_locked    Boolean   @default(false)
   answers      answers[]
+
+  @@unique([slug], map: "is_unique", where: raw("deleted_at IS NULL"))
 }
 
 model users {
@@ -38,6 +44,7 @@ model users {
   created_at     DateTime        @default(now()) @db.Timestamptz(6)
   deleted_at     DateTime?       @db.Timestamptz(6)
   refresh_tokens refresh_tokens?
+  invitations    invitations[]
 }
 
 model refresh_tokens {
@@ -49,8 +56,14 @@ model refresh_tokens {
   users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }
 
-enum answer_type {
-  TEXT_RESPONSE
-  SINGLE_SELECT
-  MULTI_SELECT
+model invitations {
+  id          String    @id @db.Uuid
+  email       String
+  token_hash  String    @unique
+  invited_by  String?   @db.Uuid
+  created_at  DateTime  @default(now()) @db.Timestamptz(6)
+  expires_at  DateTime  @db.Timestamptz(6)
+  accepted_at DateTime? @db.Timestamptz(6)
+  revoked_at  DateTime? @db.Timestamptz(6)
+  users       users?    @relation(fields: [invited_by], references: [id], onDelete: SetNull)
 }

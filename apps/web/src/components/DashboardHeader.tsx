@@ -7,29 +7,21 @@ import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { useQueryClient } from "@tanstack/react-query";
 // import { useNavigate, useRevalidator } from "react-router";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, User as UserIcon, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "./ui/skeleton";
-import type { User } from "@/lib/api/surveySystemAPI.schemas";
-import { useNavigate } from "react-router";
-import logo from "@/assets/logo.png";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
+import { Link, useNavigate } from "react-router";
+import logoLight from "@/assets/brand/logo-light.svg";
+import logoDark from "@/assets/brand/logo-dark.svg";
+import { Dialog, DialogTrigger } from "./ui/dialog";
+import ConfirmationDialog from "./ConfirmationDialog";
 
 export default function DashboardHeader() {
-  const { data: rawData, isLoading, isRefetching } = useGetCurrentUser({});
+  const { data, isLoading, isRefetching } = useGetCurrentUser({});
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const user = rawData as unknown as User | undefined;
+  const user = data?.data;
 
   const logout = useLogoutUser({
     mutation: {
@@ -51,13 +43,27 @@ export default function DashboardHeader() {
       <div className="flex items-center gap-2">
         {/* <SidebarTrigger className="-ml-1" /> */}
         {/* <Separator orientation="vertical" /> */}
-        <img src={logo} className="w-7" />
-        <span className="font-semibold text-sm tracking-tight text-foreground">
+        <img src={logoLight} alt="Sondix" className="h-7 w-auto dark:hidden" />
+        <img
+          src={logoDark}
+          alt="Sondix"
+          className="hidden h-7 w-auto dark:block"
+        />
+        <Link
+          to="/dashboard"
+          className="font-semibold text-sm tracking-tight text-foreground"
+        >
           Dashboard
-        </span>
+        </Link>
       </div>
 
       <div className="flex items-center gap-4">
+        <Button variant="ghost" size="sm" asChild className="gap-2">
+          <Link to="/dashboard/invitations">
+            <UserPlus className="size-4" />
+            <span className="hidden sm:inline">Invitaciones</span>
+          </Link>
+        </Button>
         {showLoading ? (
           <div className="flex items-center gap-2">
             <Skeleton className="h-8 w-8 rounded-full" />
@@ -95,20 +101,11 @@ export default function DashboardHeader() {
                   <LogOut className="size-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirma tu acción</DialogTitle>
-                  <DialogDescription>{`Estás seguro de que deseas cerrar la sesión como ${user.username}?`}</DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button onClick={() => logout.mutate()} variant="destructive">
-                    Cerrar sesión
-                  </Button>
-                  <DialogClose asChild>
-                    <Button variant="secondary">Cancelar</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
+              <ConfirmationDialog
+                description={`Estás seguro de que deseas cerrar la sesión como ${user.username}?`}
+                confirmText="Cerrar sesión"
+                onConfirm={() => logout.mutate()}
+              />
             </div>
           </Dialog>
         )}

@@ -61,27 +61,10 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Survey, SurveyStats } from "@/lib/api/surveySystemAPI.schemas";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-
-interface AnswerItem {
-  id: string;
-  createdAt: string;
-  originIp: string;
-  responses: Array<{
-    id: number;
-    content: string | number[];
-  }>;
-}
+import type { Answer } from "@/lib/api/sondixAPI.schemas";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
+import LockedBadge from "@/components/LockedBadge";
 
 export default function SurveyDetailsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -90,7 +73,7 @@ export default function SurveyDetailsPage() {
 
   const [activeTab, setActiveTab] = useState("overview");
   const [copied, setCopied] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<AnswerItem | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<Answer | null>(null);
 
   // Queries
   const {
@@ -123,16 +106,16 @@ export default function SurveyDetailsPage() {
     },
   });
 
-  const survey = (surveyData as any)?.data as Survey | undefined;
-  const stats = (statsData as any)?.data as SurveyStats | undefined;
-  const answers = (answersData as any)?.data as AnswerItem[] | undefined;
+  const survey = surveyData?.data;
+  const stats = statsData?.data;
+  const answers = answersData?.data;
 
   // Mutations
   const updateSurvey = useUpdateSurveyBySlug({
     mutation: {
       onSuccess() {
         queryClient.invalidateQueries({
-          queryKey: [`http://localhost:3000/api/v1/surveys/${slug}`],
+          queryKey: getGetSurveyBySlugQueryKey(slug || ""),
         });
         queryClient.invalidateQueries({
           queryKey: getGetAllSurveysQueryKey(),
@@ -252,9 +235,12 @@ export default function SurveyDetailsPage() {
               <ArrowLeft className="size-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                {survey.name}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold tracking-tight">
+                  {survey.name}
+                </h1>
+                {survey.isLocked && <LockedBadge />}
+              </div>
               <p className="text-xs text-muted-foreground">
                 slug: {survey.slug}
               </p>
@@ -292,20 +278,11 @@ export default function SurveyDetailsPage() {
             </DialogTrigger>
           </div>
         </div>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirma tu acción</DialogTitle>
-            <DialogDescription>{`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="destructive" onClick={handleDeleteSurvey}>
-              Eliminar
-            </Button>
-            <DialogClose asChild>
-              <Button variant="secondary">Cancelar</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
+        <ConfirmationDialog
+          confirmText="Eliminar"
+          description={`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}
+          onConfirm={handleDeleteSurvey}
+        />
       </Dialog>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -692,31 +669,16 @@ export default function SurveyDetailsPage() {
                       <span>Eliminar respuesta</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Confirma tu acción</DialogTitle>
-                      <DialogDescription>
-                        ¿Seguro que deseas eliminar esta respuesta?
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button
-                        variant="destructive"
-                        disabled={deleteAnswer.isPending}
-                        onClick={() =>
-                          deleteAnswer.mutate({
-                            slug: survey.slug,
-                            id: selectedAnswer.id,
-                          })
-                        }
-                      >
-                        Eliminar
-                      </Button>
-                      <DialogClose asChild>
-                        <Button variant="secondary">Cancelar</Button>
-                      </DialogClose>
-                    </DialogFooter>
-                  </DialogContent>
+                  <ConfirmationDialog
+                    confirmText="Eliminar"
+                    description="¿Seguro que deseas eliminar esta respuesta?"
+                    onConfirm={() =>
+                      deleteAnswer.mutate({
+                        slug: survey.slug,
+                        id: selectedAnswer.id,
+                      })
+                    }
+                  />
                 </Dialog>
               </div>
             </div>

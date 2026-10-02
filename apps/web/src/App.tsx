@@ -8,6 +8,8 @@ import Surveys from "./components/Surveys";
 import SurveyAnsweringPage from "./pages/SurveyAnsweringPage";
 import SurveyCreatePage from "./pages/SurveyCreatePage";
 import SurveyDetailsPage from "./pages/SurveyDetailsPage";
+import InvitationsPage from "./pages/InvitationsPage";
+import AcceptInvitationPage from "./pages/AcceptInvitationPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -33,11 +35,13 @@ function App() {
               path="login"
               element={<LoginForm className="w-97/100 max-w-120" />}
             />
+            <Route path="invite/:token" element={<AcceptInvitationPage />} />
           </Route>
           <Route path="dashboard" element={<DashboardPage />}>
             <Route path="" element={<Surveys />} />
             <Route path="surveys/create" element={<SurveyCreatePage />} />
             <Route path="surveys/:slug" element={<SurveyDetailsPage />} />
+            <Route path="invitations" element={<InvitationsPage />} />
           </Route>
           <Route path="surveys/:slug" element={<SurveyAnsweringPage />} />
         </Routes>

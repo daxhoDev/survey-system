@@ -201,16 +201,17 @@ export type answersOrderByWithRelationInput = {
 
 export type answersWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  origin_ip?: string
+  survey_id_origin_ip?: Prisma.answersSurvey_idOrigin_ipCompoundUniqueInput
   AND?: Prisma.answersWhereInput | Prisma.answersWhereInput[]
   OR?: Prisma.answersWhereInput[]
   NOT?: Prisma.answersWhereInput | Prisma.answersWhereInput[]
   survey_id?: Prisma.UuidNullableFilter<"answers"> | string | null
   responses?: Prisma.JsonFilter<"answers">
+  origin_ip?: Prisma.StringFilter<"answers"> | string
   created_at?: Prisma.DateTimeFilter<"answers"> | Date | string
   deleted_at?: Prisma.DateTimeNullableFilter<"answers"> | Date | string | null
   surveys?: Prisma.XOR<Prisma.SurveysNullableScalarRelationFilter, Prisma.surveysWhereInput> | null
-}, "id" | "origin_ip">
+}, "id" | "survey_id_origin_ip">
 
 export type answersOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -296,6 +297,11 @@ export type answersUncheckedUpdateManyInput = {
   origin_ip?: Prisma.StringFieldUpdateOperationsInput | string
   created_at?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   deleted_at?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+}
+
+export type answersSurvey_idOrigin_ipCompoundUniqueInput = {
+  survey_id: string
+  origin_ip: string
 }
 
 export type answersCountOrderByAggregateInput = {

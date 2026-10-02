@@ -27,7 +27,10 @@ router
 
 router
   .route("/:slug/")
-  .get(surveyController.getBySlug.bind(surveyController))
+  .get(
+    authMiddleware.optionalAuth.bind(authMiddleware),
+    surveyController.getBySlug.bind(surveyController),
+  )
   .patch(
     authMiddleware.protect.bind(authMiddleware),
     surveyController.updateOneBySlug.bind(surveyController),

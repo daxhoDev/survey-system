@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma.js";
+import { prisma, rethrowUniqueViolation } from "../lib/prisma.js";
 import type {
   Answer,
   CreateAnswerData,
@@ -8,12 +8,10 @@ import type {
 } from "../types.js";
 
 export default class AnswerRepository implements IAnswerRepository {
-  async getAllFromSurvey(surveySlug: string): Promise<Answer[]> {
+  async getAllFromSurvey(surveyId: string): Promise<Answer[]> {
     const results = await prisma.answers.findMany({
       where: {
-        surveys: {
-          slug: surveySlug,
-        },
+        survey_id: surveyId,
         deleted_at: null,
       },
     });
@@ -33,6 +31,7 @@ export default class AnswerRepository implements IAnswerRepository {
   }
 
   async getById(
+    surveyId: string,
     id: string,
   ): Promise<
     (Answer & { surveys: Pick<Survey, "name" | "questions"> | null }) | null
@@ -40,6 +39,7 @@ export default class AnswerRepository implements IAnswerRepository {
     const result = await prisma.answers.findUnique({
       where: {
         id,
+        survey_id: surveyId,
         deleted_at: null,
       },
       include: {
@@ -84,7 +84,9 @@ export default class AnswerRepository implements IAnswerRepository {
       origin_ip: originIp,
     };
 
-    const result = await prisma.answers.create({ data });
+    const result = await rethrowUniqueViolation(
+      prisma.answers.create({ data }),
+    );
 
     const serializedData = {
       id: result.id,
@@ -109,10 +111,15 @@ export default class AnswerRepository implements IAnswerRepository {
     });
   }
 
-  async getIpByOriginIp(ip: string): Promise<Pick<Answer, "originIp"> | null> {
-    const result = await prisma.answers.findUnique({
+  async getIpBySurveyIdAndIp(
+    surveyId: string,
+    ip: string,
+  ): Promise<Pick<Answer, "originIp"> | null> {
+    const result = await prisma.answers.findFirst({
       where: {
+        survey_id: surveyId,
         origin_ip: ip,
+        deleted_at: null,
       },
       select: {
         origin_ip: true,

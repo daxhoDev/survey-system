@@ -1,4 +1,4 @@
-import type { CookieOptions, Request, Response } from "express";
+import type { Request, Response } from "express";
 import type {
   IAuthService,
   ProtectedRequest,
@@ -7,29 +7,13 @@ import type {
 import { json } from "../utils/json.js";
 import AppError from "../utils/appError.js";
 import { getLogger } from "../context/requestContext.js";
-
-const jwtCookieOptions: CookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production" ? true : false,
-  maxAge: Number(process.env.JWT_COOKIE_EXPIRES_IN) * 60 * 1000, // minutes,
-};
-const refreshCookieOptions: CookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production" ? true : false,
-  maxAge: Number(process.env.REFRESH_COOKIE_EXPIRES_IN) * 24 * 60 * 60 * 1000, //days,
-  path: "/api/v1/users/refresh",
-};
+import {
+  jwtCookieOptions,
+  refreshCookieOptions,
+} from "../config/cookies.js";
 
 export default class AuthController {
   constructor(private service: IAuthService) {}
-
-  async signup(req: Request, res: Response) {
-    getLogger().info({ user: req.body }, `Registering user...`);
-    const userData = req.body;
-    const { user, accessToken, refreshToken } =
-      await this.service.signup(userData);
-    this.sendTokenAndUser(res, user, accessToken, refreshToken);
-  }
 
   async login(req: Request, res: Response) {
     getLogger().info({ email: req.body.email }, `Logging in user...`);
@@ -82,7 +66,7 @@ export default class AuthController {
     if (!currentUser)
       throw new AppError("Unauthenticated user", "Please, log in first", 401);
 
-    res.type("json").status(200).send(json(currentUser));
+    res.type("json").status(200).send(json({ data: currentUser }));
   }
 
   sendTokenAndUser(

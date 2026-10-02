@@ -1,6 +1,7 @@
 import z from "zod";
-import { createAnswerSchema } from "@survey-system/schemas";
+import { createAnswerSchema, idParamSchema } from "@survey-system/schemas";
 import AppError from "../utils/appError.js";
+import UniqueViolationError from "../utils/uniqueViolationError.js";
 import {
   type Answer,
   type CreateAnswerData,
@@ -20,15 +21,25 @@ export default class AnswerService implements IAnswerService {
   ) {}
 
   async getAllFromSurvey(surveySlug: string): Promise<Answer[]> {
-    return await this.answerRepo.getAllFromSurvey(surveySlug);
+    const survey = await this.getSurveyBySlug(surveySlug);
+    return await this.answerRepo.getAllFromSurvey(survey.id);
   }
 
   async getById(
+    surveySlug: string,
     id: string,
-  ): Promise<
-    (Answer & { surveys: Pick<Survey, "name" | "questions"> | null }) | null
-  > {
-    return await this.answerRepo.getById(id);
+  ): Promise<Answer & { surveys: Pick<Survey, "name" | "questions"> | null }> {
+    z.parse(idParamSchema, { id });
+    const survey = await this.getSurveyBySlug(surveySlug);
+    const answer = await this.answerRepo.getById(survey.id, id);
+    if (!answer)
+      throw new AppError(
+        "Not found",
+        "The requested answer doesn't exist",
+        404,
+      );
+
+    return answer;
   }
 
   async createOne(
@@ -39,37 +50,61 @@ export default class AnswerService implements IAnswerService {
     const { success, error, data } = z.safeParse(createAnswerSchema, answer);
     if (!success) throw error;
 
-    const existingIp = await this.answerRepo.getIpByOriginIp(originIp);
-    if (existingIp) {
-      throw new AppError(
-        "You already submitted an answer",
-        "Your IP already submitted an answer for this survey",
-        403,
-      );
-    }
-
     const referencedSurvey = await this.surveyRepo.getBySlug(slug);
-    if (!referencedSurvey)
+    if (!referencedSurvey || !referencedSurvey.isActive)
       throw new AppError(
         "Not found",
         "The survey you are trying to answer doesn't exist",
         404,
       );
 
+    const existingIp = await this.answerRepo.getIpBySurveyIdAndIp(
+      referencedSurvey.id,
+      originIp,
+    );
+    if (existingIp) throw this.alreadyAnsweredError();
+
     const serializedData = this.validateAnswerCreation(referencedSurvey, data);
 
     const id = v7();
 
-    return await this.answerRepo.createOne({
-      id,
-      surveyId: referencedSurvey.id,
-      ...serializedData,
-      originIp,
-    });
+    try {
+      return await this.answerRepo.createOne({
+        id,
+        surveyId: referencedSurvey.id,
+        ...serializedData,
+        originIp,
+      });
+    } catch (err) {
+      // ANS-03: a concurrent submission from the same IP was stored first
+      if (err instanceof UniqueViolationError) throw this.alreadyAnsweredError();
+      throw err;
+    }
   }
 
-  async deleteById(id: string) {
+  private alreadyAnsweredError() {
+    return new AppError(
+      "You already submitted an answer",
+      "Your IP already submitted an answer for this survey",
+      403,
+    );
+  }
+
+  async deleteById(surveySlug: string, id: string) {
+    await this.getById(surveySlug, id);
     await this.answerRepo.deleteById(id);
+  }
+
+  private async getSurveyBySlug(slug: string): Promise<Survey> {
+    const survey = await this.surveyRepo.getBySlug(slug);
+    if (!survey)
+      throw new AppError(
+        "Not found",
+        "The requested survey doesn't exist",
+        404,
+      );
+
+    return survey;
   }
 
   validateAnswerCreation(
