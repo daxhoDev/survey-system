@@ -107,7 +107,7 @@ Implementation is phased (decided 2026-10-01):
   counterparts. Pure black is never used as a background. The light
   background is Midnight 100 instead of the guide's Neutral 200 and borders
   Midnight 200 instead of Neutral 400 (owner decision 2026-10-02, so cards and
-  data tables, which sit on a card surface, stand out from the page).
+  data tables, which sit on a card surface in light, stand out from the page).
 - **BRAND-10** `[implemented]` Chart series (`--chart-1` … `--chart-5`) use
   brand colors adapted to each theme, starting with the brand accent (light:
   Turquoise 700, Midnight 500, Turquoise 500, Midnight 300, Slate 500; dark:
