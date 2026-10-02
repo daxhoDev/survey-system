@@ -56,7 +56,7 @@
   - `TokenExpiredError` (jsonwebtoken) → `401 Token Error`.
   - anything else without `status` → `500 Internal Error`.
 - **API-12** `[implemented]` Errors with status ≥ 500 are logged at `error`, the rest at `warn`.
-- **API-13** `[implemented]` In `development`, the response also includes `error` and `stack`.
+- **API-13** `[implemented]` In `development`, the response also includes `error` and `stack`. Non-operational errors get the same generic `500` title and detail as in production (API-14), so a `detail` is always present.
 - **API-14** `[implemented]` In `production`, operational errors are returned with their own status and fields; non-operational errors return exactly one generic `500 { title: "Unexpected error", detail: "Something went wrong" }`. The handler must send exactly one response.
 - **API-15** `[implemented]` `NODE_ENV` is always `development` or `production` (validated at startup), so the error handler always responds.
 - **API-16** `[implemented]` On protected routes, an access token that is not a JWT or has an invalid signature → `401 Invalid token` ("Please, log in again") and both session cookies are cleared (AUTH-08).

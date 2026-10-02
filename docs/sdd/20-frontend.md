@@ -19,7 +19,8 @@
 - **FE-09** `[implemented]` `apps/web/src/lib/api/mutator/customInstance.ts` is hand-written and is the only HTTP entry point:
   - sends `credentials: "include"` (cookies);
   - serializes `params` into the query string;
-  - on a non-OK response parses the problem JSON and throws it (so `error.detail` is shown in toasts);
+  - on a non-OK response parses the problem JSON and throws it (so `error.detail` is shown in toasts); if the body is not JSON or has no `detail`, the thrown problem gets the detail "El servidor respondió con un error inesperado.";
+  - if the request cannot reach the server (`fetch` rejects), throws a problem with status `0`, title "Network error" and detail "No se pudo conectar con el servidor. Inténtalo de nuevo." — every thrown error has a `detail`, so toasts are never empty;
   - on `401` (except for the refresh call itself) performs **one shared** `POST /api/v1/users/refresh` (concurrent 401s wait on the same promise) and, if it succeeds, retries the original request once;
   - returns `null` for `204`.
 - **FE-10** `[implemented]` `QueryClient` retries failed queries up to 3 times, except `401`/`403` which are not retried.

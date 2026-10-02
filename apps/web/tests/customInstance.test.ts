@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { customInstance } from "@/lib/api/mutator/customInstance";
 import { mockFetch } from "./helpers";
 
@@ -56,7 +56,7 @@ describe("customInstance (FE-09)", () => {
       [refresh]: { status: 401, body: { title: "Invalid token" } },
     });
 
-    await expect(customInstance(url, { method: "GET" })).rejects.toEqual(
+    await expect(customInstance(url, { method: "GET" })).rejects.toMatchObject(
       unauthorized.body,
     );
   });
@@ -87,7 +87,56 @@ describe("customInstance (FE-09)", () => {
 
     await expect(
       customInstance("/api/v1/users/refresh", { method: "POST" }),
-    ).rejects.toEqual(unauthorized.body);
+    ).rejects.toMatchObject(unauthorized.body);
     expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the API detail of a problem response", async () => {
+    mockFetch({
+      "GET /api/v1/surveys/some-survey": {
+        status: 404,
+        body: { status: 404, title: "Not found", detail: "No existe" },
+      },
+    });
+
+    await expect(customInstance(url, { method: "GET" })).rejects.toMatchObject({
+      status: 404,
+      title: "Not found",
+      detail: "No existe",
+    });
+  });
+
+  it("gives a generic detail when the error body has none or is not JSON", async () => {
+    mockFetch({
+      "GET /api/v1/surveys/some-survey": { status: 500, body: { status: 500 } },
+    });
+    await expect(customInstance(url, { method: "GET" })).rejects.toMatchObject({
+      status: 500,
+      detail: "El servidor respondió con un error inesperado.",
+    });
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("<html>Bad Gateway</html>", { status: 502 })),
+    );
+    await expect(customInstance(url, { method: "GET" })).rejects.toMatchObject({
+      status: 502,
+      detail: "El servidor respondió con un error inesperado.",
+    });
+  });
+
+  it("turns a network failure into a problem with a detail", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    );
+
+    await expect(customInstance(url, { method: "GET" })).rejects.toMatchObject({
+      status: 0,
+      title: "Network error",
+      detail: "No se pudo conectar con el servidor. Inténtalo de nuevo.",
+    });
   });
 });

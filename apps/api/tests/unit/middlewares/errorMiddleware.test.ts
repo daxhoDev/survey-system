@@ -82,6 +82,20 @@ describe("ErrorMiddleware", () => {
     expect(res.body).toHaveProperty("error");
   });
 
+  it("API-13: in development a non-operational error is the generic 500 plus error and stack", async () => {
+    const app = await buildApp("development");
+    const res = await request(app).get("/crash");
+
+    expect(res.status).toBe(500);
+    expect(res.body).toMatchObject({
+      status: 500,
+      title: "Unexpected error",
+      detail: "Something went wrong",
+    });
+    expect(res.body).toHaveProperty("stack");
+    expect(res.body).toHaveProperty("error");
+  });
+
   it("API-10: AppError is operational", () => {
     expect(new AppError("t", "d", 400).isOperational).toBe(true);
   });
