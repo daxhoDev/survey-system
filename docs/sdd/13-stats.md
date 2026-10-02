@@ -30,5 +30,5 @@ Schema: `surveyStatsSchema`, `optionStatsSchema` in `packages/schemas/src/survey
 - **STAT-03** `[implemented]` Counts are computed in PostgreSQL with `jsonb_array_length` / `jsonb_array_elements`; aggregates come back as `BigInt` and are serialized as numbers (API-04).
 - **STAT-04** `[implemented]` `optionStats` counts, for each option of each select question, how many answers selected it (`MULTI_SELECT` answers count once per selected option). `TEXT_ANSWER` questions do not appear.
 - **STAT-05** `[implemented]` Question and option ids are cast to `int` in SQL; they must be integers (DATA-09/10).
-- **STAT-06** `[open: OQ-06]` `optionStats` currently includes **soft-deleted** answers (the `expanded_responses` CTE does not filter `answers.deleted_at`), while `totalAnswers`/`completedAnswers`/`incompleteAnswers` exclude them.
+- **STAT-06** `[implemented]` Every count, `optionStats` included, ignores soft-deleted answers and only considers the non-deleted survey with that slug.
 - **STAT-07** `[implemented]` With no answers, all counts are `0` and every option has `responseCount: 0`.

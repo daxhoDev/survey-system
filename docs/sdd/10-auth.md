@@ -20,7 +20,7 @@ Schemas: `packages/schemas/src/userSchema.ts`, `authSchema.ts`, `invitationSchem
   Token and cookie lifetimes come from the two TTL variables of [05-configuration.md](05-configuration.md) §1.1.
 
 - **AUTH-02** `[implemented]` Only the SHA-256 hex hash of the refresh token is stored (`refresh_tokens.token_hash`), with `expires_at = now + REFRESH_TOKEN_TTL_DAYS days`.
-- **AUTH-03** `[implemented]` A user has at most one refresh token (DB unique `user_id`). Logging in again replaces it, so a new login invalidates the previous session's ability to refresh. `[open: OQ-09]` whether single-session is the intended behavior.
+- **AUTH-03** `[implemented]` A user has at most one refresh token (DB unique `user_id`). Logging in again replaces it, so a new login invalidates the previous session's ability to refresh. Single session per user is the intended behavior (decided 2026-09-30).
 - **AUTH-04** `[implemented]` Refresh tokens rotate: each successful refresh deletes the used token and issues a new pair.
 - **AUTH-05** `[implemented]` The API authenticates **only** through the `jwt` cookie; the `Authorization` header is ignored. OpenAPI must declare it as a cookie scheme (API-30).
 

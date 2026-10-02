@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ZodError } from "zod";
 import SurveyService from "../../../src/services/surveyService.js";
 import type { ISurveyRepository, Session } from "../../../src/types.js";
+import UniqueViolationError from "../../../src/utils/uniqueViolationError.js";
 import { buildSurvey, questions } from "../../helpers/fixtures.js";
 
 const active = buildSurvey();
@@ -92,6 +93,14 @@ describe("SurveyService.createOne", () => {
     });
   });
 
+  it("SURV-08: 409 when the DB unique index rejects a concurrent creation", async () => {
+    repo.createOne.mockRejectedValue(new UniqueViolationError());
+    await expect(service.createOne(body as never)).rejects.toMatchObject({
+      status: 409,
+      title: "Conflict",
+    });
+  });
+
   it("SURV-09: select questions need options and text questions must not have them", async () => {
     const noOptions = {
       name: "A valid name",
@@ -142,6 +151,13 @@ describe("SurveyService.updateOneBySlug", () => {
 
   it("API-17: 409 Conflict when the new name's slug is taken", async () => {
     repo.getSlugBySlug.mockResolvedValue({ slug: "a-brand-new-name" });
+    await expect(
+      service.updateOneBySlug(active.slug, { name: "A brand new name" }),
+    ).rejects.toMatchObject({ status: 409, title: "Conflict" });
+  });
+
+  it("SURV-14.4: 409 Conflict when the DB unique index rejects a concurrent rename", async () => {
+    repo.updateOneBySlug.mockRejectedValue(new UniqueViolationError());
     await expect(
       service.updateOneBySlug(active.slug, { name: "A brand new name" }),
     ).rejects.toMatchObject({ status: 409, title: "Conflict" });

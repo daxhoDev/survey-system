@@ -20,16 +20,10 @@
 
 ## Open questions
 
-Resolved IDs are removed from this table and never reused (OQ-01 → ANS-05, OQ-11 → CFG-01…09/BL-05, OQ-15 → BL-04, OQ-16 → OV-01, implemented 2026-09-23; OQ-03, OQ-04, OQ-07 → BL-22, OQ-17 → BL-14, OQ-10 → BL-02, decided 2026-09-23).
+Resolved IDs are removed from this table and never reused (OQ-01 → ANS-05, OQ-11 → CFG-01…09/BL-05, OQ-15 → BL-04, OQ-16 → OV-01, implemented 2026-09-23; OQ-03, OQ-04, OQ-07 → BL-22, OQ-17 → BL-14, OQ-10 → BL-02, decided 2026-09-23; OQ-02, OQ-05, OQ-06, OQ-08, OQ-12 → BL-23 (DATA-06…08, SURV-17, SURV-19, ANS-04, STAT-06), OQ-09 → AUTH-03, decided and implemented 2026-09-30).
 
 | ID | Question | Context / options | Specs |
 |----|----------|-------------------|-------|
-| OQ-02 | What to do with the unused DB enum `answer_type` (`TEXT_RESPONSE`…). | Drop it in a migration, or rename `TEXT_RESPONSE` → `TEXT_ANSWER` and use it. Canonical value is `TEXT_ANSWER`. | DATA-08 |
-| OQ-05 | Reusing the name/slug of a **deleted** survey. | DB unique index includes deleted rows → `500`. Options: allow reuse (partial unique index `WHERE deleted_at IS NULL`), or reject with a clear conflict error. | DATA-06, SURV-08 |
-| OQ-06 | Should `optionStats` exclude soft-deleted answers like the other counters? | Currently included. | STAT-06 |
-| OQ-08 | May active or locked surveys be deleted? | Currently any survey can be deleted. | SURV-19 |
-| OQ-09 | Single session per user (a new login invalidates the previous refresh token). | Keep, or support multiple sessions (drop unique `user_id`). | AUTH-03 |
-| OQ-12 | Do soft-deleted answers still block the same IP from answering again? | Currently yes. | ANS-04 |
 | OQ-13 | Login form language. | UI is Spanish except the login form (English). | FE-06 |
 | OQ-18 | Side navigation (brand guide §8.2). | The guide recommends a sidebar (Resumen, Encuestas, Participantes, Resultados, Informes, Administración) plus a top bar; today there is only a header (FE-13, FE-16) and most of those sections do not exist. Options: keep the header; sidebar with the existing sections only; sidebar with the full structure as features arrive. | BRAND-22, FE-13, FE-16 |
 | OQ-21 | Brand colors below WCAG AA. | Six pairs fail (table in BRAND-20): light accent text, light focus ring, success/warning text on light, error/info text on dark. Options: keep the guide's values and use them only where the ratio suffices (large text, icons with labels); use darker/lighter steps (e.g. Turquoise 800 for light accent text, Turquoise 700 for the light ring); add per-theme semantic text variants. | BRAND-07, BRAND-09, BRAND-20 |

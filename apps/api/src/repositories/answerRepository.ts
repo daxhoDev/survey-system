@@ -1,4 +1,4 @@
-import { prisma } from "../lib/prisma.js";
+import { prisma, rethrowUniqueViolation } from "../lib/prisma.js";
 import type {
   Answer,
   CreateAnswerData,
@@ -84,7 +84,9 @@ export default class AnswerRepository implements IAnswerRepository {
       origin_ip: originIp,
     };
 
-    const result = await prisma.answers.create({ data });
+    const result = await rethrowUniqueViolation(
+      prisma.answers.create({ data }),
+    );
 
     const serializedData = {
       id: result.id,
@@ -113,12 +115,11 @@ export default class AnswerRepository implements IAnswerRepository {
     surveyId: string,
     ip: string,
   ): Promise<Pick<Answer, "originIp"> | null> {
-    const result = await prisma.answers.findUnique({
+    const result = await prisma.answers.findFirst({
       where: {
-        survey_id_origin_ip: {
-          survey_id: surveyId,
-          origin_ip: ip,
-        },
+        survey_id: surveyId,
+        origin_ip: ip,
+        deleted_at: null,
       },
       select: {
         origin_ip: true,

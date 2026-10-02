@@ -7,9 +7,11 @@ import type {
   QueryString,
   Session,
   Survey,
+  SurveyChanges,
   UpdateSurveyData,
 } from "../types.js";
 import AppError from "../utils/appError.js";
+import UniqueViolationError from "../utils/uniqueViolationError.js";
 import slugify from "slugify";
 import { v7 as uuidv7 } from "uuid";
 import { getLogger } from "../context/requestContext.js";
@@ -76,13 +78,17 @@ export default class SurveyService implements ISurveyService {
     const slug = slugify(survey.name, { lower: true, strict: true });
     const slugExists = await this.repo.getSlugBySlug(slug);
 
-    if (slugExists) {
-      throw new AppError("Conflict", "This survey name is not avaliable", 409);
-    }
+    if (slugExists) throw this.nameConflictError();
 
     const id = uuidv7();
     const serializedData = { id, slug, ...result.data };
-    return await this.repo.createOne(serializedData);
+    try {
+      return await this.repo.createOne(serializedData);
+    } catch (err) {
+      // SURV-08: a concurrent creation took the slug first
+      if (err instanceof UniqueViolationError) throw this.nameConflictError();
+      throw err;
+    }
   }
 
   async deleteOneBySlug(slug: string): Promise<void> {
@@ -138,12 +144,12 @@ export default class SurveyService implements ISurveyService {
       ? slugify(serializedData.name, { lower: true, strict: true })
       : slug;
     if (slug !== newSlug && (await this.repo.getSlugBySlug(newSlug))) {
-      throw new AppError("Conflict", "This survey name is not avaliable", 409);
+      throw this.nameConflictError();
     }
 
     // Rules 5 and 6
     const { name, questions, isActive } = serializedData;
-    const updatedSurvey = await this.repo.updateOneBySlug(slug, {
+    const updatedSurvey = await this.update(slug, {
       slug: newSlug,
       updatedAt: new Date(),
       ...(name !== undefined && { name }),
@@ -158,5 +164,19 @@ export default class SurveyService implements ISurveyService {
 
     getLogger().info(updatedSurvey, "Survey updated successfully");
     return updatedSurvey;
+  }
+
+  private async update(slug: string, changes: SurveyChanges) {
+    try {
+      return await this.repo.updateOneBySlug(slug, changes);
+    } catch (err) {
+      // SURV-14 rule 4: a concurrent rename took the slug first
+      if (err instanceof UniqueViolationError) throw this.nameConflictError();
+      throw err;
+    }
+  }
+
+  private nameConflictError() {
+    return new AppError("Conflict", "This survey name is not avaliable", 409);
   }
 }

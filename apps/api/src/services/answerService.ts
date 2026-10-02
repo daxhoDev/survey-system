@@ -1,6 +1,7 @@
 import z from "zod";
 import { createAnswerSchema, idParamSchema } from "@survey-system/schemas";
 import AppError from "../utils/appError.js";
+import UniqueViolationError from "../utils/uniqueViolationError.js";
 import {
   type Answer,
   type CreateAnswerData,
@@ -61,24 +62,32 @@ export default class AnswerService implements IAnswerService {
       referencedSurvey.id,
       originIp,
     );
-    if (existingIp) {
-      throw new AppError(
-        "You already submitted an answer",
-        "Your IP already submitted an answer for this survey",
-        403,
-      );
-    }
+    if (existingIp) throw this.alreadyAnsweredError();
 
     const serializedData = this.validateAnswerCreation(referencedSurvey, data);
 
     const id = v7();
 
-    return await this.answerRepo.createOne({
-      id,
-      surveyId: referencedSurvey.id,
-      ...serializedData,
-      originIp,
-    });
+    try {
+      return await this.answerRepo.createOne({
+        id,
+        surveyId: referencedSurvey.id,
+        ...serializedData,
+        originIp,
+      });
+    } catch (err) {
+      // ANS-03: a concurrent submission from the same IP was stored first
+      if (err instanceof UniqueViolationError) throw this.alreadyAnsweredError();
+      throw err;
+    }
+  }
+
+  private alreadyAnsweredError() {
+    return new AppError(
+      "You already submitted an answer",
+      "Your IP already submitted an answer for this survey",
+      403,
+    );
   }
 
   async deleteById(surveySlug: string, id: string) {

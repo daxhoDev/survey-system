@@ -1,7 +1,7 @@
 import type {
   surveysOrderByWithRelationInput,
 } from "../generated/prisma/models.js";
-import { prisma } from "../lib/prisma.js";
+import { prisma, rethrowUniqueViolation } from "../lib/prisma.js";
 import type {
   CreateSurveyData,
   ISurveyRepository,
@@ -127,7 +127,9 @@ export default class SurveyRepository implements ISurveyRepository {
       questions: survey.questions,
     };
 
-    const result = await prisma.surveys.create({ data });
+    const result = await rethrowUniqueViolation(
+      prisma.surveys.create({ data }),
+    );
 
     const serializedData: Survey = {
       id: result.id,
@@ -145,10 +147,13 @@ export default class SurveyRepository implements ISurveyRepository {
     return serializedData;
   }
 
+  // SURV-17: deactivate and delete in one update; activated_at and
+  // is_locked are kept for auditing.
   async deleteOneBySlug(slug: string): Promise<void> {
-    await prisma.surveys.update({
-      where: { slug },
+    await prisma.surveys.updateMany({
+      where: { slug, deleted_at: null },
       data: {
+        is_active: false,
         deleted_at: new Date(),
       },
     });
@@ -170,10 +175,14 @@ export default class SurveyRepository implements ISurveyRepository {
       ...(changes.isLocked !== undefined && { is_locked: changes.isLocked }),
     };
 
-    const result = await prisma.surveys.update({
-      where: { slug },
-      data: dbData,
-    });
+    const [result] = await rethrowUniqueViolation(
+      prisma.surveys.updateManyAndReturn({
+        where: { slug, deleted_at: null },
+        data: dbData,
+      }),
+    );
+
+    if (!result) return null;
 
     const serializedData = {
       id: result.id,
@@ -192,7 +201,7 @@ export default class SurveyRepository implements ISurveyRepository {
   }
 
   async getSlugBySlug(slug: string): Promise<Pick<Survey, "slug"> | null> {
-    const result = await prisma.surveys.findUnique({
+    const result = await prisma.surveys.findFirst({
       where: { slug, deleted_at: null },
       select: { slug: true },
     });
@@ -209,7 +218,7 @@ export default class SurveyRepository implements ISurveyRepository {
   async getIsLockedBySlug(
     slug: string,
   ): Promise<Pick<Survey, "isLocked"> | null> {
-    const result = await prisma.surveys.findUnique({
+    const result = await prisma.surveys.findFirst({
       where: { slug, deleted_at: null },
       select: {
         is_locked: true,
@@ -274,13 +283,14 @@ export default class SurveyRepository implements ISurveyRepository {
                             FROM surveys
                                      CROSS JOIN LATERAL jsonb_array_elements(surveys.questions) AS q
                                      CROSS JOIN LATERAL jsonb_array_elements(q -> 'options') AS opt
-                            WHERE slug = ${slug}),
+                            WHERE slug = ${slug} AND deleted_at IS NULL),
      expanded_responses AS (SELECT (resp ->> 'id')::int AS question_id,
                                    elem::int            AS selected_option_id
                             FROM answers
                                      CROSS JOIN LATERAL jsonb_array_elements(answers.responses) AS resp
                                      CROSS JOIN LATERAL jsonb_array_elements_text(resp -> 'content') AS elem
-                            WHERE answers.survey_id = (SELECT id FROM surveys WHERE slug = ${slug})
+                            WHERE answers.survey_id = (SELECT id FROM surveys WHERE slug = ${slug} AND deleted_at IS NULL)
+                              AND answers.deleted_at IS NULL
                               AND jsonb_typeof(resp -> 'content') = 'array')
 SELECT eq.id, eq.name,
        eq.option_content,
