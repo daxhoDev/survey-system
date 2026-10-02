@@ -11,7 +11,8 @@ import { LogOut, User as UserIcon, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "./ui/skeleton";
 import { Link, useNavigate } from "react-router";
-import logo from "@/assets/logo.png";
+import logoLight from "@/assets/brand/logo-light.svg";
+import logoDark from "@/assets/brand/logo-dark.svg";
 import { Dialog, DialogTrigger } from "./ui/dialog";
 import ConfirmationDialog from "./ConfirmationDialog";
 
@@ -42,7 +43,12 @@ export default function DashboardHeader() {
       <div className="flex items-center gap-2">
         {/* <SidebarTrigger className="-ml-1" /> */}
         {/* <Separator orientation="vertical" /> */}
-        <img src={logo} className="w-7" />
+        <img src={logoLight} alt="Sondix" className="h-7 w-auto dark:hidden" />
+        <img
+          src={logoDark}
+          alt="Sondix"
+          className="hidden h-7 w-auto dark:block"
+        />
         <Link
           to="/dashboard"
           className="font-semibold text-sm tracking-tight text-foreground"

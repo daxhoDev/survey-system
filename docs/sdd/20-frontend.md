@@ -51,8 +51,8 @@
 
 ### Header — `components/DashboardHeader.tsx`
 
-- **FE-16** `[implemented]` Shows logo, "Dashboard" (a link to `/dashboard`), the user's initial and username. An "Invitaciones" button leads to `/dashboard/invitations`. Logout asks for confirmation in a dialog; on success clears the whole query cache and navigates to `/auth/login`.
-- **FE-29** `[pending: BL-24]` The header shows the product name "Sondix" next to the logo (BRAND-01) and a theme selector ("Claro" / "Oscuro" / "Sistema", BRAND-11). The logo stays `assets/logo.png` until BL-25 replaces it with the theme-aware SVG logo (BRAND-26).
+- **FE-16** `[implemented]` Shows the Sondix logo (BRAND-26), "Dashboard" (a link to `/dashboard`), the user's initial and username. An "Invitaciones" button leads to `/dashboard/invitations`. Logout asks for confirmation in a dialog; on success clears the whole query cache and navigates to `/auth/login`.
+- **FE-29** `[pending: BL-24]` The header shows a theme selector ("Claro" / "Oscuro" / "Sistema", BRAND-11). The product name "Sondix" is the wordmark of the theme-aware SVG logo (BRAND-01, BRAND-26), already in place (BL-25); it follows the theme once BL-24 adds the `.dark` class.
 
 ### Survey list — `components/Surveys.tsx` (`/dashboard`)
 
