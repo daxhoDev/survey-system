@@ -416,9 +416,8 @@ export function generateOpenApiDocument(): ReturnType<
     openapi: "3.0.0",
     info: {
       version: "1.0.0",
-      title: "Survey System API",
-      description:
-        "API endpoints documentation for the Survey System, built by Daxho",
+      title: "Sondix API",
+      description: "API endpoints documentation for Sondix, built by Daxho",
     },
     servers: [{ url: "/" }],
   });

@@ -2,7 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import InvitationsPage from "@/pages/InvitationsPage";
-import type { Invitation } from "@/lib/api/surveySystemAPI.schemas";
+import type { Invitation } from "@/lib/api/sondixAPI.schemas";
 import { mockFetch, renderWithProviders } from "./helpers";
 
 const list = "GET /api/v1/invitations";

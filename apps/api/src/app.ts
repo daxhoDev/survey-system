@@ -39,7 +39,7 @@ app.use(
   "/api/v1/docs",
   swaggerUi.serve,
   swaggerUi.setup(generateOpenApiDocument(), {
-    customSiteTitle: "Survey System API Documentation",
+    customSiteTitle: "Sondix API Documentation",
   }),
 );
 

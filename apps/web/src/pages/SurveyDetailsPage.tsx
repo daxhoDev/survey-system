@@ -61,7 +61,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Answer } from "@/lib/api/surveySystemAPI.schemas";
+import type { Answer } from "@/lib/api/sondixAPI.schemas";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import LockedBadge from "@/components/LockedBadge";

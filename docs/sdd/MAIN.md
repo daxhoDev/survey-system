@@ -1,4 +1,4 @@
-# Survey System — Spec-Driven Development Index
+# Sondix (survey-system) — Spec-Driven Development Index
 
 > **The specs in `docs/sdd/` are the primary source of truth for this project.**
 > Code, README, OpenAPI document and any other artifact must conform to them.
@@ -33,6 +33,7 @@ is listed here. Start with the process document before touching anything.
 | 12 | [Answers](12-answers.md) | Submitting and managing answers, validation rules, IP uniqueness |
 | 13 | [Statistics](13-stats.md) | Survey statistics endpoint and its computation |
 | 20 | [Frontend](20-frontend.md) | Web app routes, pages, API client, auth handling, UI conventions |
+| 21 | [Brand identity](21-brand.md) | Sondix name, palette, themes, typography, radii, accessibility targets, logo |
 | 30 | [Development workflow](30-dev-workflow.md) | Tooling, commands, code generation, migrations, testing, deployment |
 | — | [BACKLOG.md](BACKLOG.md) | Decided-but-pending work (`BL-xx`) and open questions (`OQ-xx`) |
 | — | [DEVIATIONS.md](DEVIATIONS.md) | Registry of deviations from the specs |

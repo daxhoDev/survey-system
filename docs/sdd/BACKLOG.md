@@ -13,6 +13,9 @@
 
 | ID | Item | Specs |
 |----|------|-------|
+| BL-24 | **Brand identity, phase 1** (decided 2026-10-01): product name "Sondix" in the web app (`<title>`, header), brand palettes and semantic colors as CSS tokens, shadcn tokens remapped for light/dark themes, theme selector Claro/Oscuro/Sistema persisted in `localStorage` without flash, Manrope for headings via `@fontsource-variable/manrope`, typographic scale, radii, elevation, icon sizes, button states, form and accessibility audit. | BRAND-01, BRAND-06…14, BRAND-16…20, FE-29 |
+| BL-25 | **Isotype, logo and favicon** (decided 2026-10-01): redraw the final design as SVG (eight variants, app icons, favicon) for owner validation, theme-aware logo in the header replacing `assets/logo.png`. | BRAND-21, BRAND-25, BRAND-26, FE-29 |
+| BL-26 | **Login brand panel** (decided 2026-10-01): textured Midnight panel with the large isotype beside the login form, hidden on narrow screens. Depends on BL-25. | BRAND-23, FE-15 |
 | BL-02 | **Dockerfile / containerized deployment** (design agreed 2026-09-23, specified with the change): not built yet. Must install pnpm, handle the workspace (`packages/schemas`), not bake `.env` into the image, fix `CMD`, pin Node version. Design to be agreed. | DEV-WF-03, ANS-07 |
 
 ## Open questions
@@ -28,4 +31,6 @@ Resolved IDs are removed from this table and never reused (OQ-01 → ANS-05, OQ-
 | OQ-09 | Single session per user (a new login invalidates the previous refresh token). | Keep, or support multiple sessions (drop unique `user_id`). | AUTH-03 |
 | OQ-12 | Do soft-deleted answers still block the same IP from answering again? | Currently yes. | ANS-04 |
 | OQ-13 | Login form language. | UI is Spanish except the login form (English). | FE-06 |
+| OQ-18 | Side navigation (brand guide §8.2). | The guide recommends a sidebar (Resumen, Encuestas, Participantes, Resultados, Informes, Administración) plus a top bar; today there is only a header (FE-13, FE-16) and most of those sections do not exist. Options: keep the header; sidebar with the existing sections only; sidebar with the full structure as features arrive. | BRAND-22, FE-13, FE-16 |
+| OQ-21 | Brand colors below WCAG AA. | Six pairs fail (table in BRAND-20): light accent text, light focus ring, success/warning text on light, error/info text on dark. Options: keep the guide's values and use them only where the ratio suffices (large text, icons with labels); use darker/lighter steps (e.g. Turquoise 800 for light accent text, Turquoise 700 for the light ring); add per-theme semantic text variants. | BRAND-07, BRAND-09, BRAND-20 |
 | OQ-14 | Dashboard list: pagination/search/filter/sort UI and counters. | Currently only the first 10 surveys are shown and counted. | FE-17, FE-18 |
