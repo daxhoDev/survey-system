@@ -193,7 +193,7 @@ export default function Surveys() {
                   Encuestas activas
                 </CardTitle>
               </CardHeader>
-              <CardContent className="text-3xl font-bold text-primary">
+              <CardContent className="text-3xl font-bold text-brand">
                 {surveys.filter((survey) => survey.isActive === true).length}
               </CardContent>
             </Card>

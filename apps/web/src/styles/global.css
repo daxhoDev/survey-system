@@ -99,6 +99,7 @@
     --color-input: var(--input);
     --color-border: var(--border);
     --color-brand: var(--brand);
+    --color-brand-accent: var(--brand-accent);
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
     --color-destructive-text: var(--destructive-text);
@@ -143,7 +144,7 @@
 
 /* Semantic tokens (BRAND-07, BRAND-09, BRAND-10): light theme. */
 :root {
-    --background: var(--color-neutral-200);
+    --background: var(--color-midnight-100);
     --foreground: var(--color-midnight-900);
     --card: var(--color-neutral-100);
     --card-foreground: var(--color-midnight-900);
@@ -158,8 +159,9 @@
     --accent: var(--color-turquoise-100);
     --accent-foreground: var(--color-midnight-900);
     --brand: var(--color-turquoise-800);
-    --border: var(--color-neutral-400);
-    --input: var(--color-neutral-400);
+    --brand-accent: var(--color-turquoise-500);
+    --border: var(--color-midnight-200);
+    --input: var(--color-midnight-200);
     --ring: var(--color-turquoise-700);
 
     --destructive: #dc2626;
@@ -187,10 +189,10 @@
     --sidebar-primary-foreground: var(--color-neutral-100);
     --sidebar-accent: var(--color-turquoise-100);
     --sidebar-accent-foreground: var(--color-midnight-900);
-    --sidebar-border: var(--color-neutral-400);
+    --sidebar-border: var(--color-midnight-200);
     --sidebar-ring: var(--color-turquoise-700);
 
-    --elevation: rgb(16 24 39 / 0.08);
+    --elevation: rgb(16 24 39 / 0.1);
 }
 
 /* Dark theme: `dark` class on <html> (BRAND-11). Pure black is never used. */
@@ -210,6 +212,7 @@
     --accent: var(--color-midnight-700);
     --accent-foreground: var(--color-neutral-200);
     --brand: var(--color-turquoise-400);
+    --brand-accent: var(--color-turquoise-500);
     --border: var(--color-midnight-700);
     --input: var(--color-midnight-700);
     --ring: var(--color-turquoise-300);

@@ -87,24 +87,28 @@ Implementation is phased (decided 2026-10-01):
 
 | Token | Light | Dark |
 |-------|-------|------|
-| `--background` | Neutral 200 | Midnight 900 |
+| `--background` | Midnight 100 | Midnight 900 |
 | `--foreground` | Midnight 900 | Neutral 200 |
 | `--card`, `--popover` | Neutral 100 | Midnight 800 |
 | `--card-foreground`, `--popover-foreground` | Midnight 900 | Neutral 200 |
 | `--secondary`, `--muted` | Slate 100 | Midnight 700 |
 | `--secondary-foreground` | Midnight 900 | Neutral 200 |
 | `--muted-foreground` | Slate 500 | Slate 400 |
-| `--border`, `--input` | Neutral 400 | Midnight 700 |
+| `--border`, `--input` | Midnight 200 | Midnight 700 |
 | `--primary` | Midnight 900 | Turquoise 500 |
 | `--primary-foreground` | Neutral 100 | Midnight 900 |
 | `--accent` (hover/selected surfaces) | Turquoise 100 | Midnight 700 |
 | `--accent-foreground` | Midnight 900 | Neutral 200 |
 | `--brand` (accent text, links, highlights) | Turquoise 800 | Turquoise 400 |
+| `--brand-accent` (decorative brand line) | Turquoise 500 | Turquoise 500 |
 | `--ring` (focus) | Turquoise 700 | Turquoise 300 |
 | `--destructive` | Error `#DC2626` | Error `#DC2626` |
 
   The `--sidebar-*` tokens follow the same mapping as their non-sidebar
-  counterparts. Pure black is never used as a background.
+  counterparts. Pure black is never used as a background. The light
+  background is Midnight 100 instead of the guide's Neutral 200 and borders
+  Midnight 200 instead of Neutral 400 (owner decision 2026-10-02, so white
+  cards stand out from the page).
 - **BRAND-10** `[implemented]` Chart series (`--chart-1` … `--chart-5`) use
   brand colors adapted to each theme, starting with the brand accent (light:
   Turquoise 700, Midnight 500, Turquoise 500, Midnight 300, Slate 500; dark:
@@ -162,7 +166,12 @@ Implementation is phased (decided 2026-10-01):
 - **BRAND-16** `[implemented]` Elevation is built with contrast, borders and
   soft shadows: level 0 flat surfaces, level 1 cards with a subtle border,
   level 2 menus and popovers, level 3 dialogs. Shadows are subtle and adapted to
-  each theme; they are not used as general decoration.
+  each theme; they are not used as general decoration. Cards and data tables
+  are level 1 on a card surface with `shadow-sm`. The dashboard header is a
+  card surface in light (`bg-card`, `shadow-xs`) and the page background in
+  dark, with a 2 px `--brand-accent` bottom line in both themes; the active tab
+  is underlined with `--brand-accent` and the header avatar and highlighted
+  figures use `--brand` (owner decision 2026-10-02).
 - **BRAND-17** `[implemented]` Icons come from `lucide-react` (FE-02): 20 px
   standard, 16 px compact, 24 px highlighted. Icon-only buttons have an
   accessible label (`aria-label` or visually hidden text).
@@ -202,9 +211,10 @@ Implementation is phased (decided 2026-10-01):
   Focus rings use `--ring` at full opacity (2 px). Checkbox and radio outlines
   use `--muted-foreground` (≥ 4.2:1 on both themes). Remaining gaps against
   the 3:1 non-text and 4.5:1 text targets — `[open: OQ-22]`: text input and
-  border outlines (`--input`/`--border`: Neutral 400 on Neutral 100 is 1.23:1,
-  Midnight 700 on Midnight 800 is 1.24:1) and `--muted-foreground` on `--muted`
-  in the light theme (Slate 500 on Slate 100, 4.31:1).
+  border outlines (`--input`/`--border`: Midnight 200 on Neutral 100 is 1.51:1,
+  Midnight 700 on Midnight 800 is 1.24:1) and light `--muted-foreground`
+  (Slate 500) on `--background` (Midnight 100, 4.05:1) and on `--muted`
+  (Slate 100, 4.31:1).
 
 ## 8. Logo, icons and textures
 
