@@ -183,26 +183,39 @@ Implementation is phased (decided 2026-10-01):
   rising to the right and curling back down, and a lower stroke descending to
   the left and curling up — plus two circular nodes, one left of the upper
   stroke and one right of the lower stroke. The reference artwork is the
-  owner's raster sheet *Guía de identidad visual Sondix* (October 2026); the
-  agent redraws it as SVG (approved 2026-10-01) and the owner validates the
-  result. Proportions and nodes are never altered; the minimum clear space
+  owner's raster sheet *Guía de identidad visual Sondix* (October 2026), kept
+  in the repository as
+  [`docs/brand/sondix-identity-guide.png`](../brand/sondix-identity-guide.png); the
+  agent redraws it as SVG (approved 2026-10-01); the SVG redraw was validated
+  by the owner on 2026-10-02. The redraw is point-symmetric: the lower stroke
+  is the upper stroke rotated 180° about the centre of the isotype. Relative
+  to the isotype height, the stroke width is 12.4 % and each node's radius is
+  11.4 %. Proportions and nodes are never altered; the minimum clear space
   equals the diameter of one node.
 - **BRAND-25** `[pending: BL-25]` Logo colors. The *claro* (color) isotype uses
   a turquoise-to-cyan gradient that is **exclusive to the logo** (it is not a
   palette color and must not be used elsewhere in the UI); the *oscuro*
-  isotype is a single ink. The wordmark "Sondix" is set in Manrope (Bold),
-  to the right of the isotype (horizontal lockup). Variants, as SVG files in
-  `apps/web/src/assets/brand/`:
+  isotype is a single ink. Gradient values (validated 2026-10-02): strokes
+  run from `#4AEEC8` (top right) to `#12B2D6` (bottom left); the nodes carry
+  their own vertical gradient, `#2FDDB8` to `#17C9AB`. The logo is flat (no
+  highlights or shadows). The wordmark "Sondix" is set in Manrope (Bold) with
+  −0.025 em tracking, converted to outlines, to the right of the isotype
+  (horizontal lockup): its cap height is 58 % of the isotype height and the
+  gap between isotype and wordmark is 29 %. Variants, as SVG files in
+  `apps/web/src/assets/brand/` (the gradient isotype is a single file used on
+  both backgrounds):
 
 | Background | Isotype *claro* | Isotype *oscuro* | Logo with wordmark | Monochrome logo |
 |------------|-----------------|------------------|--------------------|-----------------|
-| Light | gradient | Midnight 900 | gradient isotype + Midnight 900 text | Midnight 900 |
-| Dark | gradient | white | gradient isotype + white text | white |
+| Light | gradient (`isotype-gradient.svg`) | Midnight 900 (`isotype-midnight.svg`) | gradient isotype + Midnight 900 text (`logo-light.svg`) | Midnight 900 (`logo-mono-midnight.svg`) |
+| Dark | gradient (`isotype-gradient.svg`) | white (`isotype-white.svg`) | gradient isotype + white text (`logo-dark.svg`) | white (`logo-mono-white.svg`) |
 
 - **BRAND-26** `[pending: BL-25]` App icon and favicon: a Midnight 900 rounded
-  square with the gradient isotype (*icono claro*) or the white isotype
-  (*icono oscuro*). The favicon (`apps/web/index.html`, SVG plus a PNG
-  fallback) uses the *icono claro*. The dashboard header (FE-16, FE-29) shows
+  square (corner radius 22.5 % of the side) with the gradient isotype
+  (*icono claro*, `app-icon-light.svg`) or the white isotype (*icono oscuro*,
+  `app-icon-dark.svg`), the isotype spanning 60 % of the width. The favicon
+  (`apps/web/index.html`; `apps/web/public/favicon.svg` plus a 32 px
+  `favicon.png` fallback) uses the *icono claro*. The dashboard header (FE-16, FE-29) shows
   the logo with wordmark matching the active theme and replaces
   `apps/web/src/assets/logo.png`.
 - **BRAND-22** `[open: OQ-18]` Side navigation (guide §8.2) and its structure.
