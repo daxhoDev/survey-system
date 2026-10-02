@@ -14,8 +14,7 @@
 | ID | Item | Specs |
 |----|------|-------|
 | BL-24 | **Brand identity, phase 1** (decided 2026-10-01): product name "Sondix" in the web app (`<title>`, header), brand palettes and semantic colors as CSS tokens, shadcn tokens remapped for light/dark themes, theme selector Claro/Oscuro/Sistema persisted in `localStorage` without flash, Manrope for headings via `@fontsource-variable/manrope`, typographic scale, radii, elevation, icon sizes, button states, form and accessibility audit. | BRAND-01, BRAND-06…14, BRAND-16…20, FE-29 |
-| BL-25 | **Isotype, logo and favicon** (decided 2026-10-01): redraw the final design as SVG (eight variants, app icons, favicon) for owner validation — done and validated 2026-10-02 (`apps/web/src/assets/brand/`, `apps/web/public/favicon.*`); still pending: favicon in `index.html` and theme-aware logo in the header replacing `assets/logo.png`. | BRAND-21, BRAND-25, BRAND-26, FE-29 |
-| BL-26 | **Login brand panel** (decided 2026-10-01): textured Midnight panel with the large isotype beside the login form, hidden on narrow screens. Depends on BL-25. | BRAND-23, FE-15 |
+| BL-26 | **Login brand panel** (decided 2026-10-01): textured Midnight panel with the large isotype beside the login form, hidden on narrow screens. Uses the BL-25 isotype (`isotype-gradient.svg`). | BRAND-23, FE-15 |
 | BL-02 | **Dockerfile / containerized deployment** (design agreed 2026-09-23, specified with the change): not built yet. Must install pnpm, handle the workspace (`packages/schemas`), not bake `.env` into the image, fix `CMD`, pin Node version. Design to be agreed. | DEV-WF-03, ANS-07 |
 
 ## Open questions

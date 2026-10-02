@@ -31,7 +31,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
-import logo from "@/assets/logo.png";
+import isotype from "@/assets/brand/isotype-gradient.svg";
 
 const cardClass = "w-97/100 max-w-120";
 
@@ -138,7 +138,7 @@ export default function AcceptInvitationPage() {
   return (
     <Card className={cardClass}>
       <CardHeader className="text-center flex flex-col items-center">
-        <img src={logo} className="w-15 mb-5" />
+        <img src={isotype} alt="Sondix" className="w-15 mb-5" />
         <CardTitle className="text-xl">Crea tu cuenta</CardTitle>
         <CardDescription>
           Te invitaron a unirte al sistema de gestión de encuestas.

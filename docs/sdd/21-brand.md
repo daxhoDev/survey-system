@@ -12,7 +12,7 @@ Implementation is phased (decided 2026-10-01):
 - **Phase 1** — BL-24: product name, color tokens, light/dark themes with a
   theme selector, Manrope, radii, semantic colors, typography scale.
 - **Phase 2** — BL-25: isotype, logos, app icon and favicon redrawn as SVG
-  from the final design.
+  from the final design (implemented 2026-10-02).
 - **Phase 3** — BL-26: textured brand panel on the login page.
 - **Undecided** — OQ-18 (side navigation).
 
@@ -21,7 +21,8 @@ Implementation is phased (decided 2026-10-01):
 - **BRAND-01** `[pending: BL-24]` The product name is **Sondix**. The repository,
   workspace packages (`@survey-system/*`) and code identifiers keep the name
   `survey-system`. The web app shows "Sondix" as the document `<title>`
-  (`apps/web/index.html`) and next to the logo in the dashboard header (FE-16).
+  (`apps/web/index.html`); in the dashboard header (FE-16) the name is the
+  wordmark of the logo (BRAND-26), not a separate text.
 - **BRAND-02** `[implemented]` The README, the specs and the API documentation
   (API-35) refer to the product as Sondix (repository `survey-system`).
 - **BRAND-03** `[implemented]` Trademark registration and domain availability for
@@ -178,7 +179,7 @@ Implementation is phased (decided 2026-10-01):
 
 ## 8. Logo, icons and textures
 
-- **BRAND-21** `[pending: BL-25]` Isotype (final design, approved 2026-10-01):
+- **BRAND-21** `[implemented]` Isotype (final design, approved 2026-10-01):
   a stylized "S" made of two thick strokes with round caps — an upper stroke
   rising to the right and curling back down, and a lower stroke descending to
   the left and curling up — plus two circular nodes, one left of the upper
@@ -192,7 +193,7 @@ Implementation is phased (decided 2026-10-01):
   to the isotype height, the stroke width is 12.4 % and each node's radius is
   11.4 %. Proportions and nodes are never altered; the minimum clear space
   equals the diameter of one node.
-- **BRAND-25** `[pending: BL-25]` Logo colors. The *claro* (color) isotype uses
+- **BRAND-25** `[implemented]` Logo colors. The *claro* (color) isotype uses
   a turquoise-to-cyan gradient that is **exclusive to the logo** (it is not a
   palette color and must not be used elsewhere in the UI); the *oscuro*
   isotype is a single ink. Gradient values (validated 2026-10-02): strokes
@@ -210,14 +211,17 @@ Implementation is phased (decided 2026-10-01):
 | Light | gradient (`isotype-gradient.svg`) | Midnight 900 (`isotype-midnight.svg`) | gradient isotype + Midnight 900 text (`logo-light.svg`) | Midnight 900 (`logo-mono-midnight.svg`) |
 | Dark | gradient (`isotype-gradient.svg`) | white (`isotype-white.svg`) | gradient isotype + white text (`logo-dark.svg`) | white (`logo-mono-white.svg`) |
 
-- **BRAND-26** `[pending: BL-25]` App icon and favicon: a Midnight 900 rounded
+- **BRAND-26** `[implemented]` App icon and favicon: a Midnight 900 rounded
   square (corner radius 22.5 % of the side) with the gradient isotype
   (*icono claro*, `app-icon-light.svg`) or the white isotype (*icono oscuro*,
   `app-icon-dark.svg`), the isotype spanning 60 % of the width. The favicon
   (`apps/web/index.html`; `apps/web/public/favicon.svg` plus a 32 px
-  `favicon.png` fallback) uses the *icono claro*. The dashboard header (FE-16, FE-29) shows
-  the logo with wordmark matching the active theme and replaces
-  `apps/web/src/assets/logo.png`.
+  `favicon.png` fallback) uses the *icono claro*. The dashboard header (FE-16,
+  FE-29) shows the logo with wordmark matching the active theme
+  (`logo-light.svg`, or `logo-dark.svg` under the `.dark` class of BL-24),
+  28 px tall. The login form (FE-15) and the invitation acceptance page
+  (FE-28) show the gradient isotype (`isotype-gradient.svg`), which works on
+  both themes. The former raster `logo.png` is removed.
 - **BRAND-22** `[open: OQ-18]` Side navigation (guide §8.2) and its structure.
 - **BRAND-23** `[pending: BL-26]` Textures (digital noise, signal gradient
   between Midnight and Turquoise, glow) are used only on the login page

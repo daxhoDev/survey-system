@@ -28,7 +28,7 @@ In scope:
 
 Planned (see [BACKLOG.md](BACKLOG.md)):
 
-- Brand identity in the web app (BL-24, BL-25, BL-26) — [21-brand.md](21-brand.md).
+- Brand identity in the web app (BL-24, BL-26) — [21-brand.md](21-brand.md).
 - Containerized deployment (BL-02).
 
 Out of scope: roles/permissions, multi-tenancy, respondent accounts, email
