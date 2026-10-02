@@ -40,7 +40,7 @@ export default function DashboardHeader() {
   const showLoading = isLoading || isRefetching;
 
   return (
-    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b-2 border-b-brand-accent px-4 w-full bg-card shadow-xs dark:bg-background/95 dark:backdrop-blur dark:supports-backdrop-filter:bg-background/60">
+    <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="flex items-center gap-2">
         {/* <SidebarTrigger className="-ml-1" /> */}
         {/* <Separator orientation="vertical" /> */}
@@ -77,7 +77,7 @@ export default function DashboardHeader() {
           <Dialog>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/10 text-brand border border-brand/30">
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary border border-primary/20">
                   {user.username ? (
                     <span className="text-xs font-semibold uppercase">
                       {user.username.charAt(0)}

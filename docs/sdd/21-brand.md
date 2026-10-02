@@ -100,15 +100,14 @@ Implementation is phased (decided 2026-10-01):
 | `--accent` (hover/selected surfaces) | Turquoise 100 | Midnight 700 |
 | `--accent-foreground` | Midnight 900 | Neutral 200 |
 | `--brand` (accent text, links, highlights) | Turquoise 800 | Turquoise 400 |
-| `--brand-accent` (decorative brand line) | Turquoise 500 | Turquoise 500 |
 | `--ring` (focus) | Turquoise 700 | Turquoise 300 |
 | `--destructive` | Error `#DC2626` | Error `#DC2626` |
 
   The `--sidebar-*` tokens follow the same mapping as their non-sidebar
   counterparts. Pure black is never used as a background. The light
   background is Midnight 100 instead of the guide's Neutral 200 and borders
-  Midnight 200 instead of Neutral 400 (owner decision 2026-10-02, so white
-  cards stand out from the page).
+  Midnight 200 instead of Neutral 400 (owner decision 2026-10-02, so cards and
+  data tables, which sit on a card surface, stand out from the page).
 - **BRAND-10** `[implemented]` Chart series (`--chart-1` … `--chart-5`) use
   brand colors adapted to each theme, starting with the brand accent (light:
   Turquoise 700, Midnight 500, Turquoise 500, Midnight 300, Slate 500; dark:
@@ -166,12 +165,7 @@ Implementation is phased (decided 2026-10-01):
 - **BRAND-16** `[implemented]` Elevation is built with contrast, borders and
   soft shadows: level 0 flat surfaces, level 1 cards with a subtle border,
   level 2 menus and popovers, level 3 dialogs. Shadows are subtle and adapted to
-  each theme; they are not used as general decoration. Cards and data tables
-  are level 1 on a card surface with `shadow-sm`. The dashboard header is a
-  card surface in light (`bg-card`, `shadow-xs`) and the page background in
-  dark, with a 2 px `--brand-accent` bottom line in both themes; the active tab
-  is underlined with `--brand-accent` and the header avatar and highlighted
-  figures use `--brand` (owner decision 2026-10-02).
+  each theme; they are not used as general decoration.
 - **BRAND-17** `[implemented]` Icons come from `lucide-react` (FE-02): 20 px
   standard, 16 px compact, 24 px highlighted. Icon-only buttons have an
   accessible label (`aria-label` or visually hidden text).

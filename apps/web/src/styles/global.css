@@ -99,7 +99,6 @@
     --color-input: var(--input);
     --color-border: var(--border);
     --color-brand: var(--brand);
-    --color-brand-accent: var(--brand-accent);
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
     --color-destructive-text: var(--destructive-text);
@@ -159,7 +158,6 @@
     --accent: var(--color-turquoise-100);
     --accent-foreground: var(--color-midnight-900);
     --brand: var(--color-turquoise-800);
-    --brand-accent: var(--color-turquoise-500);
     --border: var(--color-midnight-200);
     --input: var(--color-midnight-200);
     --ring: var(--color-turquoise-700);
@@ -192,7 +190,7 @@
     --sidebar-border: var(--color-midnight-200);
     --sidebar-ring: var(--color-turquoise-700);
 
-    --elevation: rgb(16 24 39 / 0.1);
+    --elevation: rgb(16 24 39 / 0.08);
 }
 
 /* Dark theme: `dark` class on <html> (BRAND-11). Pure black is never used. */
@@ -212,7 +210,6 @@
     --accent: var(--color-midnight-700);
     --accent-foreground: var(--color-neutral-200);
     --brand: var(--color-turquoise-400);
-    --brand-accent: var(--color-turquoise-500);
     --border: var(--color-midnight-700);
     --input: var(--color-midnight-700);
     --ring: var(--color-turquoise-300);
