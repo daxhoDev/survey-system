@@ -306,7 +306,7 @@ export default function SurveyCreatePage() {
                         <Label htmlFor={`q-${index}-type`}>Tipo de Pregunta</Label>
                         <select
                           id={`q-${index}-type`}
-                          className="flex h-9 w-full rounded-sm border border-input bg-card px-3 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                          className="flex h-9 w-full rounded-sm border border-input-border bg-card px-3 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                           {...register(`questions.${index}.type` as const)}
                         >
                           <option value="TEXT_ANSWER">

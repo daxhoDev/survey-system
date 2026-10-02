@@ -93,8 +93,9 @@ Implementation is phased (decided 2026-10-01):
 | `--card-foreground`, `--popover-foreground` | Midnight 900 | Neutral 200 |
 | `--secondary`, `--muted` | Slate 100 | Midnight 700 |
 | `--secondary-foreground` | Midnight 900 | Neutral 200 |
-| `--muted-foreground` | Slate 500 | Slate 400 |
+| `--muted-foreground` | Slate 600 | Slate 400 |
 | `--border`, `--input` | Midnight 200 | Midnight 700 |
+| `--input-border` (outline of text inputs, textareas, selects) | Slate 500 | Midnight 400 |
 | `--primary` | Midnight 900 | Turquoise 500 |
 | `--primary-foreground` | Neutral 100 | Midnight 900 |
 | `--accent` (hover/selected surfaces) | Turquoise 100 | Midnight 700 |
@@ -203,12 +204,12 @@ Implementation is phased (decided 2026-10-01):
 | Info text on Midnight 900 (dark) | `#2563EB` → 3.44 | `--info-text` `#60A5FA` → 6.99 |
 
   Focus rings use `--ring` at full opacity (2 px). Checkbox and radio outlines
-  use `--muted-foreground` (≥ 4.2:1 on both themes). Remaining gaps against
-  the 3:1 non-text and 4.5:1 text targets — `[open: OQ-22]`: text input and
-  border outlines (`--input`/`--border`: Midnight 200 on Neutral 100 is 1.51:1,
-  Midnight 700 on Midnight 800 is 1.24:1) and light `--muted-foreground`
-  (Slate 500) on `--background` (Midnight 100, 4.05:1) and on `--muted`
-  (Slate 100, 4.31:1).
+  use `--muted-foreground`. OQ-22 (decided 2026-10-02): text inputs, textareas
+  and selects are outlined with `--input-border` (Slate 500 on Neutral 100,
+  4.76:1; Midnight 400 on Midnight 800, 4.23:1), while `--border`/`--input`
+  stay soft for cards, tables and tinted backgrounds; light
+  `--muted-foreground` is Slate 600 (6.45:1 on Midnight 100, 6.87:1 on
+  Slate 100) instead of the guide's Slate 500.
 
 ## 8. Logo, icons and textures
 
