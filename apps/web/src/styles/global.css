@@ -2,12 +2,86 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
+@import "@fontsource-variable/manrope";
 
 @custom-variant dark (&:is(.dark *));
 
+/* Brand palettes (BRAND-06). Components use the semantic tokens below, never
+   these steps (BRAND-08); palette utilities are reserved for brand graphics. */
+@theme {
+    --color-midnight-100: #e8edf5;
+    --color-midnight-200: #c9d3e3;
+    --color-midnight-300: #a0b1cc;
+    --color-midnight-400: #7188ae;
+    --color-midnight-500: #4a638d;
+    --color-midnight-600: #30496f;
+    --color-midnight-700: #213653;
+    --color-midnight-800: #17263d;
+    --color-midnight-900: #101827;
+
+    --color-turquoise-100: #e5fbf7;
+    --color-turquoise-200: #c4f5eb;
+    --color-turquoise-300: #99ebdd;
+    --color-turquoise-400: #6ce2d1;
+    --color-turquoise-500: #43d9c2;
+    --color-turquoise-600: #22bba8;
+    --color-turquoise-700: #168e81;
+    --color-turquoise-800: #126d64;
+    --color-turquoise-900: #104f4a;
+
+    --color-slate-100: #f1f4f8;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+
+    --color-neutral-100: #ffffff;
+    --color-neutral-200: #f8fafc;
+    --color-neutral-300: #f1f5f9;
+    --color-neutral-400: #e2e8f0;
+    --color-neutral-500: #cbd5e1;
+    --color-neutral-600: #94a3b8;
+    --color-neutral-700: #64748b;
+    --color-neutral-800: #334155;
+    --color-neutral-900: #0f172a;
+
+    /* Typographic scale (BRAND-13). */
+    --text-display: 2.5rem;
+    --text-display--line-height: 1.2;
+    --text-display--font-weight: 800;
+    --text-h1: 2rem;
+    --text-h1--line-height: 1.25;
+    --text-h1--font-weight: 700;
+    --text-h2: 1.5rem;
+    --text-h2--line-height: 1.3;
+    --text-h2--font-weight: 700;
+    --text-h3: 1.25rem;
+    --text-h3--line-height: 1.35;
+    --text-h3--font-weight: 600;
+    --text-h4: 1.125rem;
+    --text-h4--line-height: 1.35;
+    --text-h4--font-weight: 600;
+    --text-body-lg: 1rem;
+    --text-body-lg--line-height: 1.5;
+    --text-body: 0.875rem;
+    --text-body--line-height: 1.5;
+    --text-small: 0.75rem;
+    --text-small--line-height: 1.5;
+    --text-caption: 0.6875rem;
+    --text-caption--line-height: 1.5;
+    --text-caption--font-weight: 500;
+}
+
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Inter Variable', sans-serif;
+    /* BRAND-12: Manrope for headings, navigation, buttons and brand elements;
+       Inter for body text, tables, figures and forms. */
+    --font-heading: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
+    --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
     --color-sidebar-ring: var(--sidebar-ring);
     --color-sidebar-border: var(--sidebar-border);
     --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -24,7 +98,19 @@
     --color-ring: var(--ring);
     --color-input: var(--input);
     --color-border: var(--border);
+    --color-brand: var(--brand);
     --color-destructive: var(--destructive);
+    --color-destructive-foreground: var(--destructive-foreground);
+    --color-destructive-text: var(--destructive-text);
+    --color-success: var(--success);
+    --color-success-foreground: var(--success-foreground);
+    --color-success-text: var(--success-text);
+    --color-warning: var(--warning);
+    --color-warning-foreground: var(--warning-foreground);
+    --color-warning-text: var(--warning-text);
+    --color-info: var(--info);
+    --color-info-foreground: var(--info-foreground);
+    --color-info-text: var(--info-text);
     --color-accent-foreground: var(--accent-foreground);
     --color-accent: var(--accent);
     --color-muted-foreground: var(--muted-foreground);
@@ -39,92 +125,134 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+
+    /* Radii (BRAND-14). */
+    --radius-xs: 4px;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+
+    /* Elevation (BRAND-16): subtle shadows tinted per theme. */
+    --shadow-xs: 0 1px 2px 0 var(--elevation);
+    --shadow-sm: 0 1px 3px 0 var(--elevation), 0 1px 2px -1px var(--elevation);
+    --shadow-md: 0 4px 8px -2px var(--elevation), 0 2px 4px -2px var(--elevation);
+    --shadow-lg: 0 12px 24px -6px var(--elevation), 0 4px 8px -4px var(--elevation);
+    --shadow-xl: 0 20px 32px -8px var(--elevation), 0 8px 12px -6px var(--elevation);
 }
 
+/* Semantic tokens (BRAND-07, BRAND-09, BRAND-10): light theme. */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.5 0.134 242.749);
-    --primary-foreground: oklch(0.977 0.013 236.62);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
-    --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
-    --chart-1: oklch(0.837 0.128 66.29);
-    --chart-2: oklch(0.705 0.213 47.604);
-    --chart-3: oklch(0.646 0.222 41.116);
-    --chart-4: oklch(0.553 0.195 38.402);
-    --chart-5: oklch(0.47 0.157 37.304);
-    --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.588 0.158 241.966);
-    --sidebar-primary-foreground: oklch(0.977 0.013 236.62);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
+    --background: var(--color-neutral-200);
+    --foreground: var(--color-midnight-900);
+    --card: var(--color-neutral-100);
+    --card-foreground: var(--color-midnight-900);
+    --popover: var(--color-neutral-100);
+    --popover-foreground: var(--color-midnight-900);
+    --primary: var(--color-midnight-900);
+    --primary-foreground: var(--color-neutral-100);
+    --secondary: var(--color-slate-100);
+    --secondary-foreground: var(--color-midnight-900);
+    --muted: var(--color-slate-100);
+    --muted-foreground: var(--color-slate-500);
+    --accent: var(--color-turquoise-100);
+    --accent-foreground: var(--color-midnight-900);
+    --brand: var(--color-turquoise-800);
+    --border: var(--color-neutral-400);
+    --input: var(--color-neutral-400);
+    --ring: var(--color-turquoise-700);
+
+    --destructive: #dc2626;
+    --destructive-foreground: var(--color-neutral-100);
+    --destructive-text: #dc2626;
+    --success: #16a34a;
+    --success-foreground: var(--color-midnight-900);
+    --success-text: #15803d;
+    --warning: #d97706;
+    --warning-foreground: var(--color-midnight-900);
+    --warning-text: #b45309;
+    --info: #2563eb;
+    --info-foreground: var(--color-neutral-100);
+    --info-text: #2563eb;
+
+    --chart-1: var(--color-turquoise-700);
+    --chart-2: var(--color-midnight-500);
+    --chart-3: var(--color-turquoise-500);
+    --chart-4: var(--color-midnight-300);
+    --chart-5: var(--color-slate-500);
+
+    --sidebar: var(--color-neutral-100);
+    --sidebar-foreground: var(--color-midnight-900);
+    --sidebar-primary: var(--color-midnight-900);
+    --sidebar-primary-foreground: var(--color-neutral-100);
+    --sidebar-accent: var(--color-turquoise-100);
+    --sidebar-accent-foreground: var(--color-midnight-900);
+    --sidebar-border: var(--color-neutral-400);
+    --sidebar-ring: var(--color-turquoise-700);
+
+    --elevation: rgb(16 24 39 / 0.08);
 }
 
+/* Dark theme: `dark` class on <html> (BRAND-11). Pure black is never used. */
 .dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.443 0.11 240.79);
-    --primary-foreground: oklch(0.977 0.013 236.62);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.837 0.128 66.29);
-    --chart-2: oklch(0.705 0.213 47.604);
-    --chart-3: oklch(0.646 0.222 41.116);
-    --chart-4: oklch(0.553 0.195 38.402);
-    --chart-5: oklch(0.47 0.157 37.304);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.685 0.169 237.323);
-    --sidebar-primary-foreground: oklch(0.293 0.066 243.157);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+    --background: var(--color-midnight-900);
+    --foreground: var(--color-neutral-200);
+    --card: var(--color-midnight-800);
+    --card-foreground: var(--color-neutral-200);
+    --popover: var(--color-midnight-800);
+    --popover-foreground: var(--color-neutral-200);
+    --primary: var(--color-turquoise-500);
+    --primary-foreground: var(--color-midnight-900);
+    --secondary: var(--color-midnight-700);
+    --secondary-foreground: var(--color-neutral-200);
+    --muted: var(--color-midnight-700);
+    --muted-foreground: var(--color-slate-400);
+    --accent: var(--color-midnight-700);
+    --accent-foreground: var(--color-neutral-200);
+    --brand: var(--color-turquoise-400);
+    --border: var(--color-midnight-700);
+    --input: var(--color-midnight-700);
+    --ring: var(--color-turquoise-300);
+
+    --destructive-text: #f87171;
+    --success-text: #16a34a;
+    --warning-text: #d97706;
+    --info-text: #60a5fa;
+
+    --chart-1: var(--color-turquoise-400);
+    --chart-2: var(--color-midnight-300);
+    --chart-3: var(--color-turquoise-600);
+    --chart-4: var(--color-midnight-500);
+    --chart-5: var(--color-slate-400);
+
+    --sidebar: var(--color-midnight-800);
+    --sidebar-foreground: var(--color-neutral-200);
+    --sidebar-primary: var(--color-turquoise-500);
+    --sidebar-primary-foreground: var(--color-midnight-900);
+    --sidebar-accent: var(--color-midnight-700);
+    --sidebar-accent-foreground: var(--color-neutral-200);
+    --sidebar-border: var(--color-midnight-700);
+    --sidebar-ring: var(--color-turquoise-300);
+
+    --elevation: rgb(4 8 16 / 0.45);
+
+    color-scheme: dark;
 }
 
 @layer base {
-  * {
-    @apply border-border outline-ring/50;
+    * {
+        @apply border-border outline-ring;
     }
-  body {
-    @apply bg-background text-foreground;
+    html {
+        @apply font-sans;
     }
-  html {
-    @apply font-sans;
+    body {
+        @apply bg-background text-foreground;
+    }
+    h1,
+    h2,
+    h3,
+    h4 {
+        @apply font-heading text-balance;
     }
 }

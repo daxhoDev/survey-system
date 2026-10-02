@@ -4,6 +4,7 @@ import AuthPage from "./pages/AuthPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import DashboardPage from "./pages/DashboardPage";
 import { Toaster } from "sonner";
+import { useTheme } from "@/lib/theme";
 import Surveys from "./components/Surveys";
 import SurveyAnsweringPage from "./pages/SurveyAnsweringPage";
 import SurveyCreatePage from "./pages/SurveyCreatePage";
@@ -25,6 +26,8 @@ const queryClient = new QueryClient({
 });
 
 function App() {
+  const [theme] = useTheme();
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -46,7 +49,7 @@ function App() {
           <Route path="surveys/:slug" element={<SurveyAnsweringPage />} />
         </Routes>
       </BrowserRouter>
-      <Toaster position="top-center" />
+      <Toaster position="top-center" theme={theme} />
     </QueryClientProvider>
   );
 }

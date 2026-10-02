@@ -14,7 +14,7 @@ export default function LockedBadge() {
         <TooltipTrigger asChild>
           <span
             tabIndex={0}
-            className="px-3 py-0.5 border rounded-full flex items-center justify-center w-fit gap-1.5 text-[10px] font-semibold tracking-wide uppercase bg-muted text-muted-foreground border-border"
+            className="px-3 py-0.5 border rounded-full flex items-center justify-center w-fit gap-1.5 text-xs font-semibold tracking-wide uppercase bg-muted text-muted-foreground border-border"
           >
             <Lock className="size-3.5" />
             <span>Bloqueada</span>
