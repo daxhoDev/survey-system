@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import { acceptInvitationSchema } from "@survey-system/schemas";
+import { acceptInvitationFormSchema } from "@/lib/schemas";
 import {
   useAcceptInvitation,
   useGetInvitationByToken,
@@ -50,7 +50,7 @@ export default function AcceptInvitationPage() {
     formState: { errors },
   } = useForm<AcceptInvitation>({
     reValidateMode: "onChange",
-    resolver: zodResolver(acceptInvitationSchema),
+    resolver: zodResolver(acceptInvitationFormSchema),
   });
 
   const accept = useAcceptInvitation({

@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
-import { createInvitationSchema } from "@survey-system/schemas";
+import { createInvitationFormSchema } from "@/lib/schemas";
 import { Check, Copy, Send, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -157,7 +157,7 @@ export default function InvitationsPage() {
     formState: { errors },
   } = useForm<CreateInvitation>({
     reValidateMode: "onChange",
-    resolver: zodResolver(createInvitationSchema),
+    resolver: zodResolver(createInvitationFormSchema),
   });
 
   const create = useCreateInvitation({

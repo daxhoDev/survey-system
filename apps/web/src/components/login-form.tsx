@@ -18,7 +18,7 @@ import PasswordInput from "@/components/PasswordInput";
 import { useForm } from "react-hook-form";
 import type { UserLogin } from "@/lib/api/sondixAPI.schemas";
 import { useLoginUser, getGetCurrentUserQueryKey } from "@/lib/api/users/users";
-import { loginDataSchema } from "@survey-system/schemas";
+import { loginFormSchema } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
 import isotype from "@/assets/brand/isotype-gradient.svg";
 import { useQueryClient } from "@tanstack/react-query";
@@ -35,7 +35,7 @@ export function LoginForm({
     formState: { errors },
   } = useForm<UserLogin>({
     reValidateMode: "onChange",
-    resolver: zodResolver(loginDataSchema),
+    resolver: zodResolver(loginFormSchema),
   });
 
   const navigate = useNavigate();

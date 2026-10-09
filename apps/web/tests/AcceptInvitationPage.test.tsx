@@ -46,7 +46,7 @@ describe("AcceptInvitationPage (FE-28)", () => {
     expect(screen.queryByLabelText("Nombre de usuario")).not.toBeInTheDocument();
   });
 
-  it("shows the invited email read only and validates with the shared schema", async () => {
+  it("shows the invited email read only and validates with the Spanish form schema", async () => {
     const fetchMock = mockFetch({ ...noSession, [tokenInfo]: validToken });
     renderWithProviders(<AcceptInvitationPage />, { path, route });
 
@@ -55,8 +55,8 @@ describe("AcceptInvitationPage (FE-28)", () => {
 
     await fill({ username: "ab", password: "password123", passwordConfirm: "different" });
 
-    expect(await screen.findByText("Must have at least 3 characters")).toBeInTheDocument();
-    expect(screen.getByText("Please, confirm your password")).toBeInTheDocument();
+    expect(await screen.findByText("El nombre de usuario debe tener al menos 3 caracteres")).toBeInTheDocument();
+    expect(screen.getByText("Las contraseñas no coinciden")).toBeInTheDocument();
     expect(fetchMock.mock.calls.some(([url]) => String(url).endsWith("/accept"))).toBe(false);
   });
 

@@ -1,4 +1,5 @@
 import { z } from "./zod-setup.js";
+import { PASSWORD_MIN, USERNAME_MAX, USERNAME_MIN } from "./limits.js";
 
 export const createInvitationSchema = z
   .strictObject({
@@ -10,9 +11,9 @@ export const acceptInvitationSchema = z
   .strictObject({
     username: z
       .string("Must be a string")
-      .min(3, "Must have at least 3 characters")
-      .max(50, "Must have at most 50 characters"),
-    password: z.string("Must be a string").min(5, "Must have at least 5 characters"),
+      .min(USERNAME_MIN, `Must have at least ${USERNAME_MIN} characters`)
+      .max(USERNAME_MAX, `Must have at most ${USERNAME_MAX} characters`),
+    password: z.string("Must be a string").min(PASSWORD_MIN, `Must have at least ${PASSWORD_MIN} characters`),
     passwordConfirm: z.string("Must be a string"),
   })
   .refine((data) => data.passwordConfirm === data.password, {
