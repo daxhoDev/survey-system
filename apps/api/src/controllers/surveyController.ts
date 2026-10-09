@@ -17,33 +17,26 @@ export default class SurveyController {
     } = z.safeParse(queryStringSchema, req.query);
     if (!success) throw error;
 
-    const surveys = await this.service.getAll(queries);
+    const { surveys, total } = await this.service.getAll(queries);
 
     const results = surveys.length;
     const page = queries.page || 1;
     const limit = queries.limit || 10;
 
     getLogger().info(
-      {
-        results,
-        page,
-        limit,
-      },
-      `fetched ${surveys.length} items`,
+      { results, total, page, limit },
+      `fetched ${results} of ${total} items`,
     );
     res
       .type("json")
       .status(200)
-      .send(
-        json({
-          data: surveys,
-          meta: {
-            results: surveys.length,
-            page: queries.page || 1,
-            limit: queries.limit || 10,
-          },
-        }),
-      );
+      .send(json({ data: surveys, meta: { results, total, page, limit } }));
+  }
+
+  // GET /api/v1/stats/surveys (STAT-08).
+  async getSummary(_req: ProtectedRequest, res: Response) {
+    const summary = await this.service.getSummary();
+    res.type("json").status(200).send(json({ data: summary }));
   }
 
   async getBySlug(req: ProtectedRequest, res: Response, next: NextFunction) {

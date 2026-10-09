@@ -41,7 +41,8 @@ describe("SurveyRepository.getAll", () => {
     await createSurvey("Deleted survey", { deleted_at: new Date() });
   });
 
-  const names = (list: { name: string }[]) => list.map((s) => s.name);
+  const names = ({ surveys: list }: { surveys: { name: string }[] }) =>
+    list.map((s) => s.name);
 
   it("SURV-05: excludes deleted surveys", async () => {
     expect(names(await surveys.getAll({}))).not.toContain("Deleted survey");
@@ -78,6 +79,24 @@ describe("SurveyRepository.getAll", () => {
     expect(names(await surveys.getAll({ sort: "name", page: 2, limit: 1 }))).toEqual([
       "Beta survey",
     ]);
+  });
+
+  it("SURV-20: without sort, newest first", async () => {
+    expect(names(await surveys.getAll({}))).toEqual([
+      "Gamma survey",
+      "Beta survey",
+      "Alpha survey",
+    ]);
+  });
+
+  it("SURV-07: total counts every match of the filters, not just the page", async () => {
+    expect((await surveys.getAll({ limit: 1 })).total).toBe(3);
+    expect((await surveys.getAll({ active: true, limit: 1 })).total).toBe(2);
+    expect((await surveys.getAll({ search: "zzz" })).total).toBe(0);
+  });
+
+  it("STAT-08: getSummary counts all and active non-deleted surveys", async () => {
+    expect(await surveys.getSummary()).toEqual({ all: 3, active: 2 });
   });
 });
 

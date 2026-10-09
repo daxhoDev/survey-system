@@ -10,6 +10,7 @@ import type {
   Question,
   Survey,
   SurveyStats,
+  SurveySummary,
   SurveyChanges,
 } from "../types.js";
 
@@ -24,7 +25,7 @@ export default class SurveyRepository implements ISurveyRepository {
     page,
     limit,
     sort,
-  }: QueryString): Promise<Survey[]> {
+  }: QueryString): Promise<{ surveys: Survey[]; total: number }> {
     const where: any = {
       deleted_at: null,
     };
@@ -41,7 +42,8 @@ export default class SurveyRepository implements ISurveyRepository {
     if (sort === "creation") {
       orderBy.push({ created_at: "asc" }, { name: "asc" });
     }
-    if (sort === "-creation") {
+    // Newest first by default, so pages are stable (SURV-20).
+    if (sort === "-creation" || sort === undefined) {
       orderBy.push({ created_at: "desc" }, { name: "asc" });
     }
 
@@ -71,12 +73,16 @@ export default class SurveyRepository implements ISurveyRepository {
     }
 
     const take = limit ? limit : this.defaultTake;
-    const results = await prisma.surveys.findMany({
-      where,
-      take,
-      skip: page ? (page - 1) * take : this.defaultSkip,
-      orderBy,
-    });
+    // `total` counts every match of the same filters, not just this page.
+    const [results, total] = await prisma.$transaction([
+      prisma.surveys.findMany({
+        where,
+        take,
+        skip: page ? (page - 1) * take : this.defaultSkip,
+        orderBy,
+      }),
+      prisma.surveys.count({ where }),
+    ]);
 
     const serializedData: Survey[] = results.map((r) => {
       return {
@@ -93,7 +99,16 @@ export default class SurveyRepository implements ISurveyRepository {
       };
     });
 
-    return serializedData;
+    return { surveys: serializedData, total };
+  }
+
+  // Counters over every non-deleted survey, ignoring list filters (STAT-08).
+  async getSummary(): Promise<SurveySummary> {
+    const [all, active] = await prisma.$transaction([
+      prisma.surveys.count({ where: { deleted_at: null } }),
+      prisma.surveys.count({ where: { deleted_at: null, is_active: true } }),
+    ]);
+    return { all, active };
   }
 
   async getBySlug(slug: string): Promise<Survey | null> {

@@ -19,9 +19,12 @@ import { getLogger } from "../context/requestContext.js";
 export default class SurveyService implements ISurveyService {
   constructor(private repo: ISurveyRepository) {}
 
-  async getAll(queries: QueryString): Promise<Survey[]> {
-    const results = await this.repo.getAll(queries);
-    return results;
+  async getAll(queries: QueryString) {
+    return this.repo.getAll(queries);
+  }
+
+  async getSummary() {
+    return this.repo.getSummary();
   }
 
   async getBySlug(slug: string, session: Session): Promise<Survey> {

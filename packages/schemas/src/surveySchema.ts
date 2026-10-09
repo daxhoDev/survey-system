@@ -207,3 +207,11 @@ export const surveyStatsSchema = z
       ],
     },
   });
+
+// Counters over every non-deleted survey (STAT-08).
+export const surveySummarySchema = z
+  .strictObject({
+    all: z.number().int().openapi({ example: 12 }),
+    active: z.number().int().openapi({ example: 4 }),
+  })
+  .openapi("SurveySummary");

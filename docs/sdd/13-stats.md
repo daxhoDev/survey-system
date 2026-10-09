@@ -32,3 +32,9 @@ Schema: `surveyStatsSchema`, `optionStatsSchema` in `packages/schemas/src/survey
 - **STAT-05** `[implemented]` Question and option ids are cast to `int` in SQL; they must be integers (DATA-09/10).
 - **STAT-06** `[implemented]` Every count, `optionStats` included, ignores soft-deleted answers and only considers the non-deleted survey with that slug.
 - **STAT-07** `[implemented]` With no answers, all counts are `0` and every option has `responseCount: 0`.
+
+## GET `/api/v1/stats/surveys` — authenticated
+
+Code: `routes/statsRouter.ts` (mounted at `/api/v1/stats`), `SurveyController.getSummary`, `SurveyService.getSummary`, `SurveyRepository.getSummary`. Schema: `surveySummarySchema` (`SurveySummary`) in `packages/schemas/src/surveySchema.ts`. Operation `getSurveySummary`.
+
+- **STAT-08** `[implemented]` Response `200 { data: { all, active } }`: `all` is the number of non-deleted surveys and `active` how many of them are active. It ignores the list filters of `GET /surveys` (it feeds the dashboard counters, FE-17). The path lives outside `/surveys` so it can never clash with a survey slug (decided 2026-10-09, OQ-14).

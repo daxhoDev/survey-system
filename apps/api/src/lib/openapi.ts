@@ -17,6 +17,7 @@ import {
   loginDataSchema,
   surveySchema,
   surveyStatsSchema,
+  surveySummarySchema,
   updateSurveySchema,
   userAccountSchema,
   userSchema,
@@ -95,6 +96,7 @@ const answerParams = slugParam.extend(idParamSchema.shape);
 
 registry.register("Survey", surveySchema);
 registry.register("SurveyStats", surveyStatsSchema);
+registry.register("SurveySummary", surveySummarySchema);
 registry.register("User", userSchema);
 
 // Users
@@ -236,6 +238,22 @@ registry.registerPath({
   },
 });
 
+// Statistics
+registry.registerPath({
+  tags: ["Stats"],
+  method: "get",
+  path: "/api/v1/stats/surveys",
+  summary: "Count all and active surveys",
+  description:
+    "Counters over every non-deleted survey, ignoring the list filters (STAT-08).",
+  operationId: "getSurveySummary",
+  security: cookieAuth,
+  responses: {
+    200: json("Survey counters", z.object({ data: surveySummarySchema })),
+    ...problems(401),
+  },
+});
+
 // Surveys
 registry.registerPath({
   tags: ["Surveys"],
@@ -263,7 +281,11 @@ registry.registerPath({
       z.object({
         data: z.array(surveySchema),
         meta: z.object({
-          results: z.number().int(),
+          results: z.number().int().openapi({ description: "Items in this page" }),
+          total: z
+            .number()
+            .int()
+            .openapi({ description: "Items matching the filters, all pages" }),
           page: z.number().int(),
           limit: z.number().int(),
         }),

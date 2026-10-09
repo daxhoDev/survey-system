@@ -207,13 +207,24 @@ describe("survey endpoints", () => {
     });
   });
 
-  it("SURV-07: the list is wrapped with { data, meta: { results, page, limit } }", async () => {
+  it("SURV-07: the list is wrapped with { data, meta: { results, total, page, limit } }", async () => {
     const { jwt } = await signup();
     await createSurvey(jwt);
     const res = await request(app).get("/api/v1/surveys").set("Cookie", jwt);
 
     expect(res.status).toBe(200);
-    expect(res.body.meta).toEqual({ results: 1, page: 1, limit: 10 });
+    expect(res.body.meta).toEqual({ results: 1, total: 1, page: 1, limit: 10 });
+  });
+
+  it("STAT-08: GET /stats/surveys counts all and active surveys, authenticated only", async () => {
+    expect((await request(app).get("/api/v1/stats/surveys")).status).toBe(401);
+
+    const { jwt } = await signup();
+    await createSurvey(jwt);
+    const res = await request(app).get("/api/v1/stats/surveys").set("Cookie", jwt);
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: { all: 1, active: 0 } });
   });
 
   it("SURV-05: invalid query params → 422", async () => {

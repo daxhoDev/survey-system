@@ -89,7 +89,12 @@ export class FakeRefreshTokenRepository implements IRefreshTokenRepository {
 
 export class FakeSurveyRepository implements ISurveyRepository {
   async getAll(_queries: QueryString) {
-    return store.surveys.filter((s) => !s.deletedAt);
+    const surveys = store.surveys.filter((s) => !s.deletedAt);
+    return { surveys, total: surveys.length };
+  }
+  async getSummary() {
+    const live = store.surveys.filter((s) => !s.deletedAt);
+    return { all: live.length, active: live.filter((s) => s.isActive).length };
   }
   async getBySlug(slug: string) {
     return liveSurvey(slug);

@@ -85,6 +85,11 @@ export interface SurveyStats {
   optionStats: OptionStats[];
 }
 
+export interface SurveySummary {
+  all: number;
+  active: number;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -248,6 +253,10 @@ export type AcceptInvitation201 = {
   data: UserAccount;
 };
 
+export type GetSurveySummary200 = {
+  data: SurveySummary;
+};
+
 export type GetAllSurveysParams = {
 active?: GetAllSurveysActive;
 search?: string;
@@ -285,7 +294,10 @@ export const GetAllSurveysSort = {
 } as const;
 
 export type GetAllSurveys200Meta = {
+  /** Items in this page */
   results: number;
+  /** Items matching the filters, all pages */
+  total: number;
   page: number;
   limit: number;
 };

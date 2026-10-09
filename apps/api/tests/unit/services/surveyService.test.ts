@@ -13,7 +13,8 @@ let service: SurveyService;
 
 beforeEach(() => {
   repo = {
-    getAll: vi.fn().mockResolvedValue([active]),
+    getAll: vi.fn().mockResolvedValue({ surveys: [active], total: 1 }),
+    getSummary: vi.fn().mockResolvedValue({ all: 2, active: 1 }),
     getBySlug: vi.fn(
       async (slug: string) =>
         ({ [active.slug]: active, [inactive.slug]: inactive })[slug] ?? null,

@@ -17,6 +17,7 @@ answers (one per IP per survey) and review answers and statistics.
 - Surveys with free-text, single-choice and multiple-choice questions, required or optional.
 - Survey lifecycle: draft → active ⇄ inactive; a survey is locked for editing once activated.
 - Public answering page; answers validated against the survey's questions.
+- Survey list with search by name, status filter, sortable columns and pagination.
 - Per-survey statistics (completed/incomplete answers, votes per option) with charts.
 - Interactive API documentation (Swagger UI).
 - Sondix brand identity: light and dark themes (Claro / Oscuro / Sistema), brand palette, Manrope and Inter typography.

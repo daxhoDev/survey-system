@@ -53,11 +53,12 @@ Query string (`queryStringSchema`; all optional, all received as strings):
 | `date` | `DD/MM/YYYY` | surveys created on that day (server local time, `[date, date+1)`) |
 | `page` | positive number | page number, default 1 |
 | `limit` | positive number | page size, default 10 |
-| `sort` | `name` \| `-name` \| `creation` \| `-creation` | `name` asc/desc (tie-break `created_at` desc); `creation` = `created_at` asc/desc (tie-break `name` asc). No default order |
+| `sort` | `name` \| `-name` \| `creation` \| `-creation` | `name` asc/desc (tie-break `created_at` desc); `creation` = `created_at` asc/desc (tie-break `name` asc). Default `-creation` (SURV-20) |
 
 - **SURV-05** `[implemented]` Deleted surveys are excluded. Invalid query params → `422`.
 - **SURV-06** `[implemented]` Offset is `(page - 1) * limit`.
-- **SURV-07** `[implemented]` Response `200 { data: Survey[], meta: { results, page, limit } }` where `results` is the number of items in this page (not the total).
+- **SURV-07** `[implemented]` Response `200 { data: Survey[], meta: { results, total, page, limit } }` where `results` is the number of items in this page and `total` the number of non-deleted surveys matching the same filters across all pages (one `COUNT` in the same transaction as the page query).
+- **SURV-20** `[implemented]` Without `sort`, the list is ordered by `created_at` descending, tie-break `name` ascending (same as `-creation`), so pages are stable. Decided 2026-10-09 (OQ-14).
 
 ### POST `/api/v1/surveys` — authenticated
 

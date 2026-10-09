@@ -61,8 +61,8 @@
 
 ### Survey list — `components/Surveys.tsx` (`/dashboard`)
 
-- **FE-17** `[implemented]` Loads `GET /surveys` without parameters; shows cards "Total de encuestas" and "Encuestas activas" (computed from the loaded page), a "Crear encuesta" button, and a table (name, creation date, status badge, actions menu: view details, activate/deactivate).
-- **FE-18** `[open: OQ-14]` No pagination, search, filter or sort UI; only the first page (10 surveys) is shown, and the counters only reflect that page.
+- **FE-17** `[implemented]` Shows the cards "Total de encuestas" and "Encuestas activas" from `GET /stats/surveys` (STAT-08, unaffected by the list filters), a "Crear encuesta" button and a table (name, creation date, status badge, actions menu: view details, activate/deactivate). Creating, activating/deactivating or deleting a survey invalidates both the list and the counters.
+- **FE-18** `[implemented]` The table is server-paginated, 10 per page, newest first by default (SURV-20). Above it, a search box ("Buscar por nombre", queried 300 ms after typing pauses) and status chips Todas / Activas / Inactivas (`aria-pressed`); the "Nombre" and "Fecha de creación" headers sort ascending/descending. Below it, `components/ListPagination.tsx`: "Mostrando 11–20 de 43", "Página 2 de 5", Anterior / Siguiente, using `meta.total` (SURV-07). Search, status, sort and page live in the URL (`?search=&active=&sort=&page=`, defaults omitted) so reload, links and returning from a survey keep them; changing search, status or sort goes back to page 1. While a new page loads the previous one stays visible (dimmed). Empty states: "Ninguna encuesta coincide con la búsqueda o el filtro." with filters, otherwise an invitation to create the first survey. The API's `date` filter is not exposed.
 
 ### Create survey — `pages/SurveyCreatePage.tsx`
 

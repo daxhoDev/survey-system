@@ -23,7 +23,8 @@ import type { Logger } from "pino";
 /////////////////////////////////////////////////////////////////////////////////////////////
 // REPOSITORIES
 export interface ISurveyRepository {
-  getAll(queries: QueryString): Promise<Survey[]>;
+  getAll(queries: QueryString): Promise<{ surveys: Survey[]; total: number }>;
+  getSummary(): Promise<SurveySummary>;
   getBySlug(slug: string): Promise<Survey | null>;
   createOne(
     survey: CreateSurveyData & { id: string; slug: string },
@@ -242,6 +243,8 @@ export type OptionStats = {
     responseCount: number;
   }[];
 };
+
+export type SurveySummary = { all: number; active: number };
 
 export type SurveyStats = {
   totalAnswers: number;

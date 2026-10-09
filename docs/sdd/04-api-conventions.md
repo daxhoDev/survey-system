@@ -23,6 +23,7 @@
 | PATCH | `/api/v1/surveys/:slug` | required | [SURV](11-surveys.md) |
 | DELETE | `/api/v1/surveys/:slug` | required | [SURV](11-surveys.md) |
 | GET | `/api/v1/surveys/:slug/stats` | required | [STAT](13-stats.md) |
+| GET | `/api/v1/stats/surveys` | required | [STAT](13-stats.md) |
 | POST | `/api/v1/surveys/:slug/answers` | public | [ANS](12-answers.md) |
 | GET | `/api/v1/surveys/:slug/answers` | required | [ANS](12-answers.md) |
 | GET | `/api/v1/surveys/:slug/answers/:id` | required | [ANS](12-answers.md) |

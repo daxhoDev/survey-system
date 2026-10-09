@@ -65,6 +65,7 @@ import type { Answer } from "@/lib/api/sondixAPI.schemas";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import LockedBadge from "@/components/LockedBadge";
+import { getGetSurveySummaryQueryKey } from "@/lib/api/stats/stats";
 
 export default function SurveyDetailsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -120,6 +121,9 @@ export default function SurveyDetailsPage() {
         queryClient.invalidateQueries({
           queryKey: getGetAllSurveysQueryKey(),
         });
+        queryClient.invalidateQueries({
+          queryKey: getGetSurveySummaryQueryKey(),
+        });
         toast.success("Estado de la encuesta actualizado");
       },
       onError(err) {
@@ -133,6 +137,9 @@ export default function SurveyDetailsPage() {
       onSuccess() {
         queryClient.invalidateQueries({
           queryKey: getGetAllSurveysQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getGetSurveySummaryQueryKey(),
         });
         toast.success("Encuesta eliminada correctamente");
         navigate("/dashboard");
