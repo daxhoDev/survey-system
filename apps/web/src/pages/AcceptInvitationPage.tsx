@@ -30,6 +30,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import PasswordInput from "@/components/PasswordInput";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import isotype from "@/assets/brand/isotype-gradient.svg";
 
@@ -150,7 +151,7 @@ export default function AcceptInvitationPage() {
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
+              <FieldLabel htmlFor="email">Correo electrónico</FieldLabel>
               <Input id="email" type="email" value={email} readOnly disabled />
             </Field>
             <Field>
@@ -162,7 +163,7 @@ export default function AcceptInvitationPage() {
             </Field>
             <Field>
               <FieldLabel htmlFor="password">Contraseña</FieldLabel>
-              <Input id="password" type="password" {...register("password")} />
+              <PasswordInput id="password" {...register("password")} />
               {errors.password && (
                 <FieldError>{errors.password.message}</FieldError>
               )}
@@ -171,9 +172,8 @@ export default function AcceptInvitationPage() {
               <FieldLabel htmlFor="passwordConfirm">
                 Confirmar contraseña
               </FieldLabel>
-              <Input
+              <PasswordInput
                 id="passwordConfirm"
-                type="password"
                 {...register("passwordConfirm")}
               />
               {errors.passwordConfirm && (

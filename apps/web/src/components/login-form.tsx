@@ -59,12 +59,12 @@ export function LoginForm({
       <Card>
         <CardHeader className="text-center flex flex-col items-center">
           <img src={isotype} alt="Sondix" className="w-15 mb-5 lg:hidden" />
-          <CardTitle className="text-h3">Welcome back</CardTitle>
+          <CardTitle className="text-h3">Inicia sesión</CardTitle>
           {/* <CardDescription>
             Login with your Apple or Google account
           </CardDescription> */}
           <CardDescription>
-            Login to access the survey management system
+            Accede al sistema de gestión de encuestas
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -98,11 +98,11 @@ export function LoginForm({
                 Or continue with
               </FieldSeparator> */}
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="email">Correo electrónico</FieldLabel>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="mail@example.com"
+                  placeholder="correo@ejemplo.com"
                   {...register("email", { required: true })}
                 />
                 {errors.email && (
@@ -111,7 +111,7 @@ export function LoginForm({
               </Field>
               <Field>
                 <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <FieldLabel htmlFor="password">Contraseña</FieldLabel>
                   {/* <a
                     href="#"
                     className="ml-auto text-sm underline-offset-4 hover:underline"
@@ -121,9 +121,7 @@ export function LoginForm({
                 </div>
                 <PasswordInput
                   id="password"
-                  placeholder="Enter your password"
-                  showLabel="Show password"
-                  hideLabel="Hide password"
+                  placeholder="Introduce tu contraseña"
                   {...register("password", { required: true })}
                 />
                 {errors.password && (
@@ -131,7 +129,7 @@ export function LoginForm({
                 )}
               </Field>
               <Field>
-                <Button type="submit">Login</Button>
+                <Button type="submit">Iniciar sesión</Button>
                 {/* <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="#">Sign up</a>
                 </FieldDescription> */}
