@@ -21,4 +21,21 @@ describe("DashboardHeader (FE-16)", () => {
     await userEvent.setup().click(link);
     expect(await screen.findByText("other page")).toBeInTheDocument();
   });
+
+  it("the logo links to the dashboard home and there is no Dashboard link", async () => {
+    mockFetch({
+      "GET /api/v1/users/me": {
+        status: 200,
+        body: { data: { id: "u1", username: "owner", email: "owner@example.com" } },
+      },
+    });
+    renderWithProviders(<DashboardHeader />, { path: "/dashboard", route: "/dashboard" });
+
+    await screen.findByText("owner");
+    expect(screen.getByRole("link", { name: "Sondix, ir a encuestas" })).toHaveAttribute(
+      "href",
+      "/dashboard",
+    );
+    expect(screen.queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument();
+  });
 });

@@ -41,22 +41,15 @@ export default function DashboardHeader() {
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      <div className="flex items-center gap-2">
-        {/* <SidebarTrigger className="-ml-1" /> */}
-        {/* <Separator orientation="vertical" /> */}
-        <img src={logoLight} alt="Sondix" className="h-7 w-auto dark:hidden" />
-        <img
-          src={logoDark}
-          alt="Sondix"
-          className="hidden h-7 w-auto dark:block"
-        />
-        <Link
-          to="/dashboard"
-          className="font-semibold text-sm tracking-tight text-foreground"
-        >
-          Dashboard
-        </Link>
-      </div>
+      {/* The logo is the link to the dashboard home (FE-16). */}
+      <Link
+        to="/dashboard"
+        aria-label="Sondix, ir a encuestas"
+        className="flex items-center rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+      >
+        <img src={logoLight} alt="" className="h-7 w-auto dark:hidden" />
+        <img src={logoDark} alt="" className="hidden h-7 w-auto dark:block" />
+      </Link>
 
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild className="gap-2">
