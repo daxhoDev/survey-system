@@ -1,7 +1,7 @@
 import type {
   surveysOrderByWithRelationInput,
 } from "../generated/prisma/models.js";
-import { prisma } from "../lib/prisma.js";
+import { prisma, rethrowUniqueViolation } from "../lib/prisma.js";
 import type {
   CreateSurveyData,
   ISurveyRepository,
@@ -10,7 +10,8 @@ import type {
   Question,
   Survey,
   SurveyStats,
-  UpdateSurveyDataWithMetadata,
+  SurveySummary,
+  SurveyChanges,
 } from "../types.js";
 
 export default class SurveyRepository implements ISurveyRepository {
@@ -24,7 +25,7 @@ export default class SurveyRepository implements ISurveyRepository {
     page,
     limit,
     sort,
-  }: QueryString): Promise<Survey[]> {
+  }: QueryString): Promise<{ surveys: Survey[]; total: number }> {
     const where: any = {
       deleted_at: null,
     };
@@ -41,7 +42,8 @@ export default class SurveyRepository implements ISurveyRepository {
     if (sort === "creation") {
       orderBy.push({ created_at: "asc" }, { name: "asc" });
     }
-    if (sort === "-creation") {
+    // Newest first by default, so pages are stable (SURV-20).
+    if (sort === "-creation" || sort === undefined) {
       orderBy.push({ created_at: "desc" }, { name: "asc" });
     }
 
@@ -71,12 +73,16 @@ export default class SurveyRepository implements ISurveyRepository {
     }
 
     const take = limit ? limit : this.defaultTake;
-    const results = await prisma.surveys.findMany({
-      where,
-      take,
-      skip: page ? (page - 1) * take : this.defaultSkip,
-      orderBy,
-    });
+    // `total` counts every match of the same filters, not just this page.
+    const [results, total] = await prisma.$transaction([
+      prisma.surveys.findMany({
+        where,
+        take,
+        skip: page ? (page - 1) * take : this.defaultSkip,
+        orderBy,
+      }),
+      prisma.surveys.count({ where }),
+    ]);
 
     const serializedData: Survey[] = results.map((r) => {
       return {
@@ -89,10 +95,20 @@ export default class SurveyRepository implements ISurveyRepository {
         deletedAt: r.deleted_at,
         updatedAt: r.updated_at,
         activatedAt: r.activated_at,
+        isLocked: r.is_locked,
       };
     });
 
-    return serializedData;
+    return { surveys: serializedData, total };
+  }
+
+  // Counters over every non-deleted survey, ignoring list filters (STAT-08).
+  async getSummary(): Promise<SurveySummary> {
+    const [all, active] = await prisma.$transaction([
+      prisma.surveys.count({ where: { deleted_at: null } }),
+      prisma.surveys.count({ where: { deleted_at: null, is_active: true } }),
+    ]);
+    return { all, active };
   }
 
   async getBySlug(slug: string): Promise<Survey | null> {
@@ -112,6 +128,7 @@ export default class SurveyRepository implements ISurveyRepository {
       deletedAt: result.deleted_at,
       updatedAt: result.updated_at,
       activatedAt: result.activated_at,
+      isLocked: result.is_locked,
     };
 
     return serializedData;
@@ -125,7 +142,9 @@ export default class SurveyRepository implements ISurveyRepository {
       questions: survey.questions,
     };
 
-    const result = await prisma.surveys.create({ data });
+    const result = await rethrowUniqueViolation(
+      prisma.surveys.create({ data }),
+    );
 
     const serializedData: Survey = {
       id: result.id,
@@ -137,15 +156,19 @@ export default class SurveyRepository implements ISurveyRepository {
       deletedAt: result.deleted_at,
       updatedAt: result.updated_at,
       activatedAt: result.activated_at,
+      isLocked: result.is_locked,
     };
 
     return serializedData;
   }
 
+  // SURV-17: deactivate and delete in one update; activated_at and
+  // is_locked are kept for auditing.
   async deleteOneBySlug(slug: string): Promise<void> {
-    await prisma.surveys.update({
-      where: { slug },
+    await prisma.surveys.updateMany({
+      where: { slug, deleted_at: null },
       data: {
+        is_active: false,
         deleted_at: new Date(),
       },
     });
@@ -153,21 +176,28 @@ export default class SurveyRepository implements ISurveyRepository {
 
   async updateOneBySlug(
     slug: string,
-    data: UpdateSurveyDataWithMetadata,
+    changes: SurveyChanges,
   ): Promise<Survey | null> {
     const dbData = {
-      name: data.name,
-      slug: data.slug,
-      questions: data.questions as Question[],
-      is_active: data.isActive,
-      updated_at: data.updatedAt,
-      activated_at: data.activatedAt,
+      slug: changes.slug,
+      updated_at: changes.updatedAt,
+      ...(changes.name !== undefined && { name: changes.name }),
+      ...(changes.questions !== undefined && { questions: changes.questions }),
+      ...(changes.isActive !== undefined && { is_active: changes.isActive }),
+      ...(changes.activatedAt !== undefined && {
+        activated_at: changes.activatedAt,
+      }),
+      ...(changes.isLocked !== undefined && { is_locked: changes.isLocked }),
     };
 
-    const result = await prisma.surveys.update({
-      where: { slug },
-      data: dbData,
-    });
+    const [result] = await rethrowUniqueViolation(
+      prisma.surveys.updateManyAndReturn({
+        where: { slug, deleted_at: null },
+        data: dbData,
+      }),
+    );
+
+    if (!result) return null;
 
     const serializedData = {
       id: result.id,
@@ -179,13 +209,14 @@ export default class SurveyRepository implements ISurveyRepository {
       deletedAt: result.deleted_at,
       updatedAt: result.updated_at,
       activatedAt: result.activated_at,
+      isLocked: result.is_locked,
     };
 
     return serializedData;
   }
 
   async getSlugBySlug(slug: string): Promise<Pick<Survey, "slug"> | null> {
-    const result = await prisma.surveys.findUnique({
+    const result = await prisma.surveys.findFirst({
       where: { slug, deleted_at: null },
       select: { slug: true },
     });
@@ -199,20 +230,20 @@ export default class SurveyRepository implements ISurveyRepository {
     return serializedData;
   }
 
-  async getActivatedAtBySlug(
+  async getIsLockedBySlug(
     slug: string,
-  ): Promise<Pick<Survey, "activatedAt"> | null> {
-    const result = await prisma.surveys.findUnique({
+  ): Promise<Pick<Survey, "isLocked"> | null> {
+    const result = await prisma.surveys.findFirst({
       where: { slug, deleted_at: null },
       select: {
-        activated_at: true,
+        is_locked: true,
       },
     });
 
     if (!result) return null;
 
     const serializedData = {
-      activatedAt: result.activated_at,
+      isLocked: result.is_locked,
     };
 
     return serializedData;
@@ -267,13 +298,14 @@ export default class SurveyRepository implements ISurveyRepository {
                             FROM surveys
                                      CROSS JOIN LATERAL jsonb_array_elements(surveys.questions) AS q
                                      CROSS JOIN LATERAL jsonb_array_elements(q -> 'options') AS opt
-                            WHERE slug = ${slug}),
+                            WHERE slug = ${slug} AND deleted_at IS NULL),
      expanded_responses AS (SELECT (resp ->> 'id')::int AS question_id,
                                    elem::int            AS selected_option_id
                             FROM answers
                                      CROSS JOIN LATERAL jsonb_array_elements(answers.responses) AS resp
                                      CROSS JOIN LATERAL jsonb_array_elements_text(resp -> 'content') AS elem
-                            WHERE answers.survey_id = (SELECT id FROM surveys WHERE slug = ${slug})
+                            WHERE answers.survey_id = (SELECT id FROM surveys WHERE slug = ${slug} AND deleted_at IS NULL)
+                              AND answers.deleted_at IS NULL
                               AND jsonb_typeof(resp -> 'content') = 'array')
 SELECT eq.id, eq.name,
        eq.option_content,
@@ -282,7 +314,8 @@ FROM expanded_questions eq
          LEFT JOIN expanded_responses er
                    ON eq.id = er.question_id
                        AND eq.option_id = er.selected_option_id
-GROUP BY eq.id, eq.name, eq.option_content ORDER BY eq.id;`;
+GROUP BY eq.id, eq.name, eq.option_id, eq.option_content
+ORDER BY eq.id, eq.option_id;`;
 
     const map = new Map<number, OptionStats>();
 

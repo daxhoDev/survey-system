@@ -5,10 +5,13 @@ import type {
   ISurveyRepository,
   ISurveyService,
   QueryString,
+  Session,
   Survey,
+  SurveyChanges,
   UpdateSurveyData,
 } from "../types.js";
 import AppError from "../utils/appError.js";
+import UniqueViolationError from "../utils/uniqueViolationError.js";
 import slugify from "slugify";
 import { v7 as uuidv7 } from "uuid";
 import { getLogger } from "../context/requestContext.js";
@@ -16,14 +19,27 @@ import { getLogger } from "../context/requestContext.js";
 export default class SurveyService implements ISurveyService {
   constructor(private repo: ISurveyRepository) {}
 
-  async getAll(queries: QueryString): Promise<Survey[]> {
-    const results = await this.repo.getAll(queries);
-    return results;
+  async getAll(queries: QueryString) {
+    return this.repo.getAll(queries);
   }
 
-  async getBySlug(slug: string): Promise<Survey> {
+  async getSummary() {
+    return this.repo.getSummary();
+  }
+
+  async getBySlug(slug: string, session: Session): Promise<Survey> {
     const survey = await this.repo.getBySlug(slug);
-    if (!survey) {
+    const isVisible =
+      survey && (survey.isActive || session === "authenticated");
+
+    if (survey && !isVisible && session === "expired") {
+      throw new AppError(
+        "Token Error",
+        "This token expired, please log in again",
+        401,
+      );
+    }
+    if (!isVisible) {
       throw new AppError(
         "Not found",
         "The requested survey doesn't exist",
@@ -65,13 +81,17 @@ export default class SurveyService implements ISurveyService {
     const slug = slugify(survey.name, { lower: true, strict: true });
     const slugExists = await this.repo.getSlugBySlug(slug);
 
-    if (slugExists) {
-      throw new AppError("Conflict", "This survey name is not avaliable", 409);
-    }
+    if (slugExists) throw this.nameConflictError();
 
     const id = uuidv7();
     const serializedData = { id, slug, ...result.data };
-    return await this.repo.createOne(serializedData);
+    try {
+      return await this.repo.createOne(serializedData);
+    } catch (err) {
+      // SURV-08: a concurrent creation took the slug first
+      if (err instanceof UniqueViolationError) throw this.nameConflictError();
+      throw err;
+    }
   }
 
   async deleteOneBySlug(slug: string): Promise<void> {
@@ -91,8 +111,8 @@ export default class SurveyService implements ISurveyService {
     slug: string,
     data: UpdateSurveyData,
   ): Promise<Survey | null> {
-    const existingSurvey = await this.repo.getActivatedAtBySlug(slug);
-
+    // SURV-14, rule 1
+    const existingSurvey = await this.repo.getIsLockedBySlug(slug);
     if (!existingSurvey) {
       throw new AppError(
         "Not found",
@@ -101,10 +121,11 @@ export default class SurveyService implements ISurveyService {
       );
     }
 
+    // Rule 2: a locked survey keeps its name and questions (SURV-03)
+    const body = (data ?? {}) as Partial<UpdateSurveyData>;
     if (
-      existingSurvey.activatedAt &&
-      Object.keys(data).length > 1 &&
-      Object.keys(data).at(0) !== "isActive"
+      existingSurvey.isLocked &&
+      (body.name !== undefined || body.questions !== undefined)
     ) {
       throw new AppError(
         "Survey already activated",
@@ -113,6 +134,7 @@ export default class SurveyService implements ISurveyService {
       );
     }
 
+    // Rule 3
     const {
       success,
       data: serializedData,
@@ -120,28 +142,44 @@ export default class SurveyService implements ISurveyService {
     } = z.safeParse(updateSurveySchema, data);
     if (!success) throw error;
 
+    // Rule 4
     const newSlug = serializedData.name
       ? slugify(serializedData.name, { lower: true, strict: true })
       : slug;
-
-    let newSlugExists = false;
-
-    if (slug !== newSlug) {
-      newSlugExists = Boolean(await this.repo.getSlugBySlug(newSlug));
+    if (slug !== newSlug && (await this.repo.getSlugBySlug(newSlug))) {
+      throw this.nameConflictError();
     }
 
-    if (newSlugExists) {
-      throw new AppError("Conflict", "This survey name is not avaliable", 400);
-    }
-
-    const updatedSurvey = await this.repo.updateOneBySlug(slug, {
-      ...serializedData,
+    // Rules 5 and 6
+    const { name, questions, isActive } = serializedData;
+    const updatedSurvey = await this.update(slug, {
       slug: newSlug,
       updatedAt: new Date(),
-      activatedAt: serializedData.isActive ? new Date() : null,
+      ...(name !== undefined && { name }),
+      ...(questions !== undefined && { questions }),
+      ...(isActive === true && {
+        isActive: true,
+        activatedAt: new Date(),
+        isLocked: true,
+      }),
+      ...(isActive === false && { isActive: false, activatedAt: null }),
     });
 
     getLogger().info(updatedSurvey, "Survey updated successfully");
     return updatedSurvey;
+  }
+
+  private async update(slug: string, changes: SurveyChanges) {
+    try {
+      return await this.repo.updateOneBySlug(slug, changes);
+    } catch (err) {
+      // SURV-14 rule 4: a concurrent rename took the slug first
+      if (err instanceof UniqueViolationError) throw this.nameConflictError();
+      throw err;
+    }
+  }
+
+  private nameConflictError() {
+    return new AppError("Conflict", "This survey name is not avaliable", 409);
   }
 }

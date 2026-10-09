@@ -1,7 +1,8 @@
 import express, { type Express, type Request, type Response } from "express";
-import "dotenv/config";
 import surveyRouter from "./routes/surveyRouter.js";
+import statsRouter from "./routes/statsRouter.js";
 import userRouter from "./routes/userRouter.js";
+import invitationRouter from "./routes/invitationRouter.js";
 import { ErrorMiddleware } from "./middlewares/errorMiddleware.js";
 import cookieParser from "cookie-parser";
 import AppError from "./utils/appError.js";
@@ -12,6 +13,7 @@ import swaggerUi from "swagger-ui-express";
 import { generateOpenApiDocument } from "./lib/openapi.js";
 import loggingMiddleware from "./middlewares/loggingMiddleware.js";
 import requestContextMiddleware from "./middlewares/requestContextMiddleware.js";
+import { env } from "./config/env.js";
 
 const app: Express = express();
 const errorMiddleware = new ErrorMiddleware();
@@ -23,7 +25,7 @@ app.use(cookieParser());
 app.use(
   cors({
     credentials: true,
-    origin: "http://localhost:5173",
+    origin: env.CORS_ORIGIN,
   }),
 );
 app.use(helmet());
@@ -31,13 +33,15 @@ app.use(helmet());
 app.use("/api/", limiter(false));
 
 app.use("/api/v1/surveys", surveyRouter);
+app.use("/api/v1/stats", statsRouter);
 app.use("/api/v1/users", limiter(true), userRouter);
+app.use("/api/v1/invitations", invitationRouter);
 
 app.use(
   "/api/v1/docs",
   swaggerUi.serve,
   swaggerUi.setup(generateOpenApiDocument(), {
-    customSiteTitle: "Survey System API Documentation",
+    customSiteTitle: "Sondix API Documentation",
   }),
 );
 

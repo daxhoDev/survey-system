@@ -28,7 +28,13 @@ Schema: `surveyStatsSchema`, `optionStatsSchema` in `packages/schemas/src/survey
 ```
 
 - **STAT-03** `[implemented]` Counts are computed in PostgreSQL with `jsonb_array_length` / `jsonb_array_elements`; aggregates come back as `BigInt` and are serialized as numbers (API-04).
-- **STAT-04** `[implemented]` `optionStats` counts, for each option of each select question, how many answers selected it (`MULTI_SELECT` answers count once per selected option). `TEXT_ANSWER` questions do not appear.
+- **STAT-04** `[implemented]` `optionStats` counts, for each option of each select question, how many answers selected it (`MULTI_SELECT` answers count once per selected option). `TEXT_ANSWER` questions do not appear. Options are grouped by option id (two options with the same text are counted apart) and come in the order they have in the survey (`ORDER BY` question id, then option id).
 - **STAT-05** `[implemented]` Question and option ids are cast to `int` in SQL; they must be integers (DATA-09/10).
-- **STAT-06** `[open: OQ-06]` `optionStats` currently includes **soft-deleted** answers (the `expanded_responses` CTE does not filter `answers.deleted_at`), while `totalAnswers`/`completedAnswers`/`incompleteAnswers` exclude them.
+- **STAT-06** `[implemented]` Every count, `optionStats` included, ignores soft-deleted answers and only considers the non-deleted survey with that slug.
 - **STAT-07** `[implemented]` With no answers, all counts are `0` and every option has `responseCount: 0`.
+
+## GET `/api/v1/stats/surveys` — authenticated
+
+Code: `routes/statsRouter.ts` (mounted at `/api/v1/stats`), `SurveyController.getSummary`, `SurveyService.getSummary`, `SurveyRepository.getSummary`. Schema: `surveySummarySchema` (`SurveySummary`) in `packages/schemas/src/surveySchema.ts`. Operation `getSurveySummary`.
+
+- **STAT-08** `[implemented]` Response `200 { data: { all, active } }`: `all` is the number of non-deleted surveys and `active` how many of them are active. It ignores the list filters of `GET /surveys` (it feeds the dashboard counters, FE-17). The path lives outside `/surveys` so it can never clash with a survey slug (decided 2026-10-09, OQ-14).

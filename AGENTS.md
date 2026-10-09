@@ -1,4 +1,4 @@
-# Survey System — Agent Instructions
+# Sondix (survey-system) — Agent Instructions
 
 These rules are **mandatory** for any agent (and human) working in this repository.
 
@@ -29,7 +29,14 @@ These rules are **mandatory** for any agent (and human) working in this reposito
 - `README.md` (repository root) is the only README and is aimed at visitors of the
   repository; keep it consistent with the specs.
 
-## 4. Never decide alone
+## 4. Branches
+
+- Branch from `development` and open every PR against `development`.
+- **Never** open a PR against or merge into `master`: only the owner merges
+  `development` into `master`, manually (see DEV-WF-05 in
+  [`30-dev-workflow.md`](docs/sdd/30-dev-workflow.md)).
+
+## 5. Never decide alone
 
 - **Consult the owner before making any change.** Never take decisions on your own.
 - Analyze the possible options, present them with trade-offs and a
@@ -37,7 +44,7 @@ These rules are **mandatory** for any agent (and human) working in this reposito
 - Ask every pertinent question so that no doubt is resolved by the agent.
   Items marked `[open: OQ-xx]` in the specs are undecided by definition.
 
-## 5. Where to find things
+## 6. Where to find things
 
 | Topic | Spec |
 |-------|------|
@@ -48,4 +55,5 @@ These rules are **mandatory** for any agent (and human) working in this reposito
 | Environment variables | [05-configuration.md](docs/sdd/05-configuration.md) |
 | Auth, surveys, answers, stats | [10](docs/sdd/10-auth.md) · [11](docs/sdd/11-surveys.md) · [12](docs/sdd/12-answers.md) · [13](docs/sdd/13-stats.md) |
 | Web app | [20-frontend.md](docs/sdd/20-frontend.md) |
+| Brand, colors, themes, typography | [21-brand.md](docs/sdd/21-brand.md) |
 | Commands, codegen, migrations, testing, deployment | [30-dev-workflow.md](docs/sdd/30-dev-workflow.md) |

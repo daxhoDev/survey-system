@@ -10,26 +10,20 @@ import { useQueryClient } from "@tanstack/react-query";
 import { LogOut, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "./ui/skeleton";
-import type { User } from "@/lib/api/surveySystemAPI.schemas";
-import { useNavigate } from "react-router";
-import logo from "@/assets/logo.png";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
+import { Link, useNavigate } from "react-router";
+import logoLight from "@/assets/brand/logo-light.svg";
+import logoDark from "@/assets/brand/logo-dark.svg";
+import { Dialog, DialogTrigger } from "./ui/dialog";
+import ConfirmationDialog from "./ConfirmationDialog";
+import ThemeSelector from "./ThemeSelector";
+import { SidebarTrigger } from "./ui/sidebar";
 
 export default function DashboardHeader() {
-  const { data: rawData, isLoading, isRefetching } = useGetCurrentUser({});
+  const { data, isLoading, isRefetching } = useGetCurrentUser({});
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  const user = rawData as unknown as User | undefined;
+  const user = data?.data;
 
   const logout = useLogoutUser({
     mutation: {
@@ -38,7 +32,7 @@ export default function DashboardHeader() {
         navigate("/auth/login");
       },
       onError(error) {
-        toast.error(<p className="text-destructive">{error.detail}</p>);
+        toast.error(<p className="text-destructive-text">{error.detail}</p>);
       },
       mutationKey: [getGetCurrentUserQueryKey],
     },
@@ -49,22 +43,27 @@ export default function DashboardHeader() {
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
       <div className="flex items-center gap-2">
-        {/* <SidebarTrigger className="-ml-1" /> */}
-        {/* <Separator orientation="vertical" /> */}
-        <img src={logo} className="w-7" />
-        <span className="font-semibold text-sm tracking-tight text-foreground">
-          Dashboard
-        </span>
+        <SidebarTrigger />
+        {/* On mobile the sidebar is a closed sheet, so the logo stays here. */}
+        <Link
+          to="/dashboard"
+          aria-label="Sondix, ir a encuestas"
+          className="flex items-center rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none md:hidden"
+        >
+          <img src={logoLight} alt="" className="h-6 w-auto dark:hidden" />
+          <img src={logoDark} alt="" className="hidden h-6 w-auto dark:block" />
+        </Link>
       </div>
 
       <div className="flex items-center gap-4">
+        <ThemeSelector />
         {showLoading ? (
           <div className="flex items-center gap-2">
             <Skeleton className="h-8 w-8 rounded-full" />
             <Skeleton className="h-4 w-24" />
           </div>
         ) : !user ? (
-          <span className="text-xs text-destructive">Redirecting...</span>
+          <span className="text-xs text-destructive-text">Redirecting...</span>
         ) : (
           <Dialog>
             <div className="flex items-center gap-3">
@@ -89,26 +88,18 @@ export default function DashboardHeader() {
                   variant="ghost"
                   size="icon-sm"
                   disabled={logout.isPending}
-                  title="Logout"
-                  className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
+                  title="Cerrar sesión"
+                  aria-label="Cerrar sesión"
+                  className="text-muted-foreground hover:text-destructive-text hover:bg-destructive/10 cursor-pointer"
                 >
                   <LogOut className="size-4" />
                 </Button>
               </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Confirma tu acción</DialogTitle>
-                  <DialogDescription>{`Estás seguro de que deseas cerrar la sesión como ${user.username}?`}</DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button onClick={() => logout.mutate()} variant="destructive">
-                    Cerrar sesión
-                  </Button>
-                  <DialogClose asChild>
-                    <Button variant="secondary">Cancelar</Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
+              <ConfirmationDialog
+                description={`Estás seguro de que deseas cerrar la sesión como ${user.username}?`}
+                confirmText="Cerrar sesión"
+                onConfirm={() => logout.mutate()}
+              />
             </div>
           </Dialog>
         )}

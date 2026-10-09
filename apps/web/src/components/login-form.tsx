@@ -14,12 +14,13 @@ import {
   FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import PasswordInput from "@/components/PasswordInput";
 import { useForm } from "react-hook-form";
-import type { UserLogin } from "@/lib/api/surveySystemAPI.schemas";
+import type { UserLogin } from "@/lib/api/sondixAPI.schemas";
 import { useLoginUser, getGetCurrentUserQueryKey } from "@/lib/api/users/users";
-import { loginDataSchema } from "@survey-system/schemas";
+import { loginFormSchema } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import logo from "@/assets/logo.png";
+import isotype from "@/assets/brand/isotype-gradient.svg";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -34,7 +35,7 @@ export function LoginForm({
     formState: { errors },
   } = useForm<UserLogin>({
     reValidateMode: "onChange",
-    resolver: zodResolver(loginDataSchema),
+    resolver: zodResolver(loginFormSchema),
   });
 
   const navigate = useNavigate();
@@ -43,11 +44,12 @@ export function LoginForm({
   const login = useLoginUser({
     mutation: {
       onSuccess(data) {
-        queryClient.setQueryData(getGetCurrentUserQueryKey(), data.data);
+        // Same shape as GET /users/me: { data: user } (AUTH-21).
+        queryClient.setQueryData(getGetCurrentUserQueryKey(), { data: data.data });
         navigate("/dashboard");
       },
       onError(error) {
-        toast.error(<p className="text-destructive">{error.detail}</p>);
+        toast.error(<p className="text-destructive-text">{error.detail}</p>);
       },
     },
   });
@@ -56,13 +58,13 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center flex flex-col items-center">
-          <img src={logo} className="w-15 mb-5"></img>
-          <CardTitle className="text-xl">Welcome back</CardTitle>
+          <img src={isotype} alt="Sondix" className="w-15 mb-5 lg:hidden" />
+          <CardTitle className="text-h3">Inicia sesión</CardTitle>
           {/* <CardDescription>
             Login with your Apple or Google account
           </CardDescription> */}
           <CardDescription>
-            Login to access the survey management system
+            Accede al sistema de gestión de encuestas
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -96,11 +98,11 @@ export function LoginForm({
                 Or continue with
               </FieldSeparator> */}
               <Field>
-                <FieldLabel htmlFor="email">Email</FieldLabel>
+                <FieldLabel htmlFor="email">Correo electrónico</FieldLabel>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="mail@example.com"
+                  placeholder="correo@ejemplo.com"
                   {...register("email", { required: true })}
                 />
                 {errors.email && (
@@ -109,7 +111,7 @@ export function LoginForm({
               </Field>
               <Field>
                 <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
+                  <FieldLabel htmlFor="password">Contraseña</FieldLabel>
                   {/* <a
                     href="#"
                     className="ml-auto text-sm underline-offset-4 hover:underline"
@@ -117,9 +119,9 @@ export function LoginForm({
                     Forgot your password?
                   </a> */}
                 </div>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
+                  placeholder="Introduce tu contraseña"
                   {...register("password", { required: true })}
                 />
                 {errors.password && (
@@ -127,7 +129,7 @@ export function LoginForm({
                 )}
               </Field>
               <Field>
-                <Button type="submit">Login</Button>
+                <Button type="submit">Iniciar sesión</Button>
                 {/* <FieldDescription className="text-center">
                   Don&apos;t have an account? <a href="#">Sign up</a>
                 </FieldDescription> */}

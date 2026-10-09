@@ -1,4 +1,4 @@
-# Survey System — Spec-Driven Development Index
+# Sondix (survey-system) — Spec-Driven Development Index
 
 > **The specs in `docs/sdd/` are the primary source of truth for this project.**
 > Code, README, OpenAPI document and any other artifact must conform to them.
@@ -28,11 +28,12 @@ is listed here. Start with the process document before touching anything.
 | 03 | [Data model](03-data-model.md) | Database tables, JSON document shapes, soft delete, IDs |
 | 04 | [API conventions](04-api-conventions.md) | Routing, response envelope, errors (RFC 9457), rate limiting, logging, OpenAPI |
 | 05 | [Configuration](05-configuration.md) | Environment variables and their validation |
-| 10 | [Authentication](10-auth.md) | Signup, login, logout, refresh, current user, cookies, tokens |
+| 10 | [Authentication](10-auth.md) | Invitations, `create-user`, login, logout, refresh, current user, cookies, tokens |
 | 11 | [Surveys](11-surveys.md) | Survey CRUD, questions, activation and locking, listing |
 | 12 | [Answers](12-answers.md) | Submitting and managing answers, validation rules, IP uniqueness |
 | 13 | [Statistics](13-stats.md) | Survey statistics endpoint and its computation |
 | 20 | [Frontend](20-frontend.md) | Web app routes, pages, API client, auth handling, UI conventions |
+| 21 | [Brand identity](21-brand.md) | Sondix name, palette, themes, typography, radii, accessibility targets, logo |
 | 30 | [Development workflow](30-dev-workflow.md) | Tooling, commands, code generation, migrations, testing, deployment |
 | — | [BACKLOG.md](BACKLOG.md) | Decided-but-pending work (`BL-xx`) and open questions (`OQ-xx`) |
 | — | [DEVIATIONS.md](DEVIATIONS.md) | Registry of deviations from the specs |

@@ -61,27 +61,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
-import type { Survey, SurveyStats } from "@/lib/api/surveySystemAPI.schemas";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-
-interface AnswerItem {
-  id: string;
-  createdAt: string;
-  originIp: string;
-  responses: Array<{
-    id: number;
-    content: string | number[];
-  }>;
-}
+import type { Answer } from "@/lib/api/sondixAPI.schemas";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import ConfirmationDialog from "@/components/ConfirmationDialog";
+import LockedBadge from "@/components/LockedBadge";
+import { getGetSurveySummaryQueryKey } from "@/lib/api/stats/stats";
 
 export default function SurveyDetailsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -90,7 +74,7 @@ export default function SurveyDetailsPage() {
 
   const [activeTab, setActiveTab] = useState("overview");
   const [copied, setCopied] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<AnswerItem | null>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<Answer | null>(null);
 
   // Queries
   const {
@@ -123,19 +107,22 @@ export default function SurveyDetailsPage() {
     },
   });
 
-  const survey = (surveyData as any)?.data as Survey | undefined;
-  const stats = (statsData as any)?.data as SurveyStats | undefined;
-  const answers = (answersData as any)?.data as AnswerItem[] | undefined;
+  const survey = surveyData?.data;
+  const stats = statsData?.data;
+  const answers = answersData?.data;
 
   // Mutations
   const updateSurvey = useUpdateSurveyBySlug({
     mutation: {
       onSuccess() {
         queryClient.invalidateQueries({
-          queryKey: [`http://localhost:3000/api/v1/surveys/${slug}`],
+          queryKey: getGetSurveyBySlugQueryKey(slug || ""),
         });
         queryClient.invalidateQueries({
           queryKey: getGetAllSurveysQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getGetSurveySummaryQueryKey(),
         });
         toast.success("Estado de la encuesta actualizado");
       },
@@ -150,6 +137,9 @@ export default function SurveyDetailsPage() {
       onSuccess() {
         queryClient.invalidateQueries({
           queryKey: getGetAllSurveysQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getGetSurveySummaryQueryKey(),
         });
         toast.success("Encuesta eliminada correctamente");
         navigate("/dashboard");
@@ -218,7 +208,7 @@ export default function SurveyDetailsPage() {
     return (
       <div className="p-6">
         <Card className="border-destructive/20 bg-destructive/5 text-center p-8">
-          <CardTitle className="text-destructive">
+          <CardTitle className="text-destructive-text">
             Error al cargar detalles
           </CardTitle>
           <CardDescription className="mt-2">
@@ -247,14 +237,18 @@ export default function SurveyDetailsPage() {
               variant="ghost"
               size="icon-sm"
               onClick={() => navigate("/dashboard")}
+              aria-label="Volver a encuestas"
               className="cursor-pointer"
             >
               <ArrowLeft className="size-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">
-                {survey.name}
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-h1">
+                  {survey.name}
+                </h1>
+                {survey.isLocked && <LockedBadge />}
+              </div>
               <p className="text-xs text-muted-foreground">
                 slug: {survey.slug}
               </p>
@@ -292,20 +286,11 @@ export default function SurveyDetailsPage() {
             </DialogTrigger>
           </div>
         </div>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirma tu acción</DialogTitle>
-            <DialogDescription>{`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="destructive" onClick={handleDeleteSurvey}>
-              Eliminar
-            </Button>
-            <DialogClose asChild>
-              <Button variant="secondary">Cancelar</Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
+        <ConfirmationDialog
+          confirmText="Eliminar"
+          description={`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}
+          onConfirm={handleDeleteSurvey}
+        />
       </Dialog>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -328,7 +313,7 @@ export default function SurveyDetailsPage() {
         <TabsContent value="overview" className="space-y-6 mt-4">
           <Card className="border-border/60 bg-card/60 backdrop-blur shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg">Compartir Encuesta</CardTitle>
+              <CardTitle>Compartir Encuesta</CardTitle>
               <CardDescription>
                 Copia este enlace para enviarlo a los encuestados.
               </CardDescription>
@@ -344,9 +329,10 @@ export default function SurveyDetailsPage() {
                   onClick={handleCopyLink}
                   className="cursor-pointer"
                   title="Copiar enlace"
+                  aria-label="Copiar enlace"
                 >
                   {copied ? (
-                    <Check className="size-4 text-emerald-500" />
+                    <Check className="size-4 text-success-text" />
                   ) : (
                     <Copy className="size-4" />
                   )}
@@ -357,6 +343,7 @@ export default function SurveyDetailsPage() {
                   onClick={() => window.open(publicUrl, "_blank")}
                   className="cursor-pointer"
                   title="Abrir enlace"
+                  aria-label="Abrir enlace"
                 >
                   <ExternalLink className="size-4" />
                 </Button>
@@ -366,7 +353,7 @@ export default function SurveyDetailsPage() {
 
           <Card className="border-border/60 bg-card/60 backdrop-blur shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg">
+              <CardTitle>
                 Preguntas de la Encuesta
               </CardTitle>
               <CardDescription>
@@ -388,11 +375,11 @@ export default function SurveyDetailsPage() {
                       {question.name}
                     </span>
                     {question.isRequired && (
-                      <span className="text-[10px] border border-destructive/20 text-destructive bg-destructive/5 px-2 py-0.5 rounded font-medium uppercase">
+                      <span className="text-xs border border-destructive/20 text-destructive-text bg-destructive/5 px-2 py-0.5 rounded font-medium uppercase">
                         Requerido
                       </span>
                     )}
-                    <span className="text-[10px] border border-primary/20 text-primary bg-primary/5 px-2 py-0.5 rounded font-medium uppercase">
+                    <span className="text-xs border border-primary/20 text-primary bg-primary/5 px-2 py-0.5 rounded font-medium uppercase">
                       {question.type}
                     </span>
                   </div>
@@ -400,7 +387,7 @@ export default function SurveyDetailsPage() {
                   {(question.type === "SINGLE_SELECT" ||
                     question.type === "MULTI_SELECT") && (
                     <div className="pl-8 space-y-1">
-                      <p className="text-[10px] font-bold text-muted-foreground uppercase">
+                      <p className="text-xs font-bold text-muted-foreground uppercase">
                         Opciones:
                       </p>
                       <ul className="list-disc list-inside pl-2 text-xs text-muted-foreground space-y-0.5">
@@ -420,7 +407,7 @@ export default function SurveyDetailsPage() {
         <TabsContent value="answers" className="mt-4">
           <Card className="border-border/60 bg-card/60 backdrop-blur shadow-sm">
             <CardHeader>
-              <CardTitle className="text-lg">Respuestas Recibidas</CardTitle>
+              <CardTitle>Respuestas Recibidas</CardTitle>
               <CardDescription>
                 Lista de todas las participaciones registradas en esta encuesta.
               </CardDescription>
@@ -513,7 +500,7 @@ export default function SurveyDetailsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <span className="text-3xl font-bold tracking-tight text-emerald-500">
+                    <span className="text-3xl font-bold tracking-tight text-success-text">
                       {stats.completedAnswers}
                     </span>
                   </CardContent>
@@ -525,7 +512,7 @@ export default function SurveyDetailsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <span className="text-3xl font-bold tracking-tight text-destructive">
+                    <span className="text-3xl font-bold tracking-tight text-destructive-text">
                       {stats.incompleteAnswers}
                     </span>
                   </CardContent>
@@ -543,7 +530,7 @@ export default function SurveyDetailsPage() {
                   const chartConfig = {
                     respuestas: {
                       label: "Respuestas",
-                      color: "oklch(var(--primary))",
+                      color: "var(--chart-1)",
                     },
                   };
 
@@ -586,12 +573,12 @@ export default function SurveyDetailsPage() {
                                 tickLine={false}
                                 axisLine={false}
                                 width={100}
-                                className="text-[10px]"
+                                className="text-xs"
                               />
                               <XAxis type="number" hide />
                               <Bar
                                 dataKey="respuestas"
-                                fill="oklch(var(--primary))"
+                                fill="var(--color-respuestas)"
                                 radius={4}
                               />
                               <ChartTooltip content={<ChartTooltipContent />} />
@@ -692,31 +679,16 @@ export default function SurveyDetailsPage() {
                       <span>Eliminar respuesta</span>
                     </Button>
                   </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Confirma tu acción</DialogTitle>
-                      <DialogDescription>
-                        ¿Seguro que deseas eliminar esta respuesta?
-                      </DialogDescription>
-                    </DialogHeader>
-                    <DialogFooter>
-                      <Button
-                        variant="destructive"
-                        disabled={deleteAnswer.isPending}
-                        onClick={() =>
-                          deleteAnswer.mutate({
-                            slug: survey.slug,
-                            id: selectedAnswer.id,
-                          })
-                        }
-                      >
-                        Eliminar
-                      </Button>
-                      <DialogClose asChild>
-                        <Button variant="secondary">Cancelar</Button>
-                      </DialogClose>
-                    </DialogFooter>
-                  </DialogContent>
+                  <ConfirmationDialog
+                    confirmText="Eliminar"
+                    description="¿Seguro que deseas eliminar esta respuesta?"
+                    onConfirm={() =>
+                      deleteAnswer.mutate({
+                        slug: survey.slug,
+                        id: selectedAnswer.id,
+                      })
+                    }
+                  />
                 </Dialog>
               </div>
             </div>

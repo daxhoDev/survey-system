@@ -35,7 +35,20 @@ model; differences with the current schema are tagged.
 | `user_id` | UUID UNIQUE FK → users.id | `ON DELETE CASCADE`. Unique ⇒ at most one active refresh token (session) per user |
 | `token_hash` | TEXT UNIQUE | SHA-256 hex of the raw token; the raw token is only sent in the cookie |
 | `created_at` | TIMESTAMPTZ | default now |
-| `expires_at` | TIMESTAMPTZ | now + `REFRESH_TOKEN_TTL_DAYS` days (currently `REFRESH_EXPIRES_IN`, see BL-05) |
+| `expires_at` | TIMESTAMPTZ | now + `REFRESH_TOKEN_TTL_DAYS` days |
+
+### `invitations`
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | UUID PK | v7 |
+| `email` | TEXT | invited email; the account is created with it |
+| `token_hash` | TEXT UNIQUE | SHA-256 hex of the raw token (AUTH-23) |
+| `invited_by` | UUID? FK → users.id | `ON DELETE SET NULL` |
+| `created_at` | TIMESTAMPTZ | default now |
+| `expires_at` | TIMESTAMPTZ | created_at + 48 h |
+| `accepted_at` | TIMESTAMPTZ? | set when the account is created |
+| `revoked_at` | TIMESTAMPTZ? | set when revoked or replaced |
 
 ### `surveys`
 
@@ -43,16 +56,16 @@ model; differences with the current schema are tagged.
 |--------|------|-------|
 | `id` | UUID PK | v7 |
 | `name` | TEXT | min 5 chars |
-| `slug` | TEXT UNIQUE (`is_unique`) | derived from name |
+| `slug` | TEXT | derived from name; unique among non-deleted surveys (partial unique index `is_unique`, DATA-06) |
 | `questions` | JSONB | array of Question documents (§3) |
 | `is_active` | BOOLEAN | default false |
-| `is_locked` | BOOLEAN | default false. `[pending: BL-04]` — column does not exist yet |
-| `activated_at` | TIMESTAMPTZ? | time of the **latest** activation; null while inactive (SURV-14) |
+| `is_locked` | BOOLEAN | NOT NULL, default false; set on first activation, never reset (SURV-02). Migration `20260923220000_survey_is_locked` |
+| `activated_at` | TIMESTAMPTZ? | time of the **latest** activation; null while inactive, except on deleted surveys, which keep it for auditing (SURV-14, SURV-19) |
 | `created_at` | TIMESTAMPTZ | default now |
 | `updated_at` | TIMESTAMPTZ? | set on every update |
 | `deleted_at` | TIMESTAMPTZ? | soft delete |
 
-- **DATA-06** `[open: OQ-05]` The DB unique constraint on `slug` also covers soft-deleted rows, while the service only checks non-deleted surveys. Creating a survey whose slug matches a deleted one currently fails with a 500.
+- **DATA-06** `[implemented]` `slug` is unique only among **non-deleted** surveys: partial unique index `is_unique` on `(slug) WHERE deleted_at IS NULL` (Prisma preview feature `partialIndexes`, migration `20260930120000_soft_delete_partial_uniques`). Deleting a survey frees its name and slug; the deleted row is kept. Every query that resolves a survey by slug filters `deleted_at IS NULL`.
 
 ### `answers`
 
@@ -65,11 +78,11 @@ model; differences with the current schema are tagged.
 | `created_at` | TIMESTAMPTZ | default now |
 | `deleted_at` | TIMESTAMPTZ? | soft delete |
 
-- **DATA-07** `[pending: BL-06]` `origin_ip` must be unique **per survey**: composite unique `(survey_id, origin_ip)`. Currently `origin_ip` alone is unique, so one IP can only ever answer one survey in the whole system.
+- **DATA-07** `[implemented]` `origin_ip` must be unique **per survey among non-deleted answers**: partial composite unique `(survey_id, origin_ip) WHERE deleted_at IS NULL` (index `answers_survey_id_origin_ip_key`, migrations `20260923190000_answers_ip_unique_per_survey` and `20260930120000_soft_delete_partial_uniques`). A soft-deleted answer does not block its IP (ANS-04).
 
-### Enum `answer_type`
+### Question types
 
-- **DATA-08** `[open: OQ-02]` The DB enum `answer_type` (`TEXT_RESPONSE`, `SINGLE_SELECT`, `MULTI_SELECT`) exists but is not used by any column. The canonical free-text type is `TEXT_ANSWER` (see §3); the enum is inconsistent with it.
+- **DATA-08** `[implemented]` There is no DB enum for question types: they live inside the `questions` JSONB and are validated by the shared schemas (§3, canonical values `TEXT_ANSWER`, `SINGLE_SELECT`, `MULTI_SELECT`). The unused and inconsistent enum `answer_type` was dropped in migration `20260930120000_soft_delete_partial_uniques`.
 
 ## 3. JSON documents
 

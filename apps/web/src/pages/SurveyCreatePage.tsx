@@ -19,6 +19,8 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Trash, Plus, ArrowLeft } from "lucide-react";
+import { QUESTION_NAME_MIN, SURVEY_NAME_MIN } from "@survey-system/schemas";
+import { getGetSurveySummaryQueryKey } from "@/lib/api/stats/stats";
 
 interface OptionValue {
   content: string;
@@ -61,7 +63,7 @@ function QuestionOptionsFields({
           variant="outline"
           size="xs"
           onClick={() => append({ content: "" })}
-          className="text-[10px] h-6 cursor-pointer gap-1"
+          className="cursor-pointer gap-1"
         >
           <Plus className="size-3" />
           <span>Añadir opción</span>
@@ -69,7 +71,7 @@ function QuestionOptionsFields({
       </div>
 
       {fields.length === 0 && (
-        <p className="text-xs text-destructive">
+        <p className="text-xs text-destructive-text">
           Debes añadir al menos una opción para esta pregunta.
         </p>
       )}
@@ -79,7 +81,7 @@ function QuestionOptionsFields({
           <div key={field.id} className="flex items-center gap-2">
             <Input
               placeholder={`Opción ${optionIndex + 1}`}
-              className="h-8 text-xs bg-background/80"
+              aria-label={`Opción ${optionIndex + 1}`}
               {...control.register(
                 `questions.${questionIndex}.options.${optionIndex}.content` as const,
                 { required: "El contenido de la opción es obligatorio" },
@@ -90,7 +92,8 @@ function QuestionOptionsFields({
               variant="ghost"
               size="icon-xs"
               onClick={() => remove(optionIndex)}
-              className="text-destructive hover:bg-destructive/10 h-8 w-8 cursor-pointer shrink-0"
+              aria-label="Eliminar opción"
+              className="text-destructive-text hover:bg-destructive/10 size-9 cursor-pointer shrink-0"
             >
               <Trash className="size-3.5" />
             </Button>
@@ -164,6 +167,9 @@ export default function SurveyCreatePage() {
           queryClient.invalidateQueries({
             queryKey: getGetAllSurveysQueryKey(),
           });
+          queryClient.invalidateQueries({
+            queryKey: getGetSurveySummaryQueryKey(),
+          });
           toast.success("Encuesta creada correctamente");
           navigate("/dashboard");
         },
@@ -181,12 +187,13 @@ export default function SurveyCreatePage() {
           variant="ghost"
           size="icon-sm"
           onClick={() => navigate("/dashboard")}
+          aria-label="Volver a encuestas"
           className="cursor-pointer"
         >
           <ArrowLeft className="size-4" />
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Nueva Encuesta</h1>
+          <h1 className="text-h1">Nueva Encuesta</h1>
           <p className="text-sm text-muted-foreground">
             Diseña tu encuesta añadiendo preguntas y opciones.
           </p>
@@ -196,27 +203,30 @@ export default function SurveyCreatePage() {
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card className="border-border/60 bg-card/60 backdrop-blur shadow-md">
           <CardHeader>
-            <CardTitle className="text-lg">Configuración General</CardTitle>
+            <CardTitle>Configuración General</CardTitle>
             <CardDescription>
               Establece el nombre general de la encuesta.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="survey-name">Nombre de la Encuesta</Label>
+              <Label htmlFor="survey-name">
+                Nombre de la Encuesta <span aria-hidden="true" className="text-destructive-text">*</span>
+              </Label>
               <Input
                 id="survey-name"
+                aria-required="true"
                 placeholder="Ej. Encuesta de Clima Laboral"
                 {...register("name", {
                   required: "El nombre de la encuesta es obligatorio",
                   minLength: {
-                    value: 5,
-                    message: "Debe tener al menos 5 caracteres",
+                    value: SURVEY_NAME_MIN,
+                    message: `Debe tener al menos ${SURVEY_NAME_MIN} caracteres`,
                   },
                 })}
               />
               {errors.name && (
-                <p className="text-xs text-destructive">
+                <p className="text-xs text-destructive-text">
                   {errors.name.message}
                 </p>
               )}
@@ -226,7 +236,7 @@ export default function SurveyCreatePage() {
 
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-foreground">Preguntas</h2>
+            <h2 className="text-h2">Preguntas</h2>
             <Button
               type="button"
               onClick={() =>
@@ -263,7 +273,8 @@ export default function SurveyCreatePage() {
                       variant="ghost"
                       size="icon-sm"
                       onClick={() => remove(index)}
-                      className="text-destructive hover:bg-destructive/10 cursor-pointer h-8 w-8"
+                      aria-label="Eliminar pregunta"
+                      className="text-destructive-text hover:bg-destructive/10 cursor-pointer h-8 w-8"
                     >
                       <Trash className="size-4" />
                     </Button>
@@ -273,19 +284,23 @@ export default function SurveyCreatePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Name */}
                       <div className="space-y-1.5">
-                        <Label>Pregunta #{index + 1}</Label>
+                        <Label htmlFor={`q-${index}-name`}>
+                          Pregunta #{index + 1} <span aria-hidden="true" className="text-destructive-text">*</span>
+                        </Label>
                         <Input
+                          id={`q-${index}-name`}
+                          aria-required="true"
                           placeholder="Ej. ¿Qué opinas sobre el nuevo horario de trabajo?"
                           {...register(`questions.${index}.name` as const, {
                             required: "La pregunta es obligatoria",
                             minLength: {
-                              value: 5,
-                              message: "Debe tener al menos 5 caracteres",
+                              value: QUESTION_NAME_MIN,
+                              message: `Debe tener al menos ${QUESTION_NAME_MIN} caracteres`,
                             },
                           })}
                         />
                         {errors.questions?.[index]?.name && (
-                          <p className="text-xs text-destructive">
+                          <p className="text-xs text-destructive-text">
                             {errors.questions[index]?.name?.message}
                           </p>
                         )}
@@ -293,9 +308,10 @@ export default function SurveyCreatePage() {
 
                       {/* Type Selection */}
                       <div className="space-y-1.5">
-                        <Label>Tipo de Pregunta</Label>
+                        <Label htmlFor={`q-${index}-type`}>Tipo de Pregunta</Label>
                         <select
-                          className="flex h-8 w-full border border-input bg-transparent px-3 py-1 text-xs shadow-xs transition-colors focus-visible:outline-hidden focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 rounded-none bg-background/50 border-border/80 focus:border-primary outline-hidden"
+                          id={`q-${index}-type`}
+                          className="flex h-9 w-full rounded-sm border border-input-border bg-card px-3 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                           {...register(`questions.${index}.type` as const)}
                         >
                           <option value="TEXT_ANSWER">
@@ -325,7 +341,7 @@ export default function SurveyCreatePage() {
                       />
                       <Label
                         htmlFor={`q-${index}-required`}
-                        className="text-xs font-normal cursor-pointer select-none"
+                        className="font-normal cursor-pointer select-none"
                       >
                         Pregunta obligatoria (requerida)
                       </Label>

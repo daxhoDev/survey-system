@@ -3,6 +3,7 @@ import AppError from "../utils/appError.js";
 import { ZodError } from "zod";
 import { type TokenExpiredError } from "jsonwebtoken";
 import { getLogger } from "../context/requestContext.js";
+import { env } from "../config/env.js";
 
 export class ErrorMiddleware {
   handleZodError(err: ZodError) {
@@ -47,14 +48,26 @@ export class ErrorMiddleware {
       logger.warn({ err }, `Client Error: ${err.title}`);
     }
 
-    if (process.env.NODE_ENV === "development") {
+    if (env.NODE_ENV === "development") {
       this.sendErrorDev(err, res);
-    } else if (process.env.NODE_ENV === "production") {
+    } else {
       this.sendErrorProd(err, res);
     }
   };
 
   sendErrorDev(err: AppError, res: Response) {
+    if (!err.isOperational) {
+      // Same generic body as production, plus the debugging fields.
+      res.status(500).type("application/problem+json").json({
+        type: err.type,
+        status: 500,
+        title: "Unexpected error",
+        detail: "Something went wrong",
+        error: err,
+        stack: err.stack,
+      });
+      return;
+    }
     res
       .status(err.status)
       .type("application/problem+json")

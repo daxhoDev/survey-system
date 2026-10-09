@@ -12,24 +12,32 @@ import type {
   createAnswerSchema,
   responseSchema,
 } from "@survey-system/schemas";
-import type { createUserSchema, loginDataSchema } from "@survey-system/schemas";
+import type {
+  acceptInvitationSchema,
+  createUserSchema,
+  loginDataSchema,
+} from "@survey-system/schemas";
 import type { Logger } from "pino";
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////
 // REPOSITORIES
 export interface ISurveyRepository {
-  getAll(queries: QueryString): Promise<Survey[]>;
+  getAll(queries: QueryString): Promise<{ surveys: Survey[]; total: number }>;
+  getSummary(): Promise<SurveySummary>;
   getBySlug(slug: string): Promise<Survey | null>;
   createOne(
     survey: CreateSurveyData & { id: string; slug: string },
   ): Promise<Survey>;
   deleteOneBySlug(slug: string): Promise<void>;
-  updateOneBySlug(slug: string, data: any): Promise<Survey | null>;
-  getSlugBySlug(slug: string): Promise<Pick<Survey, "slug"> | null>;
-  getActivatedAtBySlug(
+  updateOneBySlug(
     slug: string,
-  ): Promise<Pick<Survey, "activatedAt"> | null>;
+    changes: SurveyChanges,
+  ): Promise<Survey | null>;
+  getSlugBySlug(slug: string): Promise<Pick<Survey, "slug"> | null>;
+  getIsLockedBySlug(
+    slug: string,
+  ): Promise<Pick<Survey, "isLocked"> | null>;
   getSurveyStatsBySlug(
     slug: string,
   ): Promise<Pick<
@@ -40,8 +48,9 @@ export interface ISurveyRepository {
 }
 
 export interface IAnswerRepository {
-  getAllFromSurvey(slug: string): Promise<Answer[]>;
+  getAllFromSurvey(surveyId: string): Promise<Answer[]>;
   getById(
+    surveyId: string,
     id: string,
   ): Promise<
     (Answer & { surveys: Pick<Survey, "name" | "questions"> | null }) | null
@@ -54,7 +63,10 @@ export interface IAnswerRepository {
     },
   ): Promise<Answer>;
   deleteById(id: string): Promise<void>;
-  getIpByOriginIp(ip: string): Promise<Pick<Answer, "originIp"> | null>;
+  getIpBySurveyIdAndIp(
+    surveyId: string,
+    ip: string,
+  ): Promise<Pick<Answer, "originIp"> | null>;
 }
 
 export interface IUserRepository {
@@ -82,17 +94,22 @@ export interface IRefreshTokenRepository {
 
 export interface ISurveyService extends Omit<
   ISurveyRepository,
+  | "getBySlug"
   | "getSlugBySlug"
-  | "getActivatedAtBySlug"
+  | "getIsLockedBySlug"
   | "getResponsesOptionsStatsBySlug"
   | "getSurveyStatsBySlug"
 > {
+  getBySlug(slug: string, session: Session): Promise<Survey>;
   getStatsBySlug(slug: string): Promise<SurveyStats>;
 }
-export interface IAnswerService extends Omit<
-  IAnswerRepository,
-  "createOne" | "getIpByOriginIp"
-> {
+export interface IAnswerService {
+  getAllFromSurvey(surveySlug: string): Promise<Answer[]>;
+  getById(
+    surveySlug: string,
+    id: string,
+  ): Promise<Answer & { surveys: Pick<Survey, "name" | "questions"> | null }>;
+  deleteById(surveySlug: string, id: string): Promise<void>;
   createOne(
     answer: CreateAnswerData,
     slug: string,
@@ -104,8 +121,32 @@ export interface IAnswerService extends Omit<
   ): CreateAnswerData;
 }
 
+export interface IInvitationRepository {
+  createReplacingPending(invitation: NewInvitation): Promise<InvitationRow>;
+  getAll(): Promise<InvitationRow[]>;
+  getById(id: string): Promise<InvitationRow | null>;
+  getByTokenHash(tokenHash: string): Promise<InvitationRow | null>;
+  revoke(id: string): Promise<void>;
+  // Creates the user and marks the invitation accepted atomically; null if
+  // the invitation was accepted or revoked meanwhile.
+  acceptWithNewUser(
+    invitationId: string,
+    account: NewAccount,
+  ): Promise<UserWithoutPassword | null>;
+}
+
+export interface IInvitationService {
+  create(email: string, invitedBy: string): Promise<{ invitation: Invitation; token: string }>;
+  getAll(): Promise<Invitation[]>;
+  revoke(id: string): Promise<void>;
+  getByToken(token: string): Promise<Pick<Invitation, "email" | "expiresAt">>;
+  accept(token: string, data: AcceptInvitationData): Promise<UserWithTokens>;
+}
+
 export interface IAuthService {
-  signup(data: CreateUserData): Promise<UserWithTokens>;
+  prepareAccount(data: CreateUserData): Promise<NewAccount>;
+  createAccount(data: CreateUserData): Promise<UserWithoutPassword>;
+  issueTokens(user: UserPayload): Promise<FreshTokens>;
   login(data: LoginData): Promise<UserWithTokens>;
   logout(id: string): Promise<void>;
   refresh(token: string): Promise<FreshTokens>;
@@ -121,10 +162,15 @@ export interface IAuthService {
 
 export type CreateSurveyData = z.infer<typeof createSurveySchema>;
 export type UpdateSurveyData = z.infer<typeof updateSurveySchema>;
-export type UpdateSurveyDataWithMetadata = UpdateSurveyData & {
+// Columns an update writes; absent keys are left unchanged (SURV-14).
+export type SurveyChanges = {
+  name?: string;
+  questions?: Question[];
   slug: string;
   updatedAt: Date;
-  activatedAt: Date;
+  isActive?: boolean;
+  activatedAt?: Date | null;
+  isLocked?: true;
 };
 
 export type Survey = CreateSurveyData & {
@@ -135,6 +181,7 @@ export type Survey = CreateSurveyData & {
   updatedAt: Date | null;
   deletedAt: Date | null;
   activatedAt: Date | null;
+  isLocked: boolean;
 };
 export type Question = z.infer<typeof questionSchema>;
 
@@ -166,7 +213,10 @@ export type QueryString = z.infer<typeof queryStringSchema>;
 
 export interface ProtectedRequest extends Request {
   user?: UserPayload;
+  sessionExpired?: boolean;
 }
+
+export type Session = "authenticated" | "expired" | "anonymous";
 export type LoginData = z.infer<typeof loginDataSchema>;
 
 export type CreateRefreshTokenData = {
@@ -194,6 +244,8 @@ export type OptionStats = {
   }[];
 };
 
+export type SurveySummary = { all: number; active: number };
+
 export type SurveyStats = {
   totalAnswers: number;
   completedAnswers: number;
@@ -207,3 +259,25 @@ export interface RequestContext {
   // userId?: string;
   logger: Logger;
 }
+
+export type AcceptInvitationData = z.infer<typeof acceptInvitationSchema>;
+// A validated, hashed account ready to insert (AUTH-10, AUTH-11).
+export type NewAccount = { id: string; email: string; username: string; password: string };
+export type NewInvitation = {
+  id: string;
+  email: string;
+  tokenHash: string;
+  invitedBy: string;
+  expiresAt: Date;
+};
+export type InvitationRow = {
+  id: string;
+  email: string;
+  invitedBy: { id: string; username: string } | null;
+  createdAt: Date;
+  expiresAt: Date;
+  acceptedAt: Date | null;
+  revokedAt: Date | null;
+};
+export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
+export type Invitation = InvitationRow & { status: InvitationStatus };

@@ -1,6 +1,6 @@
 import type { NextFunction, Request, Response } from "express";
 import { json } from "../utils/json.js";
-import type { ISurveyService, ProtectedRequest } from "../types.js";
+import type { ISurveyService, ProtectedRequest, Session } from "../types.js";
 import { queryStringSchema } from "@survey-system/schemas";
 import z from "zod";
 import { getLogger } from "../context/requestContext.js";
@@ -17,38 +17,39 @@ export default class SurveyController {
     } = z.safeParse(queryStringSchema, req.query);
     if (!success) throw error;
 
-    const surveys = await this.service.getAll(queries);
+    const { surveys, total } = await this.service.getAll(queries);
 
     const results = surveys.length;
     const page = queries.page || 1;
     const limit = queries.limit || 10;
 
     getLogger().info(
-      {
-        results,
-        page,
-        limit,
-      },
-      `fetched ${surveys.length} items`,
+      { results, total, page, limit },
+      `fetched ${results} of ${total} items`,
     );
     res
       .type("json")
       .status(200)
-      .send(
-        json({
-          data: surveys,
-          meta: {
-            results: surveys.length,
-            page: queries.page || 1,
-            limit: queries.limit || 10,
-          },
-        }),
-      );
+      .send(json({ data: surveys, meta: { results, total, page, limit } }));
   }
 
-  async getBySlug(req: Request, res: Response, next: NextFunction) {
+  // GET /api/v1/stats/surveys (STAT-08).
+  async getSummary(_req: ProtectedRequest, res: Response) {
+    const summary = await this.service.getSummary();
+    res.type("json").status(200).send(json({ data: summary }));
+  }
+
+  async getBySlug(req: ProtectedRequest, res: Response, next: NextFunction) {
     getLogger().info({ slug: req.params.slug }, `Fetching survey by slug...`);
-    const survey = await this.service.getBySlug(req.params.slug as string);
+    const session: Session = req.user
+      ? "authenticated"
+      : req.sessionExpired
+        ? "expired"
+        : "anonymous";
+    const survey = await this.service.getBySlug(
+      req.params.slug as string,
+      session,
+    );
     res
       .type("json")
       .status(200)

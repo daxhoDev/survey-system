@@ -1,9 +1,10 @@
 import { z } from "./zod-setup.js";
+import { QUESTION_NAME_MIN, SURVEY_NAME_MIN } from "./limits.js";
 
 const surveyNameSchema = z
   .string("Survey name must be a string")
   .nonempty("Survey name can't be empty")
-  .min(5, "Survey name is too short")
+  .min(SURVEY_NAME_MIN, "Survey name is too short")
   .openapi({ example: "Employee Satisfaction Survey" });
 
 export const questionSchema = z.strictObject(
@@ -15,7 +16,7 @@ export const questionSchema = z.strictObject(
     name: z
       .string("Must be a string")
       .nonempty("Can't be empty")
-      .min(5, "Must have al least 5 characters")
+      .min(QUESTION_NAME_MIN, `Must have al least ${QUESTION_NAME_MIN} characters`)
       .openapi({ example: "Are you happy at our company?" }),
     type: z
       .enum(
@@ -116,13 +117,16 @@ export const updateSurveySchema = z.object({
 export const surveySchema = z
   .strictObject(
     {
-      id: z.uuidv4("Must be a UUID").min(1, "Must be positive"),
+      id: z.uuid("Must be a UUID"),
       name: surveyNameSchema,
       questions: questionArrSchema,
       isActive: z.boolean("is_active must be a boolean"),
+      isLocked: z.boolean().openapi({
+        description: "Set on first activation; name and questions become immutable",
+      }),
       deletedAt: z.date().nullable(),
       createdAt: z.date(),
-      updatedAt: z.date(),
+      updatedAt: z.date().nullable(),
       slug: z.string("Must be a string").nonempty("Can't be empty"),
       activatedAt: z.date().nullable(),
     },
@@ -145,8 +149,12 @@ export const surveySchema = z
         },
       ],
       isActive: true,
+      isLocked: true,
+      slug: "employee-satisfaction-survey",
+      activatedAt: new Date("2024-01-02T00:00:00Z"),
       deletedAt: null,
       createdAt: new Date("2024-01-01T00:00:00Z"),
+      updatedAt: null,
     },
   });
 
@@ -199,3 +207,11 @@ export const surveyStatsSchema = z
       ],
     },
   });
+
+// Counters over every non-deleted survey (STAT-08).
+export const surveySummarySchema = z
+  .strictObject({
+    all: z.number().int().openapi({ example: 12 }),
+    active: z.number().int().openapi({ example: 4 }),
+  })
+  .openapi("SurveySummary");

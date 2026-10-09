@@ -1,151 +1,115 @@
 import {
   OpenAPIRegistry,
   OpenApiGeneratorV3,
+  type ResponseConfig,
 } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
 import {
-  createUserSchema,
-  loginDataSchema,
-  userSchema,
-} from "@survey-system/schemas";
-import {
+  acceptInvitationSchema,
+  answerSchema,
+  answerWithSurveySchema,
+  createAnswerSchema,
+  createInvitationSchema,
   createSurveySchema,
-  updateSurveySchema,
+  idParamSchema,
+  invitationSchema,
+  invitationTokenInfoSchema,
+  loginDataSchema,
   surveySchema,
   surveyStatsSchema,
+  surveySummarySchema,
+  updateSurveySchema,
+  userAccountSchema,
+  userSchema,
 } from "@survey-system/schemas";
-import { createAnswerSchema } from "@survey-system/schemas";
 
 export const registry = new OpenAPIRegistry();
 
-registry.registerComponent("securitySchemes", "bearerAuth", {
-  type: "http",
-  scheme: "bearer",
-  bearerFormat: "JWT",
+// The API authenticates only through cookies (AUTH-05, API-30).
+registry.registerComponent("securitySchemes", "cookieAuth", {
+  type: "apiKey",
+  in: "cookie",
+  name: "jwt",
+});
+registry.registerComponent("securitySchemes", "refreshCookie", {
+  type: "apiKey",
+  in: "cookie",
+  name: "refresh",
 });
 
-// Error Schema
-const errorSchema = registry.register(
-  "Error",
+const cookieAuth = [{ cookieAuth: [] }];
+
+// Error responses are RFC 9457 problems (API-09).
+const problemSchema = registry.register(
+  "Problem",
   z.object({
     type: z.string().openapi({ example: "about:blank" }),
-    status: z.number().openapi({ example: 400 }),
-    title: z.string().openapi({ example: "Error title" }),
-    detail: z.string().openapi({ example: "Error detail" }),
-    extensions: z.any().optional(),
+    status: z.number().int().openapi({ example: 404 }),
+    title: z.string().openapi({ example: "Not found" }),
+    detail: z.string().openapi({ example: "The requested survey doesn't exist" }),
+    errors: z
+      .array(z.object({ field: z.string(), message: z.string() }))
+      .optional()
+      .openapi({ description: "Only in 422 validation errors" }),
   }),
 );
 
-// Helper for responses
-const defaultResponses = {
-  400: {
-    description: "Bad Request",
-    content: {
-      "application/problem+json": {
-        schema: errorSchema,
-      },
-    },
-  },
-  401: {
-    description: "Unauthorized",
-    content: {
-      "application/problem+json": {
-        schema: errorSchema,
-      },
-    },
-  },
-  404: {
-    description: "Not Found",
-    content: {
-      "application/problem+json": {
-        schema: errorSchema,
-      },
-    },
-  },
-  422: {
-    description: "Validation Error",
-    content: {
-      "application/problem+json": {
-        schema: errorSchema,
-      },
-    },
-  },
-  500: {
-    description: "Internal Server Error",
-    content: {
-      "application/problem+json": {
-        schema: errorSchema,
-      },
-    },
-  },
-};
+const problemDescriptions = {
+  400: "Bad request",
+  401: "Missing, expired or invalid session",
+  403: "Forbidden",
+  404: "Not found",
+  409: "Conflict",
+  422: "Validation error",
+  429: "Too many requests",
+  500: "Unexpected error",
+} as const;
 
-// ... (Registry registrations remain largely the same, just adding defaultResponses to every registerPath)
-// Registry registrations are updated below ...
+type ProblemStatus = keyof typeof problemDescriptions;
 
-registry.register(
-  "SurveyStats",
-  surveyStatsSchema,
-);
+// Every endpoint can answer 429 (API-20) and 500; the rest are listed per path.
+function problems(...statuses: ProblemStatus[]) {
+  const responses: Record<number, ResponseConfig> = {};
+  for (const status of [...statuses, 429, 500] as ProblemStatus[]) {
+    responses[status] = {
+      description: problemDescriptions[status],
+      content: { "application/problem+json": { schema: problemSchema } },
+    };
+  }
+  return responses;
+}
 
-// User Routes
-registry.registerPath({
-  tags: ["Users"],
-  method: "post",
-  path: "/api/v1/users/signup",
-  summary: "Register a new user",
-  operationId: "registerUser",
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: createUserSchema,
-        },
-      },
-    },
-  },
-  responses: {
-    200: {
-      description: "User registered successfully",
-      content: {
-        "application/json": {
-          schema: z.object({
-            data: userSchema,
-          }),
-        },
-      },
-    },
-    ...defaultResponses,
-  },
+function json(description: string, schema: z.ZodType): ResponseConfig {
+  return { description, content: { "application/json": { schema } } };
+}
+
+const jsonBody = (schema: z.ZodType) => ({
+  body: { content: { "application/json": { schema } } },
 });
 
+const data = (schema: z.ZodType) => z.object({ data: schema });
+
+const slugParam = z.object({
+  slug: z.string().openapi({ example: "employee-satisfaction-survey" }),
+});
+const answerParams = slugParam.extend(idParamSchema.shape);
+
+registry.register("Survey", surveySchema);
+registry.register("SurveyStats", surveyStatsSchema);
+registry.register("SurveySummary", surveySummarySchema);
+registry.register("User", userSchema);
+
+// Users
 registry.registerPath({
   tags: ["Users"],
   method: "post",
   path: "/api/v1/users/login",
   summary: "Login a user",
   operationId: "loginUser",
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: loginDataSchema,
-        },
-      },
-    },
-  },
+  request: jsonBody(loginDataSchema),
   responses: {
-    200: {
-      description: "User logged in successfully",
-      content: {
-        "application/json": {
-          schema: z.object({
-            data: userSchema,
-          }),
-        },
-      },
-    },
-    ...defaultResponses,
+    200: json("Logged in; sets the jwt and refresh cookies", data(userAccountSchema)),
+    ...problems(401, 422),
   },
 });
 
@@ -153,14 +117,12 @@ registry.registerPath({
   tags: ["Users"],
   method: "post",
   path: "/api/v1/users/logout",
-  summary: "Logout a user",
+  summary: "Logout the current user",
   operationId: "logoutUser",
-  security: [{ bearerAuth: [] }],
+  security: cookieAuth,
   responses: {
-    204: {
-      description: "User logged out successfully",
-    },
-    ...defaultResponses,
+    204: { description: "Logged out; clears both cookies" },
+    ...problems(401),
   },
 });
 
@@ -168,13 +130,12 @@ registry.registerPath({
   tags: ["Users"],
   method: "post",
   path: "/api/v1/users/refresh",
-  summary: "Refresh auth token",
+  summary: "Refresh the session",
   operationId: "refreshAuthToken",
+  security: [{ refreshCookie: [] }],
   responses: {
-    204: {
-      description: "Token refreshed successfully",
-    },
-    ...defaultResponses,
+    204: { description: "New jwt and refresh cookies set" },
+    ...problems(401),
   },
 });
 
@@ -182,48 +143,155 @@ registry.registerPath({
   tags: ["Users"],
   method: "get",
   path: "/api/v1/users/me",
-  summary: "Get current user",
+  summary: "Get the current user",
   operationId: "getCurrentUser",
-  security: [{ bearerAuth: [] }],
+  security: cookieAuth,
   responses: {
-    200: {
-      description: "Current user profile",
-      content: {
-        "application/json": {
-          schema: userSchema,
-        },
-      },
-    },
-    ...defaultResponses,
+    200: json("Current user (from the access token)", data(userSchema)),
+    ...problems(401),
   },
 });
 
-// Survey Routes
+// Invitations (AUTH-23…AUTH-30)
+const tokenParam = z.object({
+  token: z.string().openapi({ description: "Raw invitation token from the link" }),
+});
+
+registry.registerPath({
+  tags: ["Invitations"],
+  method: "post",
+  path: "/api/v1/invitations",
+  summary: "Invite an email to create an account",
+  description:
+    "Replaces a pending invitation for the same email. The token is returned only here; the link is /auth/invite/{token}.",
+  operationId: "createInvitation",
+  security: cookieAuth,
+  request: jsonBody(createInvitationSchema),
+  responses: {
+    201: json(
+      "Invitation created",
+      data(z.object({ invitation: invitationSchema, token: z.string() })),
+    ),
+    ...problems(401, 409, 422),
+  },
+});
+
+registry.registerPath({
+  tags: ["Invitations"],
+  method: "get",
+  path: "/api/v1/invitations",
+  summary: "List invitations",
+  operationId: "getAllInvitations",
+  security: cookieAuth,
+  responses: {
+    200: json(
+      "Invitations, newest first",
+      z.object({
+        data: z.array(invitationSchema),
+        meta: z.object({ results: z.number().int() }),
+      }),
+    ),
+    ...problems(401),
+  },
+});
+
+registry.registerPath({
+  tags: ["Invitations"],
+  method: "delete",
+  path: "/api/v1/invitations/{id}",
+  summary: "Revoke a pending invitation",
+  operationId: "revokeInvitation",
+  security: cookieAuth,
+  request: { params: idParamSchema },
+  responses: {
+    204: { description: "Invitation revoked" },
+    ...problems(401, 404, 409, 422),
+  },
+});
+
+registry.registerPath({
+  tags: ["Invitations"],
+  method: "get",
+  path: "/api/v1/invitations/token/{token}",
+  summary: "Get a pending invitation by token",
+  operationId: "getInvitationByToken",
+  request: { params: tokenParam },
+  responses: {
+    200: json("Pending invitation", data(invitationTokenInfoSchema)),
+    ...problems(404),
+  },
+});
+
+registry.registerPath({
+  tags: ["Invitations"],
+  method: "post",
+  path: "/api/v1/invitations/token/{token}/accept",
+  summary: "Create the account of an invitation",
+  operationId: "acceptInvitation",
+  request: { params: tokenParam, ...jsonBody(acceptInvitationSchema) },
+  responses: {
+    201: json(
+      "Account created; sets the jwt and refresh cookies",
+      data(userAccountSchema),
+    ),
+    ...problems(404, 409, 422),
+  },
+});
+
+// Statistics
+registry.registerPath({
+  tags: ["Stats"],
+  method: "get",
+  path: "/api/v1/stats/surveys",
+  summary: "Count all and active surveys",
+  description:
+    "Counters over every non-deleted survey, ignoring the list filters (STAT-08).",
+  operationId: "getSurveySummary",
+  security: cookieAuth,
+  responses: {
+    200: json("Survey counters", z.object({ data: surveySummarySchema })),
+    ...problems(401),
+  },
+});
+
+// Surveys
 registry.registerPath({
   tags: ["Surveys"],
   method: "get",
   path: "/api/v1/surveys",
   summary: "Get all surveys",
   operationId: "getAllSurveys",
-  security: [{ bearerAuth: [] }],
+  security: cookieAuth,
   request: {
     query: z.object({
-      search: z.string().optional().openapi({ example: "tech" }),
-      page: z.number().optional().openapi({ example: 1 }),
-      limit: z.number().optional().openapi({ example: 10 }),
-      active: z.boolean().optional().openapi({ example: true }),
+      active: z.enum(["true", "false"]).optional(),
+      search: z.string().optional().openapi({ example: "employee" }),
+      date: z
+        .string()
+        .optional()
+        .openapi({ description: "Creation day, DD/MM/YYYY", example: "31/01/2026" }),
+      page: z.string().optional().openapi({ description: "Positive integer", example: "1" }),
+      limit: z.string().optional().openapi({ description: "Positive integer", example: "10" }),
+      sort: z.enum(["name", "-name", "creation", "-creation"]).optional(),
     }),
   },
   responses: {
-    200: {
-      description: "List of surveys",
-      content: {
-        "application/json": {
-          schema: z.array(surveySchema),
-        },
-      },
-    },
-    ...defaultResponses,
+    200: json(
+      "Page of surveys",
+      z.object({
+        data: z.array(surveySchema),
+        meta: z.object({
+          results: z.number().int().openapi({ description: "Items in this page" }),
+          total: z
+            .number()
+            .int()
+            .openapi({ description: "Items matching the filters, all pages" }),
+          page: z.number().int(),
+          limit: z.number().int(),
+        }),
+      }),
+    ),
+    ...problems(401, 422),
   },
 });
 
@@ -233,26 +301,11 @@ registry.registerPath({
   path: "/api/v1/surveys",
   summary: "Create a new survey",
   operationId: "createSurvey",
-  security: [{ bearerAuth: [] }],
-  request: {
-    body: {
-      content: {
-        "application/json": {
-          schema: createSurveySchema,
-        },
-      },
-    },
-  },
+  security: cookieAuth,
+  request: jsonBody(createSurveySchema),
   responses: {
-    201: {
-      description: "Survey created",
-      content: {
-        "application/json": {
-          schema: surveySchema,
-        },
-      },
-    },
-    ...defaultResponses,
+    201: json("Survey created (inactive)", data(surveySchema)),
+    ...problems(401, 409, 422),
   },
 });
 
@@ -261,20 +314,14 @@ registry.registerPath({
   method: "get",
   path: "/api/v1/surveys/{slug}",
   summary: "Get survey by slug",
+  description:
+    "Public. Inactive surveys are only returned with a session; an expired session on an inactive survey gets 401 so the client can refresh (SURV-12).",
   operationId: "getSurveyBySlug",
-  request: {
-    params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
-  },
+  security: [{}, { cookieAuth: [] }],
+  request: { params: slugParam },
   responses: {
-    200: {
-      description: "Survey details",
-      content: {
-        "application/json": {
-          schema: surveySchema,
-        },
-      },
-    },
-    ...defaultResponses,
+    200: json("Survey", data(surveySchema)),
+    ...problems(401, 404),
   },
 });
 
@@ -284,27 +331,11 @@ registry.registerPath({
   path: "/api/v1/surveys/{slug}",
   summary: "Update survey by slug",
   operationId: "updateSurveyBySlug",
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
-    body: {
-      content: {
-        "application/json": {
-          schema: updateSurveySchema,
-        },
-      },
-    },
-  },
+  security: cookieAuth,
+  request: { params: slugParam, ...jsonBody(updateSurveySchema) },
   responses: {
-    200: {
-      description: "Survey updated",
-      content: {
-        "application/json": {
-          schema: surveySchema,
-        },
-      },
-    },
-    ...defaultResponses,
+    200: json("Survey updated", data(surveySchema)),
+    ...problems(400, 401, 404, 409, 422),
   },
 });
 
@@ -314,15 +345,11 @@ registry.registerPath({
   path: "/api/v1/surveys/{slug}",
   summary: "Delete survey by slug",
   operationId: "deleteSurveyBySlug",
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
-  },
+  security: cookieAuth,
+  request: { params: slugParam },
   responses: {
-    204: {
-      description: "Survey deleted",
-    },
-    ...defaultResponses,
+    204: { description: "Survey deactivated and deleted (soft)" },
+    ...problems(401, 404),
   },
 });
 
@@ -330,47 +357,28 @@ registry.registerPath({
   tags: ["Surveys"],
   method: "get",
   path: "/api/v1/surveys/{slug}/stats",
-  summary: "Get survey stats by slug",
+  summary: "Get survey statistics",
   operationId: "getSurveyStatsBySlug",
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
-  },
+  security: cookieAuth,
+  request: { params: slugParam },
   responses: {
-    200: {
-      description: "Survey statistics",
-      content: {
-        "application/json": {
-          schema: surveyStatsSchema,
-        },
-      },
-    },
-    ...defaultResponses,
+    200: json("Survey statistics", data(surveyStatsSchema)),
+    ...problems(401, 404),
   },
 });
 
-// Answer Routes
+// Answers
 registry.registerPath({
   tags: ["Answers"],
   method: "post",
   path: "/api/v1/surveys/{slug}/answers",
-  summary: "Create an answer for a survey",
+  summary: "Submit an answer to a survey",
+  description: "Public. One answer per IP and survey; inactive surveys return 404.",
   operationId: "createSurveyAnswer",
-  request: {
-    params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
-    body: {
-      content: {
-        "application/json": {
-          schema: createAnswerSchema,
-        },
-      },
-    },
-  },
+  request: { params: slugParam, ...jsonBody(createAnswerSchema) },
   responses: {
-    200: {
-      description: "Answer created",
-    },
-    ...defaultResponses,
+    201: json("Answer stored", data(answerSchema)),
+    ...problems(400, 403, 404, 422),
   },
 });
 
@@ -378,27 +386,19 @@ registry.registerPath({
   tags: ["Answers"],
   method: "get",
   path: "/api/v1/surveys/{slug}/answers",
-  summary: "Get all answers for a survey",
+  summary: "Get all answers of a survey",
   operationId: "getAllSurveyAnswers",
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: z.object({ slug: z.string().openapi({ example: "survey-slug" }) }),
-  },
+  security: cookieAuth,
+  request: { params: slugParam },
   responses: {
-    200: {
-      description: "List of answers",
-      content: {
-        "application/json": {
-          schema: z.array(
-            z.object({
-              id: z.string().openapi({ example: "uuid" }),
-              responses: z.any().openapi({ example: "Red" }),
-            }),
-          ),
-        },
-      },
-    },
-    ...defaultResponses,
+    200: json(
+      "Answers of the survey",
+      z.object({
+        data: z.array(answerSchema),
+        meta: z.object({ results: z.number().int() }),
+      }),
+    ),
+    ...problems(401, 404),
   },
 });
 
@@ -406,30 +406,13 @@ registry.registerPath({
   tags: ["Answers"],
   method: "get",
   path: "/api/v1/surveys/{slug}/answers/{id}",
-  summary: "Get answer by ID",
+  summary: "Get an answer by id",
   operationId: "getSurveyAnswerById",
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: z.object({
-      slug: z.string().openapi({ example: "survey-slug" }),
-      id: z.string().openapi({ example: "answer-id" }),
-    }),
-  },
+  security: cookieAuth,
+  request: { params: answerParams },
   responses: {
-    200: {
-      description: "Answer details",
-      content: {
-        "application/json": {
-          schema: z.object({
-            data: z.object({
-              id: z.string().openapi({ example: "answer-id" }),
-              responses: z.any().openapi({ example: "Red" }),
-            }),
-          }),
-        },
-      },
-    },
-    ...defaultResponses,
+    200: json("Answer with its survey's name and questions", data(answerWithSurveySchema)),
+    ...problems(401, 404, 422),
   },
 });
 
@@ -437,33 +420,27 @@ registry.registerPath({
   tags: ["Answers"],
   method: "delete",
   path: "/api/v1/surveys/{slug}/answers/{id}",
-  summary: "Delete answer by ID",
+  summary: "Delete an answer by id",
   operationId: "deleteSurveyAnswerById",
-  security: [{ bearerAuth: [] }],
-  request: {
-    params: z.object({
-      slug: z.string().openapi({ example: "survey-slug" }),
-      id: z.string().openapi({ example: "answer-id" }),
-    }),
-  },
+  security: cookieAuth,
+  request: { params: answerParams },
   responses: {
-    204: {
-      description: "Answer deleted",
-    },
-    ...defaultResponses,
+    204: { description: "Answer deleted (soft)" },
+    ...problems(401, 404, 422),
   },
 });
 
-export function generateOpenApiDocument() {
+export function generateOpenApiDocument(): ReturnType<
+  OpenApiGeneratorV3["generateDocument"]
+> {
   const generator = new OpenApiGeneratorV3(registry.definitions);
   return generator.generateDocument({
     openapi: "3.0.0",
     info: {
       version: "1.0.0",
-      title: "Survey System API",
-      description:
-        "API endpoints documentation for the Survey System, built by Daxho",
+      title: "Sondix API",
+      description: "API endpoints documentation for Sondix, built by Daxho",
     },
-    servers: [{ url: "http://localhost:3000" }],
+    servers: [{ url: "/" }],
   });
 }

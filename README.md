@@ -1,6 +1,8 @@
-# survey-system
+# Sondix
 
-University project: an enterprise system to create and manage employee surveys.
+*La información comienza escuchando.*
+
+Sondix (repository `survey-system`) is a university project: an enterprise system to create and manage employee surveys.
 Managers build surveys in a web dashboard, share a public link, collect anonymous
 answers (one per IP per survey) and review answers and statistics.
 
@@ -11,13 +13,16 @@ answers (one per IP per survey) and review answers and statistics.
 ## Features
 
 - Cookie-based authentication with short-lived access JWT and rotating refresh token.
+- No public signup: accounts are created from single-use invitation links (48 h) or with the `create-user` command.
 - Surveys with free-text, single-choice and multiple-choice questions, required or optional.
 - Survey lifecycle: draft → active ⇄ inactive; a survey is locked for editing once activated.
 - Public answering page; answers validated against the survey's questions.
+- Survey list with search by name, status filter, sortable columns and pagination.
 - Per-survey statistics (completed/incomplete answers, votes per option) with charts.
 - Interactive API documentation (Swagger UI).
+- Sondix brand identity: light and dark themes (Claro / Oscuro / Sistema), brand palette, Manrope and Inter typography.
 
-Planned work (invitation-based accounts, Docker deployment, and more) is tracked in
+Planned work (Docker deployment and more) is tracked in
 [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
 
 ## Tech stack
@@ -32,18 +37,22 @@ pnpm workspaces monorepo.
 
 ## Getting started
 
-Prerequisites: Node.js, [pnpm](https://pnpm.io) and a PostgreSQL database.
+Prerequisites: Node.js, [pnpm](https://pnpm.io) and Docker (or your own PostgreSQL).
 
 ```bash
 pnpm install
 
-# API configuration: create apps/api/.env
+# API configuration: copy apps/api/.env.example to apps/api/.env and adjust it
 # (variables documented in docs/sdd/05-configuration.md)
+cp apps/api/.env.example apps/api/.env
 
-# Database
+# Database: local PostgreSQL with a development and a test database
+docker compose up -d
 cd apps/api
 pnpm exec prisma migrate dev
 pnpm exec prisma generate
+pnpm seed          # optional demo data: log in as demo@example.com / demo12345
+pnpm create-user   # or create your own first account (asks email, username, password)
 cd ../..
 
 # Run API (http://localhost:3000) and web (http://localhost:5173)
@@ -55,17 +64,27 @@ API documentation: <http://localhost:3000/api/v1/docs> (raw OpenAPI at `/api/v1/
 After changing the API contract, regenerate the web client with `pnpm generate:api`
 (the API must be running).
 
+## Tests
+
+```bash
+pnpm test   # API and web (Vitest)
+```
+
+API tests that need a database use `TEST_DATABASE_URL` (see `apps/api/.env.example`);
+without it they are skipped. See [`docs/sdd/30-dev-workflow.md`](docs/sdd/30-dev-workflow.md) §4.
+
 ## Configuration
 
-The API reads its configuration from `apps/api/.env`. Currently required:
-`DATABASE_URL`, `NODE_ENV` (`development` | `production`), `JWT_SECRET`,
-`JWT_EXPIRES_IN` (jsonwebtoken format, e.g. `15m`), `JWT_COOKIE_EXPIRES_IN`
-(minutes), `REFRESH_EXPIRES_IN` (days), `REFRESH_COOKIE_EXPIRES_IN` (days);
-optional `PORT` (default `3000`).
+The API reads its configuration from `apps/api/.env` (template: `apps/api/.env.example`)
+and validates it at startup: if anything is missing or invalid it lists every problem
+and exits. Required: `DATABASE_URL`, `NODE_ENV` (`development` | `production`),
+`JWT_SECRET` (≥ 32 characters), `ACCESS_TOKEN_TTL_MINUTES`, `REFRESH_TOKEN_TTL_DAYS`,
+and `CORS_ORIGIN` in production. Optional: `PORT` (default `3000`), `LOG_LEVEL`
+(default `info`). See [`docs/sdd/05-configuration.md`](docs/sdd/05-configuration.md).
 
-Planned: startup validation with Zod, token lifetimes simplified to
-`ACCESS_TOKEN_TTL_MINUTES` and `REFRESH_TOKEN_TTL_DAYS`, plus `CORS_ORIGIN` and
-`LOG_LEVEL`. See [`docs/sdd/05-configuration.md`](docs/sdd/05-configuration.md).
+The web reads `VITE_API_URL` (template: `apps/web/.env.example`), the API base URL.
+It defaults to `http://localhost:3000` in development and is required when building
+for production.
 
 ## Documentation
 
