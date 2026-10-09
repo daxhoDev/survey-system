@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { LoginForm } from "@/components/login-form";
+import LoginPage from "./pages/LoginPage";
 import AuthPage from "./pages/AuthPage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import DashboardPage from "./pages/DashboardPage";
@@ -34,10 +34,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/auth/login" />} />
           <Route path="/auth" element={<AuthPage />}>
-            <Route
-              path="login"
-              element={<LoginForm className="w-97/100 max-w-120" />}
-            />
+            <Route path="login" element={<LoginPage />} />
             <Route path="invite/:token" element={<AcceptInvitationPage />} />
           </Route>
           <Route path="dashboard" element={<DashboardPage />}>

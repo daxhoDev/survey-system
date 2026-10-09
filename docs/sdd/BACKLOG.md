@@ -13,7 +13,6 @@
 
 | ID | Item | Specs |
 |----|------|-------|
-| BL-26 | **Login brand panel** (decided 2026-10-01): textured Midnight panel with the large isotype beside the login form, hidden on narrow screens. Uses the BL-25 isotype (`isotype-gradient.svg`). | BRAND-23, FE-15 |
 | BL-02 | **Dockerfile / containerized deployment** (design agreed 2026-09-23, specified with the change): not built yet. Must install pnpm, handle the workspace (`packages/schemas`), not bake `.env` into the image, fix `CMD`, pin Node version. Design to be agreed. | DEV-WF-03, ANS-07 |
 
 ## Open questions

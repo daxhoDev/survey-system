@@ -47,8 +47,8 @@
 
 ### Login — `components/login-form.tsx`
 
-- **FE-15** `[implemented]` Email + password validated with `loginDataSchema`. On success stores the returned user in the `getCurrentUser` query cache and navigates to `/dashboard`; on error shows `error.detail` in a toast.
-- **FE-30** `[pending: BL-26]` The login page shows the textured Sondix brand panel beside the form on wide screens (BRAND-23).
+- **FE-15** `[implemented]` Email + password validated with `loginDataSchema`. The password field (`components/PasswordInput.tsx`) has the placeholder "Enter your password" and an eye button that toggles its visibility ("Show password" / "Hide password", `aria-pressed`). On success stores the returned user in the `getCurrentUser` query cache and navigates to `/dashboard`; on error shows `error.detail` in a toast.
+- **FE-30** `[implemented]` The login page shows the textured Sondix brand panel beside the form on wide screens (BRAND-23).
 
 ### Header — `components/DashboardHeader.tsx`
 
