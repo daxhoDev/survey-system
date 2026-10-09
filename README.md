@@ -21,7 +21,7 @@ answers (one per IP per survey) and review answers and statistics.
 - Interactive API documentation (Swagger UI).
 - Sondix brand identity: light and dark themes (Claro / Oscuro / Sistema), brand palette, Manrope and Inter typography.
 
-Planned work (login brand panel, Docker deployment and more) is tracked in
+Planned work (Docker deployment and more) is tracked in
 [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
 
 ## Tech stack

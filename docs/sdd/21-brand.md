@@ -14,7 +14,8 @@ Implementation is phased (decided 2026-10-01):
   (implemented 2026-10-02).
 - **Phase 2** — BL-25: isotype, logos, app icon and favicon redrawn as SVG
   from the final design (implemented 2026-10-02).
-- **Phase 3** — BL-26: textured brand panel on the login page.
+- **Phase 3** — BL-26: textured brand panel on the login page (implemented
+  2026-10-09).
 - **Undecided** — OQ-18 (side navigation).
 
 ## 1. Name and identity
@@ -257,13 +258,20 @@ Implementation is phased (decided 2026-10-01):
   (FE-28) show the gradient isotype (`isotype-gradient.svg`), which works on
   both themes. The former raster `logo.png` is removed.
 - **BRAND-22** `[open: OQ-18]` Side navigation (guide §8.2) and its structure.
-- **BRAND-23** `[pending: BL-26]` Textures (digital noise, signal gradient
+- **BRAND-23** `[implemented]` Textures (digital noise, signal gradient
   between Midnight and Turquoise, glow) are used only on the login page
   (`/auth/login`), in a brand panel beside the form: Midnight 900 background,
   low-opacity texture, the large gradient isotype and the name "Sondix". On
   narrow screens the panel is hidden. Textures never sit behind the form,
   tables or body text; the rest of the web app has no textures. Promotional
-  material and documentation may use them freely.
+  material and documentation may use them freely. Implementation
+  (`pages/LoginPage.tsx`, `components/LoginBrandPanel.tsx`): from the `lg`
+  breakpoint the page splits in two columns, the panel on the left; the panel
+  uses fixed colors (same look in both themes), a 135° gradient Midnight 900 →
+  Midnight 800 → Turquoise 900, a blurred Turquoise 500 glow at 15 % and an
+  SVG fractal-noise texture (`brand-noise` utility) at 7 %, and is
+  `aria-hidden` (decorative). While the panel is visible the small isotype in
+  the login card is hidden.
 
 ## 9. Voice and tone
 

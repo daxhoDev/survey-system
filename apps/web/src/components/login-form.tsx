@@ -57,7 +57,7 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center flex flex-col items-center">
-          <img src={isotype} alt="Sondix" className="w-15 mb-5" />
+          <img src={isotype} alt="Sondix" className="w-15 mb-5 lg:hidden" />
           <CardTitle className="text-h3">Welcome back</CardTitle>
           {/* <CardDescription>
             Login with your Apple or Google account
