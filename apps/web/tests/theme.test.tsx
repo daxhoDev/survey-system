@@ -85,5 +85,7 @@ describe("theme (BRAND-11)", () => {
 
     expect(isDark()).toBe(true);
     expect(screen.getByRole("button", { name: "Tema: Oscuro" })).toBeInTheDocument();
-  });
+    // Re-importing the header and its dependencies after resetModules can
+    // exceed the default 5 s when the whole suite runs in parallel.
+  }, 15_000);
 });
