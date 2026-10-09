@@ -14,7 +14,7 @@ pnpm workspace (`pnpm-workspace.yaml`: `apps/*`, `packages/*`). Root
 | `@survey-system/schemas` | `packages/schemas` | Shared Zod 4 schemas (validation + OpenAPI metadata), consumed as TypeScript source |
 
 - **ARCH-01** `[implemented]` All dependencies are managed with `pnpm`, from the root or the relevant workspace.
-- **ARCH-02** `[implemented]` Request/response shapes shared by API and web are defined once, in `packages/schemas`, and imported as `@survey-system/schemas`.
+- **ARCH-02** `[implemented]` Request/response shapes shared by API and web are defined once, in `packages/schemas`, and imported as `@survey-system/schemas`. Validation limits (`packages/schemas/src/limits.ts`: username, password, survey and question name lengths) are exported constants used by the API schemas and by the web's Spanish form schemas (FE-04).
 - **ARCH-03** `[implemented]` Zod schemas are the single source for validation **and** OpenAPI documentation (via `@asteasolutions/zod-to-openapi`). `extendZodWithOpenApi(z)` runs in `packages/schemas/src/zod-setup.ts` and `apps/api/src/lib/zod-setup.ts` (imported first in `server.ts`).
 
 ## 2. Backend layers (`apps/api/src`)

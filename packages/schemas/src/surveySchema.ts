@@ -1,9 +1,10 @@
 import { z } from "./zod-setup.js";
+import { QUESTION_NAME_MIN, SURVEY_NAME_MIN } from "./limits.js";
 
 const surveyNameSchema = z
   .string("Survey name must be a string")
   .nonempty("Survey name can't be empty")
-  .min(5, "Survey name is too short")
+  .min(SURVEY_NAME_MIN, "Survey name is too short")
   .openapi({ example: "Employee Satisfaction Survey" });
 
 export const questionSchema = z.strictObject(
@@ -15,7 +16,7 @@ export const questionSchema = z.strictObject(
     name: z
       .string("Must be a string")
       .nonempty("Can't be empty")
-      .min(5, "Must have al least 5 characters")
+      .min(QUESTION_NAME_MIN, `Must have al least ${QUESTION_NAME_MIN} characters`)
       .openapi({ example: "Are you happy at our company?" }),
     type: z
       .enum(

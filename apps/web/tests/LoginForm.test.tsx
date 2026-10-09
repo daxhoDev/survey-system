@@ -14,15 +14,15 @@ async function fillAndSubmit(email: string, password: string) {
 }
 
 describe("LoginForm (FE-15)", () => {
-  it("validates with loginDataSchema before calling the API", async () => {
+  it("validates with the Spanish form schema before calling the API", async () => {
     const fetchMock = mockFetch({});
     renderWithProviders(<LoginForm />);
 
     // "owner@example" passes the native type="email" check but not Zod.
     await fillAndSubmit("owner@example", "123");
 
-    expect(await screen.findByText("Must be a valid email")).toBeInTheDocument();
-    expect(screen.getByText("Must have at least 5 characters")).toBeInTheDocument();
+    expect(await screen.findByText("Introduce un correo electrónico válido")).toBeInTheDocument();
+    expect(screen.getByText("La contraseña debe tener al menos 5 caracteres")).toBeInTheDocument();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

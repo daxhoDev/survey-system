@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Trash, Plus, ArrowLeft } from "lucide-react";
+import { QUESTION_NAME_MIN, SURVEY_NAME_MIN } from "@survey-system/schemas";
 
 interface OptionValue {
   content: string;
@@ -215,8 +216,8 @@ export default function SurveyCreatePage() {
                 {...register("name", {
                   required: "El nombre de la encuesta es obligatorio",
                   minLength: {
-                    value: 5,
-                    message: "Debe tener al menos 5 caracteres",
+                    value: SURVEY_NAME_MIN,
+                    message: `Debe tener al menos ${SURVEY_NAME_MIN} caracteres`,
                   },
                 })}
               />
@@ -289,8 +290,8 @@ export default function SurveyCreatePage() {
                           {...register(`questions.${index}.name` as const, {
                             required: "La pregunta es obligatoria",
                             minLength: {
-                              value: 5,
-                              message: "Debe tener al menos 5 caracteres",
+                              value: QUESTION_NAME_MIN,
+                              message: `Debe tener al menos ${QUESTION_NAME_MIN} caracteres`,
                             },
                           })}
                         />

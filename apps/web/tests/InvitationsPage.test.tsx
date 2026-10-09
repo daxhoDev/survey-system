@@ -106,7 +106,7 @@ describe("InvitationsPage (FE-27)", () => {
 
     await user.type(input, "owner@example");
     await user.click(screen.getByRole("button", { name: "Invitar" }));
-    expect(await screen.findByText("Must be a valid email")).toBeInTheDocument();
+    expect(await screen.findByText("Introduce un correo electrónico válido")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     await user.type(input, ".com");
