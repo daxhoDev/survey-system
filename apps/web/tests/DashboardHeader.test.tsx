@@ -1,41 +1,45 @@
 import { screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import DashboardHeader from "@/components/DashboardHeader";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { mockFetch, renderWithProviders } from "./helpers";
 
+const me = {
+  "GET /api/v1/users/me": {
+    status: 200,
+    body: { data: { id: "u1", username: "owner", email: "owner@example.com" } },
+  },
+};
+
+function renderHeader() {
+  return renderWithProviders(
+    <SidebarProvider>
+      <DashboardHeader />
+    </SidebarProvider>,
+    { path: "/dashboard", route: "/dashboard" },
+  );
+}
+
 describe("DashboardHeader (FE-16)", () => {
-  it("links to the invitations page", async () => {
-    mockFetch({
-      "GET /api/v1/users/me": {
-        status: 200,
-        body: { data: { id: "u1", username: "owner", email: "owner@example.com" } },
-      },
-    });
-    renderWithProviders(<DashboardHeader />, { path: "/dashboard", route: "/dashboard" });
+  it("shows the sidebar toggle, the user and logout; sections live in the sidebar", async () => {
+    mockFetch(me);
+    renderHeader();
 
-    await screen.findByText("owner");
-    const link = screen.getByRole("link", { name: "Invitaciones" });
-    expect(link).toHaveAttribute("href", "/dashboard/invitations");
-
-    await userEvent.setup().click(link);
-    expect(await screen.findByText("other page")).toBeInTheDocument();
+    expect(await screen.findByText("owner")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mostrar u ocultar menú" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Invitaciones" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument();
   });
 
-  it("the logo links to the dashboard home and there is no Dashboard link", async () => {
-    mockFetch({
-      "GET /api/v1/users/me": {
-        status: 200,
-        body: { data: { id: "u1", username: "owner", email: "owner@example.com" } },
-      },
-    });
-    renderWithProviders(<DashboardHeader />, { path: "/dashboard", route: "/dashboard" });
+  it("keeps a logo link to the dashboard for mobile", async () => {
+    mockFetch(me);
+    renderHeader();
 
     await screen.findByText("owner");
     expect(screen.getByRole("link", { name: "Sondix, ir a encuestas" })).toHaveAttribute(
       "href",
       "/dashboard",
     );
-    expect(screen.queryByRole("link", { name: "Dashboard" })).not.toBeInTheDocument();
   });
 });

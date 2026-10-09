@@ -1,5 +1,8 @@
 import { useEffect } from "react";
 import DashboardHeader from "@/components/DashboardHeader";
+import AppSidebar from "@/components/AppSidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { useGetCurrentUser } from "@/lib/api/users/users";
 import { Outlet, useNavigate } from "react-router";
 
@@ -27,12 +30,23 @@ export default function DashboardPage() {
     return null;
   }
 
+  // The sidebar component saves its open state in this cookie; read it back
+  // so a collapsed sidebar stays collapsed after a reload.
+  const sidebarOpen = !document.cookie
+    .split("; ")
+    .includes("sidebar_state=false");
+
   return (
-    <div className="w-full">
-      <DashboardHeader />
-      <div className="max-w-6xl mx-auto">
-        <Outlet />
-      </div>
-    </div>
+    <TooltipProvider delayDuration={0}>
+      <SidebarProvider defaultOpen={sidebarOpen}>
+        <AppSidebar />
+        <SidebarInset>
+          <DashboardHeader />
+          <div className="mx-auto w-full max-w-6xl">
+            <Outlet />
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </TooltipProvider>
   );
 }

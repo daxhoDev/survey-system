@@ -11,6 +11,7 @@ async function loadTheme(systemDark: boolean, stored?: string) {
     matches: systemDark,
     addEventListener: (_: string, l: (e: { matches: boolean }) => void) =>
       listeners.push(l),
+    removeEventListener: () => {},
   };
   vi.stubGlobal("matchMedia", () => query);
   if (stored) localStorage.setItem("sondix-theme", stored);
@@ -69,13 +70,19 @@ describe("theme (BRAND-11)", () => {
     const { default: DashboardHeader } = await import(
       "@/components/DashboardHeader"
     );
+    const { SidebarProvider } = await import("@/components/ui/sidebar");
     mockFetch({
       "GET /api/v1/users/me": {
         status: 200,
         body: { data: { id: "u1", username: "owner", email: "owner@example.com" } },
       },
     });
-    renderWithProviders(<DashboardHeader />, { path: "/dashboard", route: "/dashboard" });
+    renderWithProviders(
+      <SidebarProvider>
+        <DashboardHeader />
+      </SidebarProvider>,
+      { path: "/dashboard", route: "/dashboard" },
+    );
     const user = userEvent.setup();
 
     await user.click(screen.getByRole("button", { name: "Tema: Sistema" }));

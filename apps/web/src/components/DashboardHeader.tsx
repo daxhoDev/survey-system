@@ -7,7 +7,7 @@ import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 import { useQueryClient } from "@tanstack/react-query";
 // import { useNavigate, useRevalidator } from "react-router";
-import { LogOut, User as UserIcon, UserPlus } from "lucide-react";
+import { LogOut, User as UserIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "./ui/skeleton";
 import { Link, useNavigate } from "react-router";
@@ -16,6 +16,7 @@ import logoDark from "@/assets/brand/logo-dark.svg";
 import { Dialog, DialogTrigger } from "./ui/dialog";
 import ConfirmationDialog from "./ConfirmationDialog";
 import ThemeSelector from "./ThemeSelector";
+import { SidebarTrigger } from "./ui/sidebar";
 
 export default function DashboardHeader() {
   const { data, isLoading, isRefetching } = useGetCurrentUser({});
@@ -41,23 +42,20 @@ export default function DashboardHeader() {
 
   return (
     <header className="flex h-16 shrink-0 items-center justify-between gap-2 border-b px-4 w-full bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-      {/* The logo is the link to the dashboard home (FE-16). */}
-      <Link
-        to="/dashboard"
-        aria-label="Sondix, ir a encuestas"
-        className="flex items-center rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
-      >
-        <img src={logoLight} alt="" className="h-7 w-auto dark:hidden" />
-        <img src={logoDark} alt="" className="hidden h-7 w-auto dark:block" />
-      </Link>
+      <div className="flex items-center gap-2">
+        <SidebarTrigger />
+        {/* On mobile the sidebar is a closed sheet, so the logo stays here. */}
+        <Link
+          to="/dashboard"
+          aria-label="Sondix, ir a encuestas"
+          className="flex items-center rounded-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none md:hidden"
+        >
+          <img src={logoLight} alt="" className="h-6 w-auto dark:hidden" />
+          <img src={logoDark} alt="" className="hidden h-6 w-auto dark:block" />
+        </Link>
+      </div>
 
       <div className="flex items-center gap-4">
-        <Button variant="ghost" size="sm" asChild className="gap-2">
-          <Link to="/dashboard/invitations" aria-label="Invitaciones">
-            <UserPlus className="size-4" />
-            <span className="hidden sm:inline">Invitaciones</span>
-          </Link>
-        </Button>
         <ThemeSelector />
         {showLoading ? (
           <div className="flex items-center gap-2">
