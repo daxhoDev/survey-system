@@ -20,6 +20,7 @@ import { useNavigate } from "react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { Trash, Plus, ArrowLeft } from "lucide-react";
 import { QUESTION_NAME_MIN, SURVEY_NAME_MIN } from "@survey-system/schemas";
+import { getGetSurveySummaryQueryKey } from "@/lib/api/stats/stats";
 
 interface OptionValue {
   content: string;
@@ -165,6 +166,9 @@ export default function SurveyCreatePage() {
         onSuccess() {
           queryClient.invalidateQueries({
             queryKey: getGetAllSurveysQueryKey(),
+          });
+          queryClient.invalidateQueries({
+            queryKey: getGetSurveySummaryQueryKey(),
           });
           toast.success("Encuesta creada correctamente");
           navigate("/dashboard");

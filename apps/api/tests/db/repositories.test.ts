@@ -41,7 +41,8 @@ describe("SurveyRepository.getAll", () => {
     await createSurvey("Deleted survey", { deleted_at: new Date() });
   });
 
-  const names = (list: { name: string }[]) => list.map((s) => s.name);
+  const names = ({ surveys: list }: { surveys: { name: string }[] }) =>
+    list.map((s) => s.name);
 
   it("SURV-05: excludes deleted surveys", async () => {
     expect(names(await surveys.getAll({}))).not.toContain("Deleted survey");
@@ -78,6 +79,24 @@ describe("SurveyRepository.getAll", () => {
     expect(names(await surveys.getAll({ sort: "name", page: 2, limit: 1 }))).toEqual([
       "Beta survey",
     ]);
+  });
+
+  it("SURV-20: without sort, newest first", async () => {
+    expect(names(await surveys.getAll({}))).toEqual([
+      "Gamma survey",
+      "Beta survey",
+      "Alpha survey",
+    ]);
+  });
+
+  it("SURV-07: total counts every match of the filters, not just the page", async () => {
+    expect((await surveys.getAll({ limit: 1 })).total).toBe(3);
+    expect((await surveys.getAll({ active: true, limit: 1 })).total).toBe(2);
+    expect((await surveys.getAll({ search: "zzz" })).total).toBe(0);
+  });
+
+  it("STAT-08: getSummary counts all and active non-deleted surveys", async () => {
+    expect(await surveys.getSummary()).toEqual({ all: 3, active: 2 });
   });
 });
 
@@ -216,6 +235,40 @@ describe("statistics", () => {
       1: { Yes: 1, No: 1 },
       2: { Gym: 1, Lunch: 1, Training: 0 },
     });
+  });
+
+  it("STAT-04: options keep the survey's order and same-text options are counted apart", async () => {
+    const surveyId = await createSurvey("Order survey", {
+      is_active: true,
+      questions: [
+        {
+          id: 1,
+          name: "Pick one",
+          type: "SINGLE_SELECT",
+          isRequired: true,
+          options: [
+            { id: 1, content: "Zeta" },
+            { id: 2, content: "Alfa" },
+            { id: 3, content: "Alfa" },
+          ],
+        },
+      ],
+    });
+    for (const [i, option] of [2, 3, 3].entries()) {
+      await answers.createOne({
+        id: v7(),
+        surveyId,
+        originIp: `10.0.1.${i}`,
+        responses: [{ id: 1, content: [option] }],
+      });
+    }
+
+    const [question] = await surveys.getResponsesOptionsStatsBySlug("order-survey");
+    expect(question!.options).toEqual([
+      { optionContent: "Zeta", responseCount: 0 },
+      { optionContent: "Alfa", responseCount: 1 },
+      { optionContent: "Alfa", responseCount: 2 },
+    ]);
   });
 
   it("STAT-06: every count ignores deleted answers and deleted surveys with the same slug", async () => {

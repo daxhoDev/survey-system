@@ -22,7 +22,7 @@ describe("OpenAPI document (API-30, API-31)", () => {
     expect(doc.servers).toEqual([{ url: "/" }]);
   });
 
-  it("documents the 19 endpoints with the operationIds used by the web client", () => {
+  it("documents the 20 endpoints with the operationIds used by the web client", () => {
     expect(operations.map((o) => o.operationId).sort()).toEqual(
       [
         "acceptInvitation",
@@ -39,6 +39,7 @@ describe("OpenAPI document (API-30, API-31)", () => {
         "getSurveyAnswerById",
         "getSurveyBySlug",
         "getSurveyStatsBySlug",
+        "getSurveySummary",
         "loginUser",
         "logoutUser",
         "refreshAuthToken",
