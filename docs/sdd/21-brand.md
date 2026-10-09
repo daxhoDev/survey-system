@@ -16,7 +16,6 @@ Implementation is phased (decided 2026-10-01):
   from the final design (implemented 2026-10-02).
 - **Phase 3** — BL-26: textured brand panel on the login page (implemented
   2026-10-09).
-- **Undecided** — OQ-18 (side navigation).
 
 ## 1. Name and identity
 
@@ -257,7 +256,7 @@ Implementation is phased (decided 2026-10-01):
   28 px tall. The login form (FE-15) and the invitation acceptance page
   (FE-28) show the gradient isotype (`isotype-gradient.svg`), which works on
   both themes. The former raster `logo.png` is removed.
-- **BRAND-22** `[open: OQ-18]` Side navigation (guide §8.2) and its structure.
+- **BRAND-22** `[implemented]` Side navigation (guide §8.2): a sidebar with only the sections that exist plus a top bar (OQ-18, decided 2026-10-09); the guide's full structure (Resumen, Encuestas, Participantes, Resultados, Informes, Administración) is the target, and each section is added when its feature exists. Collapsible to icons on desktop, a sheet on mobile. Details in FE-31.
 - **BRAND-23** `[implemented]` Textures (digital noise, signal gradient
   between Midnight and Turquoise, glow) are used only on the login page
   (`/auth/login`), in a brand panel beside the form: Midnight 900 background,

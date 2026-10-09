@@ -40,7 +40,7 @@
 | `/dashboard/invitations` | `DashboardPage` › `InvitationsPage` | session |
 | `/surveys/:slug` | `SurveyAnsweringPage` | public |
 
-- **FE-13** `[implemented]` `DashboardPage` is the session guard: it calls `useGetCurrentUser`; while loading shows "Loading dashboard...", on error navigates to `/auth/login`. Layout: `DashboardHeader` + centered `<Outlet />` (max width 6xl).
+- **FE-13** `[implemented]` `DashboardPage` is the session guard: it calls `useGetCurrentUser`; while loading shows "Loading dashboard...", on error navigates to `/auth/login`. Layout: `TooltipProvider` > `SidebarProvider` with the side navigation (`AppSidebar`, FE-31) and a `SidebarInset` holding `DashboardHeader` + centered `<Outlet />` (max width 6xl). The sidebar's open state is read back from the `sidebar_state` cookie it writes, so a collapsed sidebar stays collapsed after a reload.
 - **FE-14** `[implemented]` Accounts are created only from an invitation link (FE-28); there is no signup page.
 
 ## 4. Pages
@@ -52,8 +52,12 @@
 
 ### Header — `components/DashboardHeader.tsx`
 
-- **FE-16** `[implemented]` Shows the Sondix logo (BRAND-26), which is the link to `/dashboard` (accessible name "Sondix, ir a encuestas"; there is no separate "Dashboard" link), the user's initial and username. An "Invitaciones" button leads to `/dashboard/invitations`. Logout asks for confirmation in a dialog; on success clears the whole query cache and navigates to `/auth/login`.
+- **FE-16** `[implemented]` Top bar of the dashboard: the sidebar toggle ("Mostrar u ocultar menú", FE-31), the theme selector (FE-29), the user's initial and username, and logout. On mobile only (below `md`), where the sidebar is a closed sheet, it also shows the Sondix logo as the link to `/dashboard` (accessible name "Sondix, ir a encuestas"); on desktop the logo lives in the sidebar. Navigation to sections is in the sidebar, not here. Logout asks for confirmation in a dialog; on success clears the whole query cache and navigates to `/auth/login`.
 - **FE-29** `[implemented]` The header shows a theme selector ("Claro" / "Oscuro" / "Sistema", BRAND-11). The product name "Sondix" is the wordmark of the theme-aware SVG logo (BRAND-01, BRAND-26), switching with the theme.
+
+### Side navigation — `components/AppSidebar.tsx`
+
+- **FE-31** `[implemented]` Sidebar (shadcn `ui/sidebar.tsx`, BRAND-22) with only the sections that exist: "Encuestas" (`/dashboard`, active on `/dashboard` and `/dashboard/surveys/*`) and, under the group label "Administración", "Invitaciones" (`/dashboard/invitations`). The header holds the Sondix logo (the theme-aware lockup, or the isotype when collapsed) as the link to `/dashboard`. The active item is highlighted with `--sidebar-accent` and has `aria-current="page"`. On desktop it collapses to an icon rail (toggle button, rail or Ctrl/⌘+B) with tooltips, and the state persists in the `sidebar_state` cookie; on mobile (below `md`) it opens as a sheet from the toggle and closes on navigation. New sections are added here when they exist.
 
 ### Survey list — `components/Surveys.tsx` (`/dashboard`)
 
@@ -76,7 +80,7 @@
 
 ### Invitations — `pages/InvitationsPage.tsx` (`/dashboard/invitations`)
 
-- **FE-27** `[implemented]` Reached from an "Invitaciones" button in the header (FE-16). A form with the email creates an invitation; on success it shows the link `${window.location.origin}/auth/invite/${token}` with a copy button and the note that it is shown only once and expires in 48 hours; `409` shows the API detail in a toast. Below, a table of invitations (email, status badge — Pendiente / Aceptada / Revocada / Caducada —, invited by, created and expiry dates) with a "Revocar" action on pending ones, confirmed with `ConfirmationDialog` (FE-25). The link of the last created invitation stays visible until another one is created or the page is left. Above the table, a status filter (Todas / Pendiente / Aceptada / Revocada / Caducada, default Todas) filters on the client: the API returns every invitation (AUTH-25).
+- **FE-27** `[implemented]` Reached from "Invitaciones" in the side navigation (FE-31). A form with the email creates an invitation; on success it shows the link `${window.location.origin}/auth/invite/${token}` with a copy button and the note that it is shown only once and expires in 48 hours; `409` shows the API detail in a toast. Below, a table of invitations (email, status badge — Pendiente / Aceptada / Revocada / Caducada —, invited by, created and expiry dates) with a "Revocar" action on pending ones, confirmed with `ConfirmationDialog` (FE-25). The link of the last created invitation stays visible until another one is created or the page is left. Above the table, a status filter (Todas / Pendiente / Aceptada / Revocada / Caducada, default Todas) filters on the client: the API returns every invitation (AUTH-25).
 
 ### Accept invitation — `pages/AcceptInvitationPage.tsx` (`/auth/invite/:token`, public)
 
