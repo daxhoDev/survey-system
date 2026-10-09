@@ -277,5 +277,5 @@ Implementation is phased (decided 2026-10-01):
 
 - **BRAND-24** `[implemented]` UI copy is Spanish (FE-06), professional, clear and
   direct: it states what happened and, when possible, how to fix it; it avoids
-  marketing exaggeration and unnecessary jargon. Exception: the login form is in
-  English — `[open: OQ-13]`.
+  marketing exaggeration and unnecessary jargon. The login form is in Spanish
+  too (OQ-13, decided 2026-10-09).

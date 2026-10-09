@@ -50,8 +50,8 @@ describe("AcceptInvitationPage (FE-28)", () => {
     const fetchMock = mockFetch({ ...noSession, [tokenInfo]: validToken });
     renderWithProviders(<AcceptInvitationPage />, { path, route });
 
-    expect(await screen.findByLabelText("Email")).toHaveValue("new@example.com");
-    expect(screen.getByLabelText("Email")).toHaveAttribute("readonly");
+    expect(await screen.findByLabelText("Correo electrónico")).toHaveValue("new@example.com");
+    expect(screen.getByLabelText("Correo electrónico")).toHaveAttribute("readonly");
 
     await fill({ username: "ab", password: "password123", passwordConfirm: "different" });
 
@@ -122,6 +122,20 @@ describe("AcceptInvitationPage (FE-28)", () => {
     await user.click(within(dialog).getByRole("button", { name: "Cerrar sesión" }));
 
     expect(await screen.findByLabelText("Nombre de usuario")).toBeInTheDocument();
-    expect(screen.getByLabelText("Email")).toHaveValue("new@example.com");
+    expect(screen.getByLabelText("Correo electrónico")).toHaveValue("new@example.com");
+  });
+
+  it("each password field has its own visibility toggle", async () => {
+    mockFetch({ ...noSession, [tokenInfo]: validToken });
+    renderWithProviders(<AcceptInvitationPage />, { path, route });
+    const user = userEvent.setup();
+
+    const password = await screen.findByLabelText("Contraseña");
+    const confirm = screen.getByLabelText("Confirmar contraseña");
+    const [showPassword] = screen.getAllByRole("button", { name: "Mostrar contraseña" });
+    await user.click(showPassword!);
+
+    expect(password).toHaveAttribute("type", "text");
+    expect(confirm).toHaveAttribute("type", "password");
   });
 });

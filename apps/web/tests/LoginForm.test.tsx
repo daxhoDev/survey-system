@@ -8,9 +8,9 @@ const login = "POST /api/v1/users/login";
 
 async function fillAndSubmit(email: string, password: string) {
   const user = userEvent.setup();
-  await user.type(screen.getByLabelText("Email"), email);
-  await user.type(screen.getByLabelText("Password"), password);
-  await user.click(screen.getByRole("button", { name: "Login" }));
+  await user.type(screen.getByLabelText("Correo electrónico"), email);
+  await user.type(screen.getByLabelText("Contraseña"), password);
+  await user.click(screen.getByRole("button", { name: "Iniciar sesión" }));
 }
 
 describe("LoginForm (FE-15)", () => {
@@ -62,13 +62,13 @@ describe("LoginForm (FE-15)", () => {
     mockFetch({});
     renderWithProviders(<LoginForm />);
     const user = userEvent.setup();
-    const input = screen.getByLabelText("Password");
+    const input = screen.getByLabelText("Contraseña");
 
     expect(input).toHaveAttribute("type", "password");
-    expect(input).toHaveAttribute("placeholder", "Enter your password");
-    await user.click(screen.getByRole("button", { name: "Show password" }));
+    expect(input).toHaveAttribute("placeholder", "Introduce tu contraseña");
+    await user.click(screen.getByRole("button", { name: "Mostrar contraseña" }));
     expect(input).toHaveAttribute("type", "text");
-    await user.click(screen.getByRole("button", { name: "Hide password" }));
+    await user.click(screen.getByRole("button", { name: "Ocultar contraseña" }));
     expect(input).toHaveAttribute("type", "password");
   });
 });

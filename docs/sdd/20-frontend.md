@@ -9,7 +9,7 @@
 - **FE-03** `[implemented]` Routing with React Router 7 (`BrowserRouter`); server state with TanStack Query 5. There is no other global state store.
 - **FE-04** `[implemented]` Forms with `react-hook-form`; when a shared Zod schema exists it is used through `zodResolver` (login uses `loginDataSchema` from `@survey-system/schemas`).
 - **FE-05** `[implemented]` Import alias `@` → `apps/web/src`.
-- **FE-06** `[implemented]` UI copy is in Spanish; dates are formatted with locale `es-CU`. Exception: the login form is in English — `[open: OQ-13]`.
+- **FE-06** `[implemented]` UI copy is in Spanish, the login form included (OQ-13, decided 2026-10-09), and the document language is `<html lang="es">`; dates are formatted with locale `es-CU`.
 - **FE-07** `[implemented]` `React.StrictMode` is disabled in `main.tsx`.
 - **FE-25** `[implemented]` Every confirmation of a destructive action (logout, survey deletion, answer deletion) uses the single shared component `components/ConfirmationDialog.tsx` (title "Confirma tu acción", description, destructive confirm button, "Cancelar"). Pages must not build their own confirmation `DialogContent`.
 
@@ -47,7 +47,7 @@
 
 ### Login — `components/login-form.tsx`
 
-- **FE-15** `[implemented]` Email + password validated with `loginDataSchema`. The password field (`components/PasswordInput.tsx`) has the placeholder "Enter your password" and an eye button that toggles its visibility ("Show password" / "Hide password", `aria-pressed`). On success stores the returned user in the `getCurrentUser` query cache and navigates to `/dashboard`; on error shows `error.detail` in a toast.
+- **FE-15** `[implemented]` Email + password validated with `loginDataSchema`. Copy: title "Inicia sesión", description "Accede al sistema de gestión de encuestas", fields "Correo electrónico" (placeholder `correo@ejemplo.com`) and "Contraseña" (placeholder "Introduce tu contraseña"), button "Iniciar sesión". The password field (`components/PasswordInput.tsx`) has an eye button that toggles its visibility ("Mostrar contraseña" / "Ocultar contraseña", `aria-pressed`). On success stores the returned user in the `getCurrentUser` query cache and navigates to `/dashboard`; on error shows `error.detail` in a toast.
 - **FE-30** `[implemented]` The login page shows the textured Sondix brand panel beside the form on wide screens (BRAND-23).
 
 ### Header — `components/DashboardHeader.tsx`
@@ -80,7 +80,7 @@
 
 ### Accept invitation — `pages/AcceptInvitationPage.tsx` (`/auth/invite/:token`, public)
 
-- **FE-28** `[implemented]` Loads the invitation by token. If it is invalid shows "Invitación no válida o caducada". If the visitor already has a session (`getCurrentUser` succeeds), the form is not shown: the page says that there is a session open as that username and must be closed to accept the invitation, with a "Cerrar sesión" button confirmed with `ConfirmationDialog` (FE-25); after logging out the query cache is cleared and the form appears. Otherwise shows the email (read only) and a form with username, password and password confirmation, validated with the shared schema. On success stores the user in the `getCurrentUser` cache (`{ data: user }`) and navigates to `/dashboard`; on error shows the API detail in a toast. UI copy in Spanish (FE-06).
+- **FE-28** `[implemented]` Loads the invitation by token. If it is invalid shows "Invitación no válida o caducada". If the visitor already has a session (`getCurrentUser` succeeds), the form is not shown: the page says that there is a session open as that username and must be closed to accept the invitation, with a "Cerrar sesión" button confirmed with `ConfirmationDialog` (FE-25); after logging out the query cache is cleared and the form appears. Otherwise shows the email ("Correo electrónico", read only) and a form with username, password and password confirmation, validated with the shared schema; both password fields use `PasswordInput` (FE-15), each with its own visibility toggle. On success stores the user in the `getCurrentUser` cache (`{ data: user }`) and navigates to `/dashboard`; on error shows the API detail in a toast. UI copy in Spanish (FE-06).
 
 ### Answering — `pages/SurveyAnsweringPage.tsx` (`/surveys/:slug`, public)
 
