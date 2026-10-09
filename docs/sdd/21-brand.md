@@ -10,7 +10,8 @@ differ, this spec wins.
 Implementation is phased (decided 2026-10-01):
 
 - **Phase 1** — BL-24: product name, color tokens, light/dark themes with a
-  theme selector, Manrope, radii, semantic colors, typography scale.
+  theme selector, Manrope, radii, semantic colors, typography scale
+  (implemented 2026-10-02).
 - **Phase 2** — BL-25: isotype, logos, app icon and favicon redrawn as SVG
   from the final design (implemented 2026-10-02).
 - **Phase 3** — BL-26: textured brand panel on the login page.
@@ -18,7 +19,7 @@ Implementation is phased (decided 2026-10-01):
 
 ## 1. Name and identity
 
-- **BRAND-01** `[pending: BL-24]` The product name is **Sondix**. The repository,
+- **BRAND-01** `[implemented]` The product name is **Sondix**. The repository,
   workspace packages (`@survey-system/*`) and code identifiers keep the name
   `survey-system`. The web app shows "Sondix" as the document `<title>`
   (`apps/web/index.html`); in the dashboard header (FE-16) the name is the
@@ -39,7 +40,7 @@ Implementation is phased (decided 2026-10-01):
 
 ## 2. Color palette
 
-- **BRAND-06** `[pending: BL-24]` Brand palettes are defined once as CSS custom
+- **BRAND-06** `[implemented]` Brand palettes are defined once as CSS custom
   properties in `apps/web/src/styles/global.css` (`--color-<family>-<step>`, so
   Tailwind also exposes them as utilities, e.g. `bg-midnight-900`):
 
@@ -55,61 +56,82 @@ Implementation is phased (decided 2026-10-01):
 | 800 | `#17263D` | `#126D64` | `#1E293B` | `#334155` |
 | 900 | `#101827` | `#104F4A` | `#0F172A` | `#0F172A` |
 
-- **BRAND-07** `[pending: BL-24]` Semantic colors: success `#16A34A`, warning
+- **BRAND-07** `[implemented]` Semantic colors: success `#16A34A`, warning
   `#D97706`, error `#DC2626`, info `#2563EB`, exposed as `--success`,
-  `--warning`, `--destructive` and `--info` (each with a `-foreground`
-  counterpart). State must never be conveyed by color alone: status messages and
-  badges also carry an icon or a text label.
-- **BRAND-08** `[pending: BL-24]` Components consume **semantic tokens** (the
-  shadcn variables: `--background`, `--primary`, …), never raw hex values or
-  palette steps. Palette utilities are reserved for brand graphics.
+  `--warning`, `--destructive` and `--info` for fills (badges, buttons, icons),
+  each with a `-foreground` for text on that fill (Neutral 100 on error and
+  info; Midnight 900 on success and warning, which do not reach 4.5:1 with
+  white). Text drawn in a semantic color on a page or card surface uses the
+  per-theme text variants `--success-text`, `--warning-text`,
+  `--destructive-text` and `--info-text` (OQ-21, decided 2026-10-02):
+
+| Token | Light | Dark |
+|-------|-------|------|
+| `--success-text` | `#15803D` | `#16A34A` |
+| `--warning-text` | `#B45309` | `#D97706` |
+| `--destructive-text` | `#DC2626` | `#F87171` |
+| `--info-text` | `#2563EB` | `#60A5FA` |
+
+  State must never be conveyed by color alone: status messages and badges also
+  carry an icon or a text label.
+- **BRAND-08** `[implemented]` Components consume **semantic tokens** (the
+  shadcn variables: `--background`, `--primary`, …, plus `--brand` and the
+  semantic colors of BRAND-07), never raw hex values or palette steps. Palette
+  utilities are reserved for brand graphics. Toasts (`sonner`) follow the
+  active theme.
 
 ## 3. Themes
 
-- **BRAND-09** `[pending: BL-24]` The shadcn semantic tokens map to the palette
+- **BRAND-09** `[implemented]` The shadcn semantic tokens map to the palette
   as follows (`:root` = light, `.dark` = dark):
 
 | Token | Light | Dark |
 |-------|-------|------|
-| `--background` | Neutral 200 | Midnight 900 |
+| `--background` | Midnight 100 | Midnight 900 |
 | `--foreground` | Midnight 900 | Neutral 200 |
 | `--card`, `--popover` | Neutral 100 | Midnight 800 |
 | `--card-foreground`, `--popover-foreground` | Midnight 900 | Neutral 200 |
 | `--secondary`, `--muted` | Slate 100 | Midnight 700 |
 | `--secondary-foreground` | Midnight 900 | Neutral 200 |
-| `--muted-foreground` | Slate 500 | Slate 400 |
-| `--border`, `--input` | Neutral 400 | Midnight 700 |
+| `--muted-foreground` | Slate 600 | Slate 400 |
+| `--border`, `--input` | Midnight 200 | Midnight 700 |
+| `--input-border` (outline of text inputs, textareas, selects) | Slate 500 | Midnight 400 |
 | `--primary` | Midnight 900 | Turquoise 500 |
 | `--primary-foreground` | Neutral 100 | Midnight 900 |
 | `--accent` (hover/selected surfaces) | Turquoise 100 | Midnight 700 |
 | `--accent-foreground` | Midnight 900 | Neutral 200 |
-| `--brand` (accent text, links, highlights) | Turquoise 700 | Turquoise 400 |
-| `--ring` (focus) | Turquoise 600 | Turquoise 300 |
+| `--brand` (accent text, links, highlights) | Turquoise 800 | Turquoise 400 |
+| `--ring` (focus) | Turquoise 700 | Turquoise 300 |
 | `--destructive` | Error `#DC2626` | Error `#DC2626` |
 
   The `--sidebar-*` tokens follow the same mapping as their non-sidebar
-  counterparts. Pure black is never used as a background.
-- **BRAND-10** `[pending: BL-24]` Chart series (`--chart-1` … `--chart-5`) use
+  counterparts. Pure black is never used as a background. The light
+  background is Midnight 100 instead of the guide's Neutral 200 and borders
+  Midnight 200 instead of Neutral 400 (owner decision 2026-10-02, so cards and
+  data tables, which sit on a card surface in light, stand out from the page).
+- **BRAND-10** `[implemented]` Chart series (`--chart-1` … `--chart-5`) use
   brand colors adapted to each theme, starting with the brand accent (light:
   Turquoise 700, Midnight 500, Turquoise 500, Midnight 300, Slate 500; dark:
   Turquoise 400, Midnight 300, Turquoise 600, Midnight 500, Slate 400). Charts
   keep titles, axis labels and enough context to be read without color (FE-22).
-- **BRAND-11** `[pending: BL-24]` The dashboard header (FE-16) offers a theme
+- **BRAND-11** `[implemented]` The dashboard header (FE-16) offers a theme
   selector with three options — "Claro", "Oscuro", "Sistema" — default
   "Sistema" (follows `prefers-color-scheme`, reacting to changes). The choice is
   stored in `localStorage` and applied by toggling the `dark` class on
   `<html>` before the first paint (inline script in `index.html`) to avoid a
   flash of the wrong theme. Public pages (login, accept invitation, answering)
   apply the stored or system theme but do not show the selector.
+  Code: `apps/web/src/lib/theme.ts` (storage key `sondix-theme`; "Sistema"
+  removes the key) and `components/ThemeSelector.tsx`.
 
 ## 4. Typography
 
-- **BRAND-12** `[pending: BL-24]` Two families, self-hosted through Fontsource
+- **BRAND-12** `[implemented]` Two families, self-hosted through Fontsource
   (no external font CDN): **Manrope** (`@fontsource-variable/manrope`) for
   headings, navigation, buttons and brand elements (`--font-heading`), and
   **Inter** (`@fontsource-variable/inter`, FE-01) for body text, tables, figures
   and forms (`--font-sans`). No other family is used.
-- **BRAND-13** `[pending: BL-24]` Typographic scale (base 16 px), exposed as
+- **BRAND-13** `[implemented]` Typographic scale (base 16 px), exposed as
   Tailwind theme text sizes:
 
 | Level | Size | Weight | Family | Use |
@@ -125,57 +147,69 @@ Implementation is phased (decided 2026-10-01):
 | Caption | 11 px | 500 | Inter | Complementary info |
 
   Line height is 1.5 for text and 1.2–1.35 for headings. Essential information
-  must not rely on sizes below 12 px. Uppercase is used sparingly.
+  must not rely on sizes below 12 px. Uppercase is used sparingly. The levels
+  are Tailwind utilities `text-display`, `text-h1` … `text-h4`, `text-body-lg`,
+  `text-body`, `text-small` and `text-caption` (size, line height and weight);
+  `h1`–`h4` use Manrope. Page titles use `text-h1`, sections `text-h2`, card
+  titles `text-h4`; interface text, buttons, inputs, labels and tables are
+  14 px.
 
 ## 5. Shape, spacing, elevation, icons
 
-- **BRAND-14** `[pending: BL-24]` Radii: `--radius-xs` 4 px (compact elements),
+- **BRAND-14** `[implemented]` Radii: `--radius-xs` 4 px (compact elements),
   `--radius-sm` 6 px (inputs, controls), `--radius-md` 10 px (buttons, cards),
   `--radius-lg` 14 px (highlighted panels), `--radius-xl` 20 px (main
   containers), `rounded-full` (avatars, pills). These replace the multipliers
   derived from `--radius` in `global.css`.
 - **BRAND-15** `[implemented]` Spacing uses multiples of 4 px (Tailwind's default
   `--spacing: 0.25rem`): 16 px between components, 24–32 px between sections.
-- **BRAND-16** `[pending: BL-24]` Elevation is built with contrast, borders and
+- **BRAND-16** `[implemented]` Elevation is built with contrast, borders and
   soft shadows: level 0 flat surfaces, level 1 cards with a subtle border,
   level 2 menus and popovers, level 3 dialogs. Shadows are subtle and adapted to
   each theme; they are not used as general decoration.
-- **BRAND-17** `[pending: BL-24]` Icons come from `lucide-react` (FE-02): 20 px
+- **BRAND-17** `[implemented]` Icons come from `lucide-react` (FE-02): 20 px
   standard, 16 px compact, 24 px highlighted. Icon-only buttons have an
   accessible label (`aria-label` or visually hidden text).
 
 ## 6. Components
 
-- **BRAND-18** `[pending: BL-24]` Buttons: *primary* uses `--primary` (Midnight
+- **BRAND-18** `[implemented]` Buttons: *primary* uses `--primary` (Midnight
   900 light / Turquoise 500 dark) for main actions (create, save, confirm);
   *secondary* is transparent or secondary surface with a subtle border;
   *tertiary* (`ghost`/`link`) has no permanent background or border;
   *destructive* uses the error color and irreversible actions keep the
   confirmation dialog (FE-25). Every button has normal, hover, focus, active,
   disabled and loading states.
-- **BRAND-19** `[pending: BL-24]` Forms use persistent labels, mark required fields,
+- **BRAND-19** `[implemented]` Forms use persistent labels, mark required fields,
   show errors next to the field, keep entered data on error and are fully
   keyboard operable (FE-04, FE-19, FE-23, FE-28).
 
 ## 7. Accessibility
 
-- **BRAND-20** `[pending: BL-24]` Target WCAG 2.2 level AA: text contrast
+- **BRAND-20** `[implemented]` Target WCAG 2.2 level AA: text contrast
   ≥ 4.5:1 (≥ 3:1 for large text), non-text and focus indicator contrast ≥ 3:1,
   visible focus, keyboard navigation, accessible labels, text alternatives for
-  relevant charts. Measured contrast of the guide's colors (2026-10-01) leaves
-  these pairs below AA — `[open: OQ-21]`:
+  relevant charts. The guide's colors left six pairs below AA (measured
+  2026-10-01); OQ-21 was resolved on 2026-10-02 with per-theme variants that
+  keep the guide's colors for fills and use a darker or lighter step for text
+  and focus:
 
-| Pair | Ratio | Required |
-|------|------:|---------:|
-| Light `--brand` text, Turquoise 700 on Neutral 100 / 200 | 4.02 / 3.84 | 4.5 |
-| Light focus ring, Turquoise 600 on Neutral 200 | 2.30 | 3 |
-| Success `#16A34A` text on Neutral 100 | 3.30 | 4.5 |
-| Warning `#D97706` text on Neutral 100 | 3.19 | 4.5 |
-| Error `#DC2626` text on Midnight 900 | 3.68 | 4.5 |
-| Info `#2563EB` text on Midnight 900 | 3.44 | 4.5 |
+| Pair | Guide value → ratio | Used instead → ratio |
+|------|---------------------|----------------------|
+| Light `--brand` text on Neutral 200 | Turquoise 700 → 3.84 | Turquoise 800 → 5.91 |
+| Light focus ring on Neutral 200 | Turquoise 600 → 2.30 | Turquoise 700 → 3.84 |
+| Success text on Neutral 100 (light) | `#16A34A` → 3.30 | `--success-text` `#15803D` → 5.02 |
+| Warning text on Neutral 100 (light) | `#D97706` → 3.19 | `--warning-text` `#B45309` → 5.02 |
+| Error text on Midnight 900 (dark) | `#DC2626` → 3.68 | `--destructive-text` `#F87171` → 6.42 |
+| Info text on Midnight 900 (dark) | `#2563EB` → 3.44 | `--info-text` `#60A5FA` → 6.99 |
 
-  Until OQ-21 is decided, BL-24 uses the colors as specified and the gap is
-  recorded here, not silently corrected.
+  Focus rings use `--ring` at full opacity (2 px). Checkbox and radio outlines
+  use `--muted-foreground`. OQ-22 (decided 2026-10-02): text inputs, textareas
+  and selects are outlined with `--input-border` (Slate 500 on Neutral 100,
+  4.76:1; Midnight 400 on Midnight 800, 4.23:1), while `--border`/`--input`
+  stay soft for cards, tables and tinted backgrounds; light
+  `--muted-foreground` is Slate 600 (6.45:1 on Midnight 100, 6.87:1 on
+  Slate 100) instead of the guide's Slate 500.
 
 ## 8. Logo, icons and textures
 

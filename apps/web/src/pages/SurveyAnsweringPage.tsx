@@ -128,8 +128,8 @@ export default function SurveyAnsweringPage() {
       <div className="w-full max-w-2xl mx-auto py-12 px-4">
         <Card className="border-destructive/20 bg-destructive/5">
           <CardHeader className="text-center flex flex-col items-center">
-            <AlertCircle className="size-12 text-destructive mb-4" />
-            <CardTitle className="text-xl text-destructive">
+            <AlertCircle className="size-12 text-destructive-text mb-4" />
+            <CardTitle className="text-h3 text-destructive-text">
               Encuesta no encontrada
             </CardTitle>
             <CardDescription>
@@ -145,13 +145,13 @@ export default function SurveyAnsweringPage() {
   if (submitAnswer.isSuccess) {
     return (
       <div className="w-full max-w-2xl mx-auto py-12 px-4">
-        <Card className="border-emerald-500/20 bg-emerald-500/5">
+        <Card className="border-success/30 bg-success/5">
           <CardHeader className="text-center flex flex-col items-center">
-            <CheckCircle2 className="size-12 text-emerald-500 mb-4" />
-            <CardTitle className="text-2xl text-emerald-600 font-bold">
+            <CheckCircle2 className="size-12 text-success mb-4" aria-hidden="true" />
+            <CardTitle className="text-h2 text-success-text">
               ¡Muchas gracias!
             </CardTitle>
-            <CardDescription className="text-emerald-700/80">
+            <CardDescription>
               Tus respuestas a la encuesta <strong>{survey.name}</strong> han
               sido enviadas correctamente.
             </CardDescription>
@@ -165,7 +165,7 @@ export default function SurveyAnsweringPage() {
     <div className="w-full max-w-2xl mx-auto py-12 px-4">
       <Card className="border-border/60 bg-card/60 backdrop-blur shadow-xl">
         <CardHeader className="border-b border-border/40 pb-6">
-          <CardTitle className="text-2xl font-bold tracking-tight text-foreground">
+          <CardTitle className="text-h1">
             {survey.name}
           </CardTitle>
           <CardDescription>
@@ -188,10 +188,10 @@ export default function SurveyAnsweringPage() {
                     <Label className="text-sm font-semibold text-foreground">
                       {question.name}{" "}
                       {question.isRequired && (
-                        <span className="text-destructive">*</span>
+                        <span className="text-destructive-text">*</span>
                       )}
                     </Label>
-                    <span className="text-[10px] bg-primary/100 text-primary-foreground/85 border border-primary/20 px-2 py-0.5 rounded font-medium">
+                    <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded font-medium">
                       {question.type === "TEXT_ANSWER" && "Texto"}
                       {question.type === "SINGLE_SELECT" && "Única opción"}
                       {question.type === "MULTI_SELECT" && "Múltiple opción"}
@@ -211,7 +211,7 @@ export default function SurveyAnsweringPage() {
                         })}
                       />
                       {hasError && (
-                        <p className="text-xs text-destructive mt-1">
+                        <p className="text-xs text-destructive-text mt-1">
                           {hasError.message as string}
                         </p>
                       )}
@@ -253,7 +253,7 @@ export default function SurveyAnsweringPage() {
                                 />
                                 <Label
                                   htmlFor={`q${question.id}-o${option.id}`}
-                                  className="text-xs font-normal cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                                  className="font-normal cursor-pointer text-foreground"
                                 >
                                   {option.content}
                                 </Label>
@@ -263,7 +263,7 @@ export default function SurveyAnsweringPage() {
                         )}
                       />
                       {hasError && (
-                        <p className="text-xs text-destructive mt-1">
+                        <p className="text-xs text-destructive-text mt-1">
                           {hasError.message as string}
                         </p>
                       )}
@@ -317,7 +317,7 @@ export default function SurveyAnsweringPage() {
                                   />
                                   <Label
                                     htmlFor={`q${question.id}-o${option.id}`}
-                                    className="text-xs font-normal cursor-pointer text-muted-foreground hover:text-foreground transition-colors"
+                                    className="font-normal cursor-pointer text-foreground"
                                   >
                                     {option.content}
                                   </Label>
@@ -328,7 +328,7 @@ export default function SurveyAnsweringPage() {
                         }}
                       />
                       {hasError && (
-                        <p className="text-xs text-destructive mt-1">
+                        <p className="text-xs text-destructive-text mt-1">
                           {hasError.message as string}
                         </p>
                       )}

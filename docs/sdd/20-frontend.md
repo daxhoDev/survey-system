@@ -4,8 +4,8 @@
 
 ## 1. Stack and conventions
 
-- **FE-01** `[implemented]` Vite 8 + React 19 with the React Compiler (`babel-plugin-react-compiler` via `@rolldown/plugin-babel`), TypeScript, Tailwind CSS 4 (`@tailwindcss/vite`), `tw-animate-css`, Inter variable font. Brand identity (Sondix name, color tokens, light/dark themes, Manrope headings, radii) — [21-brand.md](21-brand.md) `[pending: BL-24]`.
-- **FE-02** `[implemented]` UI components are shadcn/ui (config `components.json`) in `apps/web/src/components/ui`, built on `radix-ui`; icons from `lucide-react`; toasts with `sonner` (`<Toaster position="top-center" />`); tables with `@tanstack/react-table` (`ui/data-table.tsx`); charts with `recharts` through `ui/chart.tsx`.
+- **FE-01** `[implemented]` Vite 8 + React 19 with the React Compiler (`babel-plugin-react-compiler` via `@rolldown/plugin-babel`), TypeScript, Tailwind CSS 4 (`@tailwindcss/vite`), `tw-animate-css`, Inter variable font. Inter for body text and Manrope (`@fontsource-variable/manrope`) for headings. Brand identity (Sondix name, color tokens, light/dark themes, typography, radii) — [21-brand.md](21-brand.md).
+- **FE-02** `[implemented]` UI components are shadcn/ui (config `components.json`) in `apps/web/src/components/ui`, built on `radix-ui`; icons from `lucide-react`; toasts with `sonner` (`<Toaster position="top-center" theme={theme} />`, following the active theme, BRAND-11); tables with `@tanstack/react-table` (`ui/data-table.tsx`); charts with `recharts` through `ui/chart.tsx`.
 - **FE-03** `[implemented]` Routing with React Router 7 (`BrowserRouter`); server state with TanStack Query 5. There is no other global state store.
 - **FE-04** `[implemented]` Forms with `react-hook-form`; when a shared Zod schema exists it is used through `zodResolver` (login uses `loginDataSchema` from `@survey-system/schemas`).
 - **FE-05** `[implemented]` Import alias `@` → `apps/web/src`.
@@ -53,7 +53,7 @@
 ### Header — `components/DashboardHeader.tsx`
 
 - **FE-16** `[implemented]` Shows the Sondix logo (BRAND-26), "Dashboard" (a link to `/dashboard`), the user's initial and username. An "Invitaciones" button leads to `/dashboard/invitations`. Logout asks for confirmation in a dialog; on success clears the whole query cache and navigates to `/auth/login`.
-- **FE-29** `[pending: BL-24]` The header shows a theme selector ("Claro" / "Oscuro" / "Sistema", BRAND-11). The product name "Sondix" is the wordmark of the theme-aware SVG logo (BRAND-01, BRAND-26), already in place (BL-25); it follows the theme once BL-24 adds the `.dark` class.
+- **FE-29** `[implemented]` The header shows a theme selector ("Claro" / "Oscuro" / "Sistema", BRAND-11). The product name "Sondix" is the wordmark of the theme-aware SVG logo (BRAND-01, BRAND-26), switching with the theme.
 
 ### Survey list — `components/Surveys.tsx` (`/dashboard`)
 

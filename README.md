@@ -19,8 +19,9 @@ answers (one per IP per survey) and review answers and statistics.
 - Public answering page; answers validated against the survey's questions.
 - Per-survey statistics (completed/incomplete answers, votes per option) with charts.
 - Interactive API documentation (Swagger UI).
+- Sondix brand identity: light and dark themes (Claro / Oscuro / Sistema), brand palette, Manrope and Inter typography.
 
-Planned work (Sondix brand identity in the web app, Docker deployment and more) is tracked in
+Planned work (login brand panel, Docker deployment and more) is tracked in
 [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
 
 ## Tech stack

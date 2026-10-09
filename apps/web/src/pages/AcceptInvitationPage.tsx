@@ -60,7 +60,7 @@ export default function AcceptInvitationPage() {
         navigate("/dashboard");
       },
       onError(error) {
-        toast.error(<p className="text-destructive">{error.detail}</p>);
+        toast.error(<p className="text-destructive-text">{error.detail}</p>);
       },
     },
   });
@@ -72,7 +72,7 @@ export default function AcceptInvitationPage() {
         queryClient.resetQueries();
       },
       onError(error) {
-        toast.error(<p className="text-destructive">{error.detail}</p>);
+        toast.error(<p className="text-destructive-text">{error.detail}</p>);
       },
     },
   });
@@ -89,7 +89,7 @@ export default function AcceptInvitationPage() {
     return (
       <Card className={`${cardClass} border-destructive/20 bg-destructive/5 text-center`}>
         <CardHeader>
-          <CardTitle className="text-destructive">
+          <CardTitle className="text-destructive-text">
             Invitación no válida o caducada
           </CardTitle>
           <CardDescription>
@@ -139,7 +139,7 @@ export default function AcceptInvitationPage() {
     <Card className={cardClass}>
       <CardHeader className="text-center flex flex-col items-center">
         <img src={isotype} alt="Sondix" className="w-15 mb-5" />
-        <CardTitle className="text-xl">Crea tu cuenta</CardTitle>
+        <CardTitle className="text-h3">Crea tu cuenta</CardTitle>
         <CardDescription>
           Te invitaron a unirte al sistema de gestión de encuestas.
         </CardDescription>
