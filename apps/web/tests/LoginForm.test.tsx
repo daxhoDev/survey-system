@@ -57,4 +57,18 @@ describe("LoginForm (FE-15)", () => {
       password: "password123",
     });
   });
+
+  it("toggles the password visibility with the eye button", async () => {
+    mockFetch({});
+    renderWithProviders(<LoginForm />);
+    const user = userEvent.setup();
+    const input = screen.getByLabelText("Password");
+
+    expect(input).toHaveAttribute("type", "password");
+    expect(input).toHaveAttribute("placeholder", "Enter your password");
+    await user.click(screen.getByRole("button", { name: "Show password" }));
+    expect(input).toHaveAttribute("type", "text");
+    await user.click(screen.getByRole("button", { name: "Hide password" }));
+    expect(input).toHaveAttribute("type", "password");
+  });
 });

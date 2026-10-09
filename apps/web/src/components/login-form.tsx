@@ -14,6 +14,7 @@ import {
   FieldError,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import PasswordInput from "@/components/PasswordInput";
 import { useForm } from "react-hook-form";
 import type { UserLogin } from "@/lib/api/sondixAPI.schemas";
 import { useLoginUser, getGetCurrentUserQueryKey } from "@/lib/api/users/users";
@@ -118,9 +119,11 @@ export function LoginForm({
                     Forgot your password?
                   </a> */}
                 </div>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
+                  placeholder="Enter your password"
+                  showLabel="Show password"
+                  hideLabel="Hide password"
                   {...register("password", { required: true })}
                 />
                 {errors.password && (
