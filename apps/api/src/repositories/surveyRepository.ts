@@ -314,7 +314,8 @@ FROM expanded_questions eq
          LEFT JOIN expanded_responses er
                    ON eq.id = er.question_id
                        AND eq.option_id = er.selected_option_id
-GROUP BY eq.id, eq.name, eq.option_content ORDER BY eq.id;`;
+GROUP BY eq.id, eq.name, eq.option_id, eq.option_content
+ORDER BY eq.id, eq.option_id;`;
 
     const map = new Map<number, OptionStats>();
 

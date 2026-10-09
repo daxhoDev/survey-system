@@ -237,6 +237,40 @@ describe("statistics", () => {
     });
   });
 
+  it("STAT-04: options keep the survey's order and same-text options are counted apart", async () => {
+    const surveyId = await createSurvey("Order survey", {
+      is_active: true,
+      questions: [
+        {
+          id: 1,
+          name: "Pick one",
+          type: "SINGLE_SELECT",
+          isRequired: true,
+          options: [
+            { id: 1, content: "Zeta" },
+            { id: 2, content: "Alfa" },
+            { id: 3, content: "Alfa" },
+          ],
+        },
+      ],
+    });
+    for (const [i, option] of [2, 3, 3].entries()) {
+      await answers.createOne({
+        id: v7(),
+        surveyId,
+        originIp: `10.0.1.${i}`,
+        responses: [{ id: 1, content: [option] }],
+      });
+    }
+
+    const [question] = await surveys.getResponsesOptionsStatsBySlug("order-survey");
+    expect(question!.options).toEqual([
+      { optionContent: "Zeta", responseCount: 0 },
+      { optionContent: "Alfa", responseCount: 1 },
+      { optionContent: "Alfa", responseCount: 2 },
+    ]);
+  });
+
   it("STAT-06: every count ignores deleted answers and deleted surveys with the same slug", async () => {
     const deletedSurvey = await createSurvey("Stats survey", { deleted_at: new Date() });
     await answers.createOne({
