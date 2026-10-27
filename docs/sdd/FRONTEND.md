@@ -4,7 +4,7 @@
 
 - **Module:** Frontend
 - **Module code:** FE
-- **Version:** v2.0
+- **Version:** v2.1
 - **Status:** Approved
 - **Last updated:** 2026-10-27
 
@@ -412,7 +412,7 @@ The table is server-paginated, 10 per page, newest first by default (REQ-SURV-02
 - **AC-FE-018-1**
   - **Given** `/dashboard` with no query string
   - **When** the list loads
-  - **Then** it requests page 1 with limit 10 and no sort (newest first)
+  - **Then** it requests page 1 of 10 surveys, newest first (`page` absent or 1; `limit` absent or 10; `sort` absent or `-creation`)
 - **AC-FE-018-2**
   - **Given** the user types in "Buscar por nombre"
   - **When** typing pauses for 300 ms
@@ -857,7 +857,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 | Phase | Title | Status | REQ-IDs covered |
 |---|---|---|---|
 | PH-FE-1 | Existing implementation (migrated) | Done | REQ-FE-001, REQ-FE-002, REQ-FE-003, REQ-FE-004, REQ-FE-005, REQ-FE-007, REQ-FE-008, REQ-FE-009, REQ-FE-010, REQ-FE-011, REQ-FE-012, REQ-FE-014, REQ-FE-015, REQ-FE-017, REQ-FE-018, REQ-FE-019, REQ-FE-020, REQ-FE-021, REQ-FE-022, REQ-FE-023, REQ-FE-024, REQ-FE-025, REQ-FE-026, REQ-FE-027, REQ-FE-028, REQ-FE-029, REQ-FE-030, REQ-FE-031 |
-| PH-FE-3 | Redesign: dashboard (summary line, active-survey small multiples, survey list) | Planned | REQ-FE-017, REQ-FE-018, REQ-FE-026, REQ-FE-032 |
+| PH-FE-3 | Redesign: dashboard (summary line, active-survey small multiples, survey list) | Done | REQ-FE-017, REQ-FE-018, REQ-FE-026, REQ-FE-032 |
 | PH-FE-4 | Redesign: create survey and survey details (header, tabs, answers, statistics) | Planned | REQ-FE-019, REQ-FE-021, REQ-FE-022, REQ-FE-033, REQ-BRAND-019 |
 | PH-FE-5 | Redesign: invitations, login and accept invitation | Planned | REQ-FE-015, REQ-FE-027, REQ-FE-028, REQ-FE-030, REQ-BRAND-023, REQ-BRAND-025 |
 | PH-FE-6 | Redesign: public answering page | Planned | REQ-FE-023, REQ-FE-024, REQ-FE-034 |

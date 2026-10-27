@@ -28,7 +28,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
     <thead
       data-slot="table-header"
       className={cn(
-        "max-md:block [&_tr]:border-b [&_tr]:border-rule-strong [&_tr]:hover:bg-transparent max-md:[&_tr]:flex max-md:[&_tr]:flex-wrap max-md:[&_tr]:gap-x-2 max-md:[&_tr]:py-1",
+        "max-md:block [&_tr]:border-b [&_tr]:border-rule-strong [&_tr]:hover:bg-transparent max-md:[&_tr]:flex max-md:[&_tr]:flex-row max-md:[&_tr]:flex-wrap max-md:[&_tr]:gap-x-2 max-md:[&_tr]:py-1",
         className
       )}
       {...props}
@@ -77,7 +77,7 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
     <th
       data-slot="table-head"
       className={cn(
-        "px-3.5 py-2.5 text-left align-bottom text-small font-semibold whitespace-nowrap text-ink-muted max-md:block max-md:px-0 max-md:py-1 max-md:[&:not([aria-sort])]:hidden [&:has([role=checkbox])]:pr-0",
+        "px-3.5 py-2.5 text-left align-middle text-small font-semibold whitespace-nowrap text-ink-muted max-md:block max-md:px-0 max-md:py-1 max-md:[&:not([aria-sort])]:hidden [&:has([role=checkbox])]:pr-0",
         className
       )}
       {...props}

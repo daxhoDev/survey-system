@@ -63,7 +63,7 @@ export function DataTable<TData, TValue>({
                 <TableHead
                   key={header.id}
                   aria-sort={meta?.sort}
-                  className={cn(meta?.numeric && "text-right")}
+                  className={cn(meta?.numeric && "text-right max-md:text-left")}
                 >
                   {header.isPlaceholder
                     ? null
@@ -96,7 +96,7 @@ export function DataTable<TData, TValue>({
                     data-actions={def.meta?.actions || undefined}
                     className={cn(
                       def.meta?.numeric && "figures text-right",
-                      def.meta?.actions && "w-px",
+                      def.meta?.actions && "md:w-px",
                     )}
                   >
                     {flexRender(def.cell, cell.getContext())}

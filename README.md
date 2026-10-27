@@ -18,7 +18,8 @@ The full specification lives in [`docs/sdd/`](docs/sdd/MAIN.md); start at
 - Surveys with free-text, single-choice and multiple-choice questions, required or optional.
 - Survey lifecycle: draft → active ⇄ inactive; a survey is locked for editing once activated.
 - Public answering page; answers validated against the survey's questions.
-- Survey list with search by name, status filter, sortable columns and pagination.
+- Dashboard with survey counters (total, active, inactive) and the most recently activated active surveys side by side: answer totals with completed/incomplete bars on a common scale.
+- Survey list with each survey's answer and completed counts, search by name, status filter, sortable columns and pagination.
 - Per-survey statistics (completed/incomplete answers, votes per option) with charts.
 - Interactive API documentation (Swagger UI).
 - Sondix visual identity: light and dark themes (Claro / Oscuro / Sistema), a sober palette with tabular figures in Work Sans, dense ruled tables and a top navigation bar.

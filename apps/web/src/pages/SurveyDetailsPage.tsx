@@ -65,7 +65,10 @@ import type { Answer } from "@/lib/api/sondixAPI.schemas";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import LockedBadge from "@/components/LockedBadge";
-import { getGetSurveySummaryQueryKey } from "@/lib/api/stats/stats";
+import {
+  getGetActiveSurveyStatsQueryKey,
+  getGetSurveySummaryQueryKey,
+} from "@/lib/api/stats/stats";
 
 export default function SurveyDetailsPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -124,6 +127,9 @@ export default function SurveyDetailsPage() {
         queryClient.invalidateQueries({
           queryKey: getGetSurveySummaryQueryKey(),
         });
+        queryClient.invalidateQueries({
+          queryKey: getGetActiveSurveyStatsQueryKey(),
+        });
         toast.success("Estado de la encuesta actualizado");
       },
       onError(err) {
@@ -141,6 +147,9 @@ export default function SurveyDetailsPage() {
         queryClient.invalidateQueries({
           queryKey: getGetSurveySummaryQueryKey(),
         });
+        queryClient.invalidateQueries({
+          queryKey: getGetActiveSurveyStatsQueryKey(),
+        });
         toast.success("Encuesta eliminada correctamente");
         navigate("/dashboard");
       },
@@ -154,6 +163,13 @@ export default function SurveyDetailsPage() {
     mutation: {
       onSuccess() {
         refetchAnswers();
+        // The list and the active-survey statistics count answers.
+        queryClient.invalidateQueries({
+          queryKey: getGetAllSurveysQueryKey(),
+        });
+        queryClient.invalidateQueries({
+          queryKey: getGetActiveSurveyStatsQueryKey(),
+        });
         toast.success("Respuesta eliminada");
         setSelectedAnswer(null);
       },
