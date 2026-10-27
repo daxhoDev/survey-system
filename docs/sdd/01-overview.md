@@ -26,9 +26,7 @@ In scope:
 - Per-survey statistics — [13-stats.md](13-stats.md).
 - Web dashboard for managers and a public answering page — [20-frontend.md](20-frontend.md).
 
-Planned (see [BACKLOG.md](BACKLOG.md)):
-
-- Containerized deployment (BL-02).
+Deployment: API as a Docker image on Render, web on Vercel, PostgreSQL on Neon — [30-dev-workflow.md](30-dev-workflow.md) §5.
 
 Out of scope: roles/permissions, multi-tenancy, respondent accounts, email
 notifications, survey templates, exports.

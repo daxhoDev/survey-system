@@ -22,8 +22,7 @@ answers (one per IP per survey) and review answers and statistics.
 - Interactive API documentation (Swagger UI).
 - Sondix brand identity: light and dark themes (Claro / Oscuro / Sistema), brand palette, Manrope and Inter typography.
 
-Planned work (Docker deployment and more) is tracked in
-[`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
+Planned work is tracked in [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
 
 ## Tech stack
 
@@ -37,7 +36,7 @@ pnpm workspaces monorepo.
 
 ## Getting started
 
-Prerequisites: Node.js, [pnpm](https://pnpm.io) and Docker (or your own PostgreSQL).
+Prerequisites: Node.js 24, [pnpm](https://pnpm.io) and Docker (or your own PostgreSQL).
 
 ```bash
 pnpm install
@@ -80,11 +79,33 @@ and validates it at startup: if anything is missing or invalid it lists every pr
 and exits. Required: `DATABASE_URL`, `NODE_ENV` (`development` | `production`),
 `JWT_SECRET` (≥ 32 characters), `ACCESS_TOKEN_TTL_MINUTES`, `REFRESH_TOKEN_TTL_DAYS`,
 and `CORS_ORIGIN` in production. Optional: `PORT` (default `3000`), `LOG_LEVEL`
-(default `info`). See [`docs/sdd/05-configuration.md`](docs/sdd/05-configuration.md).
+(default `info`), `TRUST_PROXY` (number of reverse proxies in front of the API,
+default `0`). See [`docs/sdd/05-configuration.md`](docs/sdd/05-configuration.md).
 
 The web reads `VITE_API_URL` (template: `apps/web/.env.example`), the API base URL.
 It defaults to `http://localhost:3000` in development and is required when building
 for production.
+
+## Deployment
+
+Free tiers: the API runs as a Docker image on [Render](https://render.com), the web on
+[Vercel](https://vercel.com) and PostgreSQL on [Neon](https://neon.tech).
+
+- **API image**: `apps/api/Dockerfile`, built from the repository root. It applies pending
+  migrations (`prisma migrate deploy`) every time it starts. Try it locally with
+  `docker compose -f docker-compose.prod.yml up --build`.
+- **Render**: Docker web service with Dockerfile path `apps/api/Dockerfile` and the
+  repository root as build context. Environment: `NODE_ENV=production`, `DATABASE_URL`
+  (the direct Neon connection string), `JWT_SECRET`, `ACCESS_TOKEN_TTL_MINUTES`,
+  `REFRESH_TOKEN_TTL_DAYS`, `CORS_ORIGIN` (the Vercel URL) and `TRUST_PROXY`.
+- **Vercel**: project with root directory `apps/web` and `VITE_API_URL` set to the
+  project's own Vercel URL. `apps/web/vercel.json` forwards `/api/*` to Render, so the
+  browser only talks to Vercel and the session cookies work.
+- **Migrations by hand**: `DATABASE_URL=<Neon URL> pnpm exec prisma migrate deploy` in
+  `apps/api`.
+
+On the free plan Render stops the API when idle: the first request afterwards can take
+about a minute. See [`docs/sdd/30-dev-workflow.md`](docs/sdd/30-dev-workflow.md) §5.
 
 ## Documentation
 

@@ -1,0 +1,38 @@
+# Runs the production API image locally against its own PostgreSQL, to try
+# the image before deploying it (DEV-WF-03). Not used by the deployment.
+#   docker compose -f docker-compose.prod.yml up --build
+# API: http://localhost:3000 (stop the development API first).
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: survey_system
+    volumes:
+      - pgdata-prod:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d survey_system"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/survey_system
+      NODE_ENV: production
+      JWT_SECRET: local-only-secret-with-at-least-32-characters
+      ACCESS_TOKEN_TTL_MINUTES: 15
+      REFRESH_TOKEN_TTL_DAYS: 7
+      CORS_ORIGIN: http://localhost:5173
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata-prod:

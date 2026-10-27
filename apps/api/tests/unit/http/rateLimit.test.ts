@@ -42,4 +42,31 @@ describe("rate limiting", () => {
     }
     expect(last!.status).toBe(429);
   });
+
+  it("ANS-07: with TRUST_PROXY=0, X-Forwarded-For does not separate clients", async () => {
+    vi.resetModules();
+    const { default: freshApp } = await import("../../../src/app.js");
+    let last: request.Response | undefined;
+    for (let i = 0; i < 21; i++) {
+      last = await request(freshApp)
+        .post("/api/v1/users/refresh")
+        .set("X-Forwarded-For", `203.0.113.${i}`);
+    }
+    expect(last!.status).toBe(429);
+  });
+
+  it("ANS-07: with TRUST_PROXY=1, clients are told apart by X-Forwarded-For", async () => {
+    vi.stubEnv("TRUST_PROXY", "1");
+    vi.resetModules();
+    const { default: freshApp } = await import("../../../src/app.js");
+    const send = (ip: string) =>
+      request(freshApp)
+        .post("/api/v1/users/refresh")
+        .set("X-Forwarded-For", ip);
+    for (let i = 0; i < 20; i++) await send("203.0.113.1");
+
+    expect((await send("203.0.113.1")).status).toBe(429);
+    expect((await send("203.0.113.2")).status).toBe(401);
+    vi.unstubAllEnvs();
+  });
 });

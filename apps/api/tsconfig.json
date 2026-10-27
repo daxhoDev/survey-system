@@ -10,6 +10,8 @@
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    // Resolve @survey-system/schemas to its TypeScript source.
+    "customConditions": ["source"],
     "target": "esnext",
 
     // For nodejs:

@@ -15,6 +15,7 @@ const envSchema = z
     LOG_LEVEL: z
       .enum(["fatal", "error", "warn", "info", "debug", "trace", "silent"])
       .default("info"),
+    TRUST_PROXY: z.coerce.number().int().nonnegative().default(0),
   })
   .superRefine((env, ctx) => {
     if (env.NODE_ENV === "production" && !env.CORS_ORIGIN) {

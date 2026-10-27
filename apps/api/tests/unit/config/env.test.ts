@@ -9,6 +9,7 @@ const valid = {
   CORS_ORIGIN: undefined,
   LOG_LEVEL: undefined,
   PORT: undefined,
+  TRUST_PROXY: undefined,
 };
 
 let exit: ReturnType<typeof vi.spyOn>;
@@ -47,6 +48,7 @@ describe("config/env", () => {
       REFRESH_TOKEN_TTL_DAYS: 7,
       LOG_LEVEL: "info",
       CORS_ORIGIN: "http://localhost:5173",
+      TRUST_PROXY: 0,
     });
   });
 
@@ -76,5 +78,13 @@ describe("config/env", () => {
   it("CFG-06: CORS_ORIGIN is required in production", async () => {
     await expect(loadEnv({ NODE_ENV: "production" })).rejects.toThrow("exit 1");
     expect(printed()).toContain("CORS_ORIGIN: Required in production");
+  });
+
+  it("ANS-07: TRUST_PROXY is a number of proxy hops, never negative", async () => {
+    await expect(loadEnv({ TRUST_PROXY: "2" })).resolves.toMatchObject({
+      TRUST_PROXY: 2,
+    });
+    await expect(loadEnv({ TRUST_PROXY: "-1" })).rejects.toThrow("exit 1");
+    expect(printed()).toContain("TRUST_PROXY");
   });
 });
