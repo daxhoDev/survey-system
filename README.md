@@ -1,16 +1,17 @@
 # Sondix
 
-*La información comienza escuchando.*
+An enterprise system to create and manage employee surveys. *La información comienza escuchando.*
+
+## Overview
 
 Sondix (repository `survey-system`) is a university project: an enterprise system to create and manage employee surveys.
 Managers build surveys in a web dashboard, share a public link, collect anonymous
 answers (one per IP per survey) and review answers and statistics.
 
-> This project follows **spec-driven development**. The full, authoritative
-> documentation lives in [`docs/sdd/`](docs/sdd/MAIN.md) — start at
-> [`docs/sdd/MAIN.md`](docs/sdd/MAIN.md).
+The full specification lives in [`docs/sdd/`](docs/sdd/MAIN.md); start at
+[`docs/sdd/MAIN.md`](docs/sdd/MAIN.md).
 
-## Features
+### Features
 
 - Cookie-based authentication with short-lived access JWT and rotating refresh token.
 - No public signup: accounts are created from single-use invitation links (48 h) or with the `create-user` command.
@@ -22,9 +23,7 @@ answers (one per IP per survey) and review answers and statistics.
 - Interactive API documentation (Swagger UI).
 - Sondix brand identity: light and dark themes (Claro / Oscuro / Sistema), brand palette, Manrope and Inter typography.
 
-Planned work is tracked in [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
-
-## Tech stack
+### Tech stack
 
 | Part | Location | Technologies |
 |------|----------|--------------|
@@ -34,15 +33,19 @@ Planned work is tracked in [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md).
 
 pnpm workspaces monorepo.
 
-## Getting started
+## Requirements
 
-Prerequisites: Node.js 24, [pnpm](https://pnpm.io) and Docker (or your own PostgreSQL).
+- Node.js 24 (24.22.1 or later)
+- [pnpm](https://pnpm.io) (the root `package.json` pins version 11.5.3, downloaded automatically)
+- Docker (or your own PostgreSQL)
+
+## Installation
 
 ```bash
 pnpm install
 
 # API configuration: copy apps/api/.env.example to apps/api/.env and adjust it
-# (variables documented in docs/sdd/05-configuration.md)
+# (variables documented in docs/sdd/CONFIGURATION.md)
 cp apps/api/.env.example apps/api/.env
 
 # Database: local PostgreSQL with a development and a test database
@@ -53,24 +56,16 @@ pnpm exec prisma generate
 pnpm seed          # optional demo data: log in as demo@example.com / demo12345
 pnpm create-user   # or create your own first account (asks email, username, password)
 cd ../..
+```
 
+## Usage
+
+```bash
 # Run API (http://localhost:3000) and web (http://localhost:5173)
 pnpm dev
 ```
 
 API documentation: <http://localhost:3000/api/v1/docs> (raw OpenAPI at `/api/v1/docs-raw`).
-
-After changing the API contract, regenerate the web client with `pnpm generate:api`
-(the API must be running).
-
-## Tests
-
-```bash
-pnpm test   # API and web (Vitest)
-```
-
-API tests that need a database use `TEST_DATABASE_URL` (see `apps/api/.env.example`);
-without it they are skipped. See [`docs/sdd/30-dev-workflow.md`](docs/sdd/30-dev-workflow.md) §4.
 
 ## Configuration
 
@@ -80,13 +75,45 @@ and exits. Required: `DATABASE_URL`, `NODE_ENV` (`development` | `production`),
 `JWT_SECRET` (≥ 32 characters), `ACCESS_TOKEN_TTL_MINUTES`, `REFRESH_TOKEN_TTL_DAYS`,
 and `CORS_ORIGIN` in production. Optional: `PORT` (default `3000`), `LOG_LEVEL`
 (default `info`), `TRUST_PROXY` (number of reverse proxies in front of the API,
-default `0`). See [`docs/sdd/05-configuration.md`](docs/sdd/05-configuration.md).
+default `0`). See [`docs/sdd/CONFIGURATION.md`](docs/sdd/CONFIGURATION.md).
 
 The web reads `VITE_API_URL` (template: `apps/web/.env.example`), the API base URL.
 It defaults to `http://localhost:3000` in development and is required when building
 for production.
 
-## Deployment
+## Development
+
+### Tests
+
+```bash
+pnpm test   # API and web (Vitest)
+```
+
+API tests that need a database use `TEST_DATABASE_URL` (see `apps/api/.env.example`);
+without it they are skipped. It must be a dedicated database whose name contains `test`
+(the local `docker compose` creates `survey_system_test`). Each run applies pending
+migrations and empties every table before the tests and again when they finish, so the
+test database is left empty; it is never dropped or reset.
+See [`docs/sdd/DEV_WORKFLOW.md`](docs/sdd/DEV_WORKFLOW.md).
+
+### Environment check
+
+```bash
+bash scripts/preflight.sh
+```
+
+Checks that Node.js (24.22.1 or later, below 25) and pnpm 11.5.3 are installed, then
+runs the tests without the database tests, and prints a summary. It exits `0` only if
+everything passed. It installs nothing: run `pnpm install` and
+`pnpm exec prisma generate` (in `apps/api`) first. Its own tests:
+`bash scripts/tests/preflight.test.sh`.
+
+### API client
+
+After changing the API contract, regenerate the web client with `pnpm generate:api`
+(the API must be running).
+
+### Deployment
 
 Free tiers: the API runs as a Docker image on [Render](https://render.com), the web on
 [Vercel](https://vercel.com) and PostgreSQL on [Neon](https://neon.tech).
@@ -105,15 +132,14 @@ Free tiers: the API runs as a Docker image on [Render](https://render.com), the 
   `apps/api`.
 
 On the free plan Render stops the API when idle: the first request afterwards can take
-about a minute. See [`docs/sdd/30-dev-workflow.md`](docs/sdd/30-dev-workflow.md) §5.
+about a minute. See [`docs/sdd/DEV_WORKFLOW.md`](docs/sdd/DEV_WORKFLOW.md).
 
-## Documentation
+### Documentation
 
 | | |
 |---|---|
-| Specs index | [`docs/sdd/MAIN.md`](docs/sdd/MAIN.md) |
+| Specification index | [`docs/sdd/MAIN.md`](docs/sdd/MAIN.md) |
 | Contributing / agents | [`AGENTS.md`](AGENTS.md) |
-| Backlog & open questions | [`docs/sdd/BACKLOG.md`](docs/sdd/BACKLOG.md) |
 
 ## Author
 

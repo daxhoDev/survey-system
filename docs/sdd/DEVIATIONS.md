@@ -1,36 +1,33 @@
-# Deviations Registry
+← Back to [MAIN](MAIN.md)
 
-[← Back to index](MAIN.md) · Process: [00-sdd-process.md](00-sdd-process.md)
+# Deviations
 
-A **deviation** is any case where the code knowingly differs from the specs and
-the owner has accepted it (workaround, technical limitation, partial
-implementation, temporary shortcut). Planned-but-not-done work belongs in
-[BACKLOG.md](BACKLOG.md), not here.
+This is the historical record of every user decision that contradicts an **already approved** spec. Edits to specs that are not yet approved are plain edits and are not recorded here. Every deviation is also propagated to all affected docs. Rules: [AGENTS.md](../../AGENTS.md) §6.6.
 
-Rules:
+<!--
+Entry template:
 
-1. Every deviation gets an entry here **and** a reference (`see DEV-xx`) in the
-   affected spec section.
-2. A deviation must never be introduced without the owner's explicit approval.
-3. When the deviation is resolved, move its entry to *Resolved* with the date
-   and the change that resolved it, and remove the references from the specs.
-
-## Entry template
-
-```md
-### DEV-xx — <short title>
+### DEV-NNN — <title>
 - **Date:** YYYY-MM-DD
-- **Spec(s):** <requirement IDs and links>
-- **Deviation:** what the code does instead of what the spec says
-- **Reason:** why it was accepted
-- **Approved by:** owner
-- **Exit condition:** what must happen to remove it
-```
+- **Spec said:** <what the approved spec said: spec file (relative to `docs/sdd/`), REQ-IDs and previous version, e.g. AUTH.md, REQ-AUTH-002, v1.1>
+- **User decided:** <the decision>
+- **Reason:** <reason>
+- **Affected files:** <list>
+- **CHANGELOG ref:** <entry reference>
+-->
 
-## Active deviations
+### DEV-001 — API image on Node.js 24.22.1
+- **Date:** 2026-10-27
+- **Spec said:** DEV_WORKFLOW.md, REQ-DEVWF-003 (AC-DEVWF-003-1), v1.0: the API image builds from `node:24.19.0-alpine`.
+- **User decided:** the API image builds from `node:24.22.1-alpine`, the same version as the environment preflight's Node.js minimum.
+- **Reason:** keep the production runtime aligned with the minimum version the development environment is checked against.
+- **Affected files:** DEV_WORKFLOW.md, ENV.md, CONVENTIONS.md
+- **CHANGELOG ref:** 2026-10-27 · DEV_WORKFLOW.md → v2.0 · task chore/sdd-bootstrap / PH-ENV-1 · DEV-001
 
-_None._
-
-## Resolved deviations
-
-_None._
+### DEV-002 — Test database migrated and emptied instead of reset
+- **Date:** 2026-10-27
+- **Spec said:** DEV_WORKFLOW.md, REQ-DEVWF-002 (AC-DEVWF-002-3), v1.0: the `db` project's global setup rebuilds the test database with `prisma migrate reset --force` once per run. CONFIGURATION.md, v1.0: the `db` project "rebuilds" the test database.
+- **User decided:** the global setup applies migrations with `prisma migrate deploy` and empties every application table before the run, and a global teardown empties them again after the run, so the test database is left empty. `prisma migrate reset` is no longer used. Running the `db` tests needs no consent, as long as the test database is left empty.
+- **Reason:** Prisma refuses `migrate reset` when an AI agent runs it unless `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` holds the user's literal consent, and the user wants agents to be able to run the `db` tests without leaving data behind.
+- **Affected files:** DEV_WORKFLOW.md, CONFIGURATION.md, CONVENTIONS.md
+- **CHANGELOG ref:** 2026-10-27 · DEV_WORKFLOW.md v2.0 · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002; 2026-10-27 · CONFIGURATION.md → v1.1 · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002; 2026-10-27 · CONVENTIONS.md v0.2 (Testing: test database) · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002

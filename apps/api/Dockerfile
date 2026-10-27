@@ -3,7 +3,7 @@
 # Configuration comes from environment variables at run time; no .env file is
 # copied into the image (see docs/sdd/05-configuration.md).
 
-ARG NODE_VERSION=24.19.0
+ARG NODE_VERSION=24.22.1
 
 FROM node:${NODE_VERSION}-alpine AS base
 RUN npm install --global pnpm@11.5.3
