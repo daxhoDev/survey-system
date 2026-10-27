@@ -30,4 +30,4 @@ Entry template:
 - **User decided:** the global setup applies migrations with `prisma migrate deploy` and empties every application table before the run, and a global teardown empties them again after the run, so the test database is left empty. `prisma migrate reset` is no longer used. Running the `db` tests needs no consent, as long as the test database is left empty.
 - **Reason:** Prisma refuses `migrate reset` when an AI agent runs it unless `PRISMA_USER_CONSENT_FOR_DANGEROUS_AI_ACTION` holds the user's literal consent, and the user wants agents to be able to run the `db` tests without leaving data behind.
 - **Affected files:** DEV_WORKFLOW.md, CONFIGURATION.md, CONVENTIONS.md
-- **CHANGELOG ref:** DEV_WORKFLOW.md → v2.0, CONFIGURATION.md → v1.1 · task chore/sdd-bootstrap / PH-DEVWF-3 (entries added when the phase closes)
+- **CHANGELOG ref:** 2026-10-27 · DEV_WORKFLOW.md v2.0 · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002; 2026-10-27 · CONFIGURATION.md → v1.1 · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002; 2026-10-27 · CONVENTIONS.md v0.2 (Testing: test database) · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002

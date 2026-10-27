@@ -90,7 +90,11 @@ pnpm test   # API and web (Vitest)
 ```
 
 API tests that need a database use `TEST_DATABASE_URL` (see `apps/api/.env.example`);
-without it they are skipped. See [`docs/sdd/DEV_WORKFLOW.md`](docs/sdd/DEV_WORKFLOW.md).
+without it they are skipped. It must be a dedicated database whose name contains `test`
+(the local `docker compose` creates `survey_system_test`). Each run applies pending
+migrations and empties every table before the tests and again when they finish, so the
+test database is left empty; it is never dropped or reset.
+See [`docs/sdd/DEV_WORKFLOW.md`](docs/sdd/DEV_WORKFLOW.md).
 
 ### Environment check
 

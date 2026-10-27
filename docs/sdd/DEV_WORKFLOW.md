@@ -227,7 +227,7 @@ A code comment that cites the documentation names an existing spec file in `docs
 |---|---|---|---|
 | PH-DEVWF-1 | Existing implementation (migrated) | Done | REQ-DEVWF-001, REQ-DEVWF-002, REQ-DEVWF-003, REQ-DEVWF-004, REQ-DEVWF-007, REQ-DEVWF-008, REQ-DEVWF-009 |
 | PH-DEVWF-2 | Code comments cite existing docs | Planned | REQ-DEVWF-010 |
-| PH-DEVWF-3 | Test database left empty (migrate deploy and truncate) | Planned | REQ-DEVWF-002 |
+| PH-DEVWF-3 | Test database left empty (migrate deploy and truncate) | Done | REQ-DEVWF-002 |
 
 PH-DEVWF-2 fixes the five comments that break REQ-DEVWF-010 once the legacy docs are removed:
 

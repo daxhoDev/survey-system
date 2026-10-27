@@ -28,6 +28,9 @@ All notable changes to this project are recorded here, following the [Keep a Cha
 ### Changed
 
 - 2026-10-27 · DEV_WORKFLOW.md → v2.0 · task chore/sdd-bootstrap / PH-ENV-1 · DEV-001
+- 2026-10-27 · DEV_WORKFLOW.md v2.0 · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002
+- 2026-10-27 · CONFIGURATION.md → v1.1 · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002
+- 2026-10-27 · CONVENTIONS.md v0.2 (Testing: test database) · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002
 - 2026-10-27 · SDD harness updated (sdd-harness v1.0.0 → v1.1.0) · AGENTS.md
 - 2026-10-27 · SDD harness updated (sdd-harness v1.1.0 → v1.3.0) · AGENTS.md, .claude/agents/implementer.md, .claude/agents/researcher.md, .claude/agents/reviewer.md, .claude/agents/specifier.md
 - 2026-10-27 · SDD harness updated (sdd-harness v1.3.0 → v1.4.0) · AGENTS.md, .claude/agents/implementer.md, .claude/agents/reviewer.md, .claude/agents/specifier.md
