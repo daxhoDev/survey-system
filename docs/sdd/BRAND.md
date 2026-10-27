@@ -4,27 +4,24 @@
 
 - **Module:** Brand identity
 - **Module code:** BRAND
-- **Version:** v1.0
+- **Version:** v2.0
 - **Status:** Approved
 - **Last updated:** 2026-10-27
 
 ## Description
 
-Brand identity and visual system of Sondix: name and identity, color palette, themes, typography, shape, spacing, elevation, icons, components, accessibility, logo, icons and textures, voice and tone. The web app that applies it is specified in [FRONTEND.md](FRONTEND.md); the product overview is in [OVERVIEW.md](OVERVIEW.md).
+Brand identity and visual system of Sondix: name and identity, voice and tone, and the visual system of the web app — color tokens for the light and dark themes, semantic colors, typography, shape, spacing, elevation, icons, controls, tables, the signature small multiples, motion, browser surfaces, accessibility, and the logo. The web app that applies it is specified in [FRONTEND.md](FRONTEND.md); the product overview and the quality bar for the web UI are in [OVERVIEW.md](OVERVIEW.md).
 
 Requirement numbers keep the legacy IDs: legacy `BRAND-26` is `REQ-BRAND-026`.
 
-### Source
+### Visual direction: «Anuario estadístico»
 
-Derived from the owner's brand guide *Sondix — Identidad de marca y guía de estilo*, v1.0 (October 2026). The guide is a design proposal; this spec is the normative subset that applies to this repository. Where the guide and this spec differ, this spec wins. The reference artwork is the owner's raster sheet *Guía de identidad visual Sondix* (October 2026), kept in the repository as [`docs/brand/sondix-identity-guide.png`](../brand/sondix-identity-guide.png).
+Since v2.0 (DEV-003) the web app's visual system follows the direction «Anuario estadístico»: Sondix reads like a statistics office's yearbook — every survey compared on the same scale, numbers first. Its world lends the app four things only: type (one workhorse grotesque with tabular figures), palette (white or ink ground, one statistical teal for data, selection and primary actions, a muted rust only for problems), density (dense tables, hairline rules instead of cards) and one signature move (ruled small multiples on a common scale, REQ-BRAND-027). Navigation, layout and controls stay the standard ones of a web product. It refuses the generic SaaS card dashboard and the generic online form builder.
 
 ### Implementation history
 
-Implementation was staged (decided 2026-10-01), as three legacy backlog items:
-
-- **Stage 1** — legacy BL-24: product name, color tokens, light/dark themes with a theme selector, Manrope, radii, semantic colors, typography scale (implemented 2026-10-02).
-- **Stage 2** — legacy BL-25: isotype, logos, app icon and favicon redrawn as SVG from the final design (implemented 2026-10-02).
-- **Stage 3** — legacy BL-26: textured brand panel on the login page (implemented 2026-10-09).
+- **v1.0** (legacy BL-24, BL-25, BL-26, October 2026): the first visual system (Midnight/Turquoise palette, Manrope and Inter, rounded cards, gradient isotype, textured login panel), derived from the owner's brand guide *Sondix — Identidad de marca y guía de estilo* v1.0. Replaced in full by v2.0 (DEV-003); only the name, the identity constraints and the voice (REQ-BRAND-001…005, REQ-BRAND-024) carry over.
+- **v2.0** (task `feat/web-redesign`): «Anuario estadístico». The logo is redesigned in its own phase (PH-BRAND-4); until then the logo slot holds an interim wordmark (REQ-BRAND-021).
 
 ## Requirements
 
@@ -32,7 +29,7 @@ Implementation was staged (decided 2026-10-01), as three legacy backlog items:
 
 Legacy ID: BRAND-01.
 
-The product name is **Sondix**. The repository, workspace packages (`@survey-system/*`) and code identifiers keep the name `survey-system`. The web app shows "Sondix" as the document `<title>` (`apps/web/index.html`); in the dashboard header (REQ-FE-016) the name is the wordmark of the logo (REQ-BRAND-026), not a separate text.
+The product name is **Sondix**. The repository, workspace packages (`@survey-system/*`) and code identifiers keep the name `survey-system`. The web app shows "Sondix" as the document `<title>` (`apps/web/index.html`); in the top bar (REQ-FE-016) the name is the logo (REQ-BRAND-021), not a separate text.
 
 **Acceptance criteria**
 
@@ -45,9 +42,9 @@ The product name is **Sondix**. The repository, workspace packages (`@survey-sys
   - **When** their names are read
   - **Then** they keep the `@survey-system/*` scope
 - **AC-BRAND-001-3**
-  - **Given** the dashboard header and sidebar
+  - **Given** the top bar and the menu sheet
   - **When** they render
-  - **Then** "Sondix" appears only as the logo wordmark, not as separate text
+  - **Then** "Sondix" appears only as the logo (REQ-BRAND-021), not as separate text
 
 ### REQ-BRAND-002 — Sondix in docs and API documentation
 
@@ -101,73 +98,80 @@ The slogan "La información comienza escuchando." may appear in documentation an
   - **When** it is searched for "La información comienza escuchando"
   - **Then** there is no match
 
-### REQ-BRAND-006 — Brand palettes as CSS custom properties
+### REQ-BRAND-006 — World color tokens
 
-Legacy ID: BRAND-06.
+The world's colors are defined once as CSS custom properties in `apps/web/src/styles/global.css`, with light values on `:root` and dark values on `.dark` (REQ-BRAND-011). They are the only color values of the app; the previous palettes (`--color-midnight-*`, `--color-turquoise-*`, `--color-slate-*`, `--color-neutral-*`) are removed.
 
-Brand palettes are defined once as CSS custom properties in `apps/web/src/styles/global.css` (`--color-<family>-<step>`, so Tailwind also exposes them as utilities, e.g. `bg-midnight-900`):
+| Token | Light | Dark | Use |
+|-------|-------|------|-----|
+| `--paper` | `#FFFFFF` | `#141414` | Page ground |
+| `--ink` | `#141414` | `#EDEFF1` | Text, strong rules, the selected status chip |
+| `--ink-muted` | `#565C63` | `#A3A9B0` | Secondary text, table headers, captions, bar labels |
+| `--rule` | `#E4E7EA` | `#2E3236` | Hairline rules between rows and cells, bar tracks |
+| `--rule-strong` | `#141414` | `#EDEFF1` | Top-bar rule, table header rule, ruled-row borders |
+| `--input-border` | `#767C83` | `#7D838A` | Outline of inputs, textareas, selects, secondary buttons, checkboxes and radios |
+| `--surface-subtle` | `#F5F6F7` | `#1D2023` | Row hover, hovered menu items |
+| `--surface-raised` | `#FFFFFF` | `#1D2023` | Popovers, menus, dialogs, sheets, toasts |
+| `--teal` | `#0E6E6E` | `#5CBDBD` | Data, selection, primary actions, positive state, focus |
+| `--teal-strong` | `#0A5656` | `#7ACCCC` | Hover and active of teal fills |
+| `--teal-tint` | `#D5ECEC` | `#1F3B3B` | Text selection, selected option rows |
+| `--on-teal` | `#FFFFFF` | `#141414` | Text and icons on teal fills |
+| `--rust` | `#9A3412` | `#F0916A` | Errors, destructive actions, incomplete values |
+| `--rust-strong` | `#7C2A0E` | `#F4A887` | Hover and active of rust fills |
+| `--on-rust` | `#FFFFFF` | `#141414` | Text and icons on rust fills |
 
-| Step | Midnight | Turquoise | Slate | Neutral |
-|-----:|----------|-----------|-------|---------|
-| 100 | `#E8EDF5` | `#E5FBF7` | `#F1F4F8` | `#FFFFFF` |
-| 200 | `#C9D3E3` | `#C4F5EB` | `#E2E8F0` | `#F8FAFC` |
-| 300 | `#A0B1CC` | `#99EBDD` | `#CBD5E1` | `#F1F5F9` |
-| 400 | `#7188AE` | `#6CE2D1` | `#94A3B8` | `#E2E8F0` |
-| 500 | `#4A638D` | `#43D9C2` | `#64748B` | `#CBD5E1` |
-| 600 | `#30496F` | `#22BBA8` | `#475569` | `#94A3B8` |
-| 700 | `#213653` | `#168E81` | `#334155` | `#64748B` |
-| 800 | `#17263D` | `#126D64` | `#1E293B` | `#334155` |
-| 900 | `#101827` | `#104F4A` | `#0F172A` | `#0F172A` |
+No other hue is used: there is no green, amber, blue or gradient anywhere in the app. Pure black (`#000000`) is never used.
 
 **Acceptance criteria**
 
 - **AC-BRAND-006-1**
   - **Given** `apps/web/src/styles/global.css`
-  - **When** it is read
-  - **Then** it defines `--color-midnight-*`, `--color-turquoise-*`, `--color-slate-*` and `--color-neutral-*` for steps 100–900 with exactly the values of the table, each once
+  - **When** `:root` and `.dark` are read
+  - **Then** every token of the table is defined with exactly the light and dark values shown
+- **AC-BRAND-006-2**
+  - **Given** `global.css`
+  - **When** it is searched for `--color-midnight-`, `--color-turquoise-`, `--color-slate-` and `--color-neutral-`
+  - **Then** there is no match
+- **AC-BRAND-006-3**
+  - **Given** both themes
+  - **When** every color token is read
+  - **Then** none is `#000000`
 
-### REQ-BRAND-007 — Semantic colors
+### REQ-BRAND-007 — Two-hue semantic system
 
-Legacy ID: BRAND-07.
+Meaning is carried by two hues only:
 
-Semantic colors: success `#16A34A`, warning `#D97706`, error `#DC2626`, info `#2563EB`, exposed as `--success`, `--warning`, `--destructive` and `--info` for fills (badges, buttons, icons), each with a `-foreground` for text on that fill (Neutral 100 on error and info; Midnight 900 on success and warning, which do not reach 4.5:1 with white). Text drawn in a semantic color on a page or card surface uses the per-theme text variants `--success-text`, `--warning-text`, `--destructive-text` and `--info-text` (legacy OQ-21, decided 2026-10-02):
+- **Teal** (`--teal`): primary actions, data marks, selection, the active navigation item, and positive state (the "Activa" survey status, the "Aceptada" invitation status, success toasts).
+- **Rust** (`--rust`): validation and API errors, destructive actions (delete survey, delete answer, revoke invitation, confirmation of destructive dialogs), incomplete values in the statistics, and error toasts.
+- **Neutral** (`--ink` or `--ink-muted`): every other state — "Inactiva", "Bloqueada", "Pendiente", "Revocada", "Caducada", informational toasts.
 
-| Token | Light | Dark |
-|-------|-------|------|
-| `--success-text` | `#15803D` | `#16A34A` |
-| `--warning-text` | `#B45309` | `#D97706` |
-| `--destructive-text` | `#DC2626` | `#F87171` |
-| `--info-text` | `#2563EB` | `#60A5FA` |
-
-State must never be conveyed by color alone: status messages and badges also carry an icon or a text label.
+State is never conveyed by color alone: every status, error and toast carries a text label (and, for errors and toasts, an icon) besides its color; teal and rust bars are always labelled with text ("Completas", "Incompletas", the option text).
 
 **Acceptance criteria**
 
 - **AC-BRAND-007-1**
-  - **Given** `global.css`
-  - **When** the semantic tokens are read
-  - **Then** `--success` is `#16A34A`, `--warning` `#D97706`, `--destructive` `#DC2626`, `--info` `#2563EB`; `--destructive-foreground` and `--info-foreground` are Neutral 100; `--success-foreground` and `--warning-foreground` are Midnight 900
+  - **Given** the survey statuses, the invitation statuses and the toasts
+  - **When** they render
+  - **Then** "Activa", "Aceptada" and success toasts use teal; error toasts use rust; "Inactiva", "Bloqueada", "Pendiente", "Revocada", "Caducada" and other toasts use ink or ink-muted
 - **AC-BRAND-007-2**
-  - **Given** the light (`:root`) and dark (`.dark`) themes
-  - **When** the `-text` tokens are read
-  - **Then** they have the values of the table
-- **AC-BRAND-007-3**
-  - **Given** any status badge or status message
+  - **Given** a validation error, an API error toast or a destructive button
   - **When** it renders
-  - **Then** it carries a text label or an icon besides its color
+  - **Then** it uses rust
+- **AC-BRAND-007-3**
+  - **Given** any status, error, toast or data bar
+  - **When** it renders
+  - **Then** it carries a text label besides its color, and errors and toasts also carry an icon
 
 ### REQ-BRAND-008 — Components consume semantic tokens
 
-Legacy ID: BRAND-08.
-
-Components consume **semantic tokens** (the shadcn variables: `--background`, `--primary`, …, plus `--brand` and the semantic colors of REQ-BRAND-007), never raw hex values or palette steps. Palette utilities are reserved for brand graphics. Toasts (`sonner`) follow the active theme.
+Components and pages consume the semantic tokens of REQ-BRAND-006 and REQ-BRAND-009 (as Tailwind theme colors), never raw hex values. Raw values appear only in `global.css` and in the logo assets. Toasts (`sonner`) follow the active theme.
 
 **Acceptance criteria**
 
 - **AC-BRAND-008-1**
   - **Given** `apps/web/src/components` and `apps/web/src/pages`
-  - **When** they are searched for raw hex colors and palette utilities (`midnight-`, `turquoise-`, `slate-`, `neutral-` steps)
-  - **Then** none appear outside brand graphics (`LoginBrandPanel`, logo assets)
+  - **When** they are searched for raw hex, `rgb(` and `hsl(` color values
+  - **Then** none appear outside the logo assets
 - **AC-BRAND-008-2**
   - **Given** the dark theme is active
   - **When** a toast is shown
@@ -175,68 +179,56 @@ Components consume **semantic tokens** (the shadcn variables: `--background`, `-
 
 ### REQ-BRAND-009 — Theme token mapping
 
-Legacy ID: BRAND-09.
+The shadcn/ui semantic variables used by the primitives (REQ-FE-002) map to the world tokens, in both themes:
 
-The shadcn semantic tokens map to the palette as follows (`:root` = light, `.dark` = dark):
+| shadcn variable | World token |
+|-----------------|-------------|
+| `--background` | `--paper` |
+| `--foreground` | `--ink` |
+| `--popover`, `--card` | `--surface-raised` |
+| `--popover-foreground`, `--card-foreground` | `--ink` |
+| `--primary` | `--teal` |
+| `--primary-foreground` | `--on-teal` |
+| `--secondary`, `--muted`, `--accent` | `--surface-subtle` |
+| `--secondary-foreground`, `--accent-foreground` | `--ink` |
+| `--muted-foreground` | `--ink-muted` |
+| `--destructive` | `--rust` |
+| `--destructive-foreground` | `--on-rust` |
+| `--border` | `--rule` |
+| `--input` | `--input-border` |
+| `--ring` | `--teal` |
 
-| Token | Light | Dark |
-|-------|-------|------|
-| `--background` | Midnight 100 | Midnight 900 |
-| `--foreground` | Midnight 900 | Neutral 200 |
-| `--card`, `--popover` | Neutral 100 | Midnight 800 |
-| `--card-foreground`, `--popover-foreground` | Midnight 900 | Neutral 200 |
-| `--secondary`, `--muted` | Slate 100 | Midnight 700 |
-| `--secondary-foreground` | Midnight 900 | Neutral 200 |
-| `--muted-foreground` | Slate 600 | Slate 400 |
-| `--border`, `--input` | Midnight 200 | Midnight 700 |
-| `--input-border` (outline of text inputs, textareas, selects) | Slate 500 | Midnight 400 |
-| `--primary` | Midnight 900 | Turquoise 500 |
-| `--primary-foreground` | Neutral 100 | Midnight 900 |
-| `--accent` (hover/selected surfaces) | Turquoise 100 | Midnight 700 |
-| `--accent-foreground` | Midnight 900 | Neutral 200 |
-| `--brand` (accent text, links, highlights) | Turquoise 800 | Turquoise 400 |
-| `--ring` (focus) | Turquoise 700 | Turquoise 300 |
-| `--destructive` | Error `#DC2626` | Error `#DC2626` |
-
-The `--sidebar-*` tokens follow the same mapping as their non-sidebar counterparts. Pure black is never used as a background. The light background is Midnight 100 instead of the guide's Neutral 200 and borders Midnight 200 instead of Neutral 400 (owner decision 2026-10-02, so cards and data tables, which sit on a card surface in light, stand out from the page).
+The `--sidebar-*`, `--chart-*`, `--brand`, `--success*`, `--warning*`, `--info*` and `--destructive-text` variables are removed.
 
 **Acceptance criteria**
 
 - **AC-BRAND-009-1**
   - **Given** `global.css`
   - **When** `:root` and `.dark` are read
-  - **Then** every token of the table maps to the palette step shown for that theme
+  - **Then** every shadcn variable of the table resolves to the world token shown
 - **AC-BRAND-009-2**
-  - **Given** each `--sidebar-*` token
-  - **When** it is read
-  - **Then** it has the same value as its non-sidebar counterpart in that theme
-- **AC-BRAND-009-3**
-  - **Given** both themes
-  - **When** background tokens are read
-  - **Then** none is pure black (`#000000`)
+  - **Given** `global.css` and `apps/web/src`
+  - **When** they are searched for `--sidebar-`, `--chart-`, `--brand`, `--success`, `--warning`, `--info` and `--destructive-text`
+  - **Then** there is no match
 
-### REQ-BRAND-010 — Chart colors
+### REQ-BRAND-010 — Data colors
 
-Legacy ID: BRAND-10.
-
-Chart series (`--chart-1` … `--chart-5`) use brand colors adapted to each theme, starting with the brand accent (light: Turquoise 700, Midnight 500, Turquoise 500, Midnight 300, Slate 500; dark: Turquoise 400, Midnight 300, Turquoise 600, Midnight 500, Slate 400). Charts keep titles, axis labels and enough context to be read without color (REQ-FE-022).
+Data marks use the world's two hues only: a value is drawn in `--teal` on a `--rule` track; incomplete answers (and only they) are drawn in `--rust`. There is no multi-color series palette. Every chart carries its numbers as text (REQ-BRAND-028).
 
 **Acceptance criteria**
 
 - **AC-BRAND-010-1**
-  - **Given** `global.css`
-  - **When** `--chart-1` … `--chart-5` are read
-  - **Then** light is Turquoise 700, Midnight 500, Turquoise 500, Midnight 300, Slate 500 and dark is Turquoise 400, Midnight 300, Turquoise 600, Midnight 500, Slate 400
-- **AC-BRAND-010-2**
-  - **Given** a statistics chart
+  - **Given** any data bar in the app
   - **When** it renders
-  - **Then** it has a title and axis labels
+  - **Then** its fill is `--teal`, or `--rust` for incomplete answers, on a `--rule` track
+- **AC-BRAND-010-2**
+  - **Given** a statistics view
+  - **When** it renders
+  - **Then** every bar shows its value as text next to it
 
 ### REQ-BRAND-011 — Theme selector
 
-Legacy ID: BRAND-11.
-
-The dashboard header (REQ-FE-016) offers a theme selector with three options — "Claro", "Oscuro", "Sistema" — default "Sistema" (follows `prefers-color-scheme`, reacting to changes). The choice is stored in `localStorage` and applied by toggling the `dark` class on `<html>` before the first paint (inline script in `index.html`) to avoid a flash of the wrong theme. Public pages (login, accept invitation, answering) apply the stored or system theme but do not show the selector. Code: `apps/web/src/lib/theme.ts` (storage key `sondix-theme`; "Sistema" removes the key) and `components/ThemeSelector.tsx`.
+The app has a light and a dark theme (REQ-BRAND-006). The top bar (REQ-FE-016) offers a theme selector with three options — "Claro", "Oscuro", "Sistema" — default "Sistema" (follows `prefers-color-scheme`, reacting to changes). The selector is an icon-only button (accessible name "Tema"; its icon shows the active choice: sun, moon or monitor) opening a menu with the three options as radio items; below `md` the three options are shown in the menu sheet instead (REQ-FE-016). The choice is stored in `localStorage` and applied by toggling the `dark` class on `<html>` before the first paint (inline script in `index.html`) to avoid a flash of the wrong theme. Public pages (login, accept invitation, answering) apply the stored or system theme but do not show the selector. Code: `apps/web/src/lib/theme.ts` (storage key `sondix-theme`; "Sistema" removes the key) and `components/ThemeSelector.tsx`.
 
 **Acceptance criteria**
 
@@ -260,73 +252,76 @@ The dashboard header (REQ-FE-016) offers a theme selector with three options —
   - **Given** the login, accept-invitation and answering pages
   - **When** they render
   - **Then** they apply the stored or system theme and show no theme selector
+- **AC-BRAND-011-6**
+  - **Given** the top bar at `md` or wider
+  - **When** the theme button (accessible name "Tema") is pressed
+  - **Then** a menu offers "Claro", "Oscuro" and "Sistema" as radio items with the active one checked
 
-### REQ-BRAND-012 — Font families
+### REQ-BRAND-012 — Font family
 
-Legacy ID: BRAND-12.
-
-Two families, self-hosted through Fontsource (no external font CDN): **Manrope** (`@fontsource-variable/manrope`) for headings, navigation, buttons and brand elements (`--font-heading`), and **Inter** (`@fontsource-variable/inter`, REQ-FE-001) for body text, tables, figures and forms (`--font-sans`). No other family is used.
+One family, **Work Sans**, self-hosted through Fontsource (`@fontsource-variable/work-sans`; no external font CDN), for every text of the app (`--font-sans`; there is no separate heading font). `@fontsource-variable/inter` and `@fontsource-variable/manrope` are removed. Figures in tables, statistics, small multiples, counters, pagination and dates use tabular lining figures (`font-variant-numeric: tabular-nums lining-nums`).
 
 **Acceptance criteria**
 
 - **AC-BRAND-012-1**
   - **Given** the web app
   - **When** its fonts are inspected
-  - **Then** `--font-heading` is Manrope and `--font-sans` is Inter, both loaded from Fontsource packages, with no external font CDN and no other family
+  - **Then** the only family is Work Sans, loaded from `@fontsource-variable/work-sans`, with no external font CDN, and `apps/web/package.json` has neither `@fontsource-variable/inter` nor `@fontsource-variable/manrope`
+- **AC-BRAND-012-2**
+  - **Given** a table cell, a statistics value, a small-multiple figure, the pagination text or a date
+  - **When** its computed style is read
+  - **Then** `font-variant-numeric` includes `tabular-nums`
 
 ### REQ-BRAND-013 — Typographic scale
 
-Legacy ID: BRAND-13.
+Typographic scale (base 16 px), exposed as Tailwind theme text sizes (size, line height, weight, tracking):
 
-Typographic scale (base 16 px), exposed as Tailwind theme text sizes:
+| Utility | Size | Line height | Weight | Tracking | Use |
+|---------|-----:|------------:|-------:|---------:|-----|
+| `text-h1` | 30 px | 1.2 | 700 | −0.01 em | Page title, survey name on the answering page |
+| `text-h2` | 22 px | 1.25 | 600 | −0.01 em | Section titles |
+| `text-h3` | 18 px | 1.3 | 600 | 0 | Subsections, question text on the answering page |
+| `text-figure` | 26 px | 1.1 | 700 | 0 | The total of a small multiple (REQ-BRAND-027), headline counts |
+| `text-body-lg` | 16 px | 1.5 | 400 | 0 | Answering page text, auth pages |
+| `text-body` | 14 px | 1.5 | 400 | 0 | Interface text, controls, table cells |
+| `text-small` | 13 px | 1.45 | 400 | 0 | Table headers (weight 600), summary lines, metadata |
+| `text-caption` | 12 px | 1.4 | 500 | 0 | Bar labels, scale captions, help text |
 
-| Level | Size | Weight | Family | Use |
-|-------|-----:|-------:|--------|-----|
-| Display | 40 px | 800 | Manrope | Covers, presentations |
-| H1 | 32 px | 700 | Manrope | Page title |
-| H2 | 24 px | 700 | Manrope | Sections |
-| H3 | 20 px | 600 | Manrope | Subsections |
-| H4 | 18 px | 600 | Manrope | Card titles |
-| Body large | 16 px | 400 | Inter | Main text |
-| Body | 14 px | 400 | Inter | Interface text |
-| Small | 12 px | 400 | Inter | Metadata, help |
-| Caption | 11 px | 500 | Inter | Complementary info |
-
-Line height is 1.5 for text and 1.2–1.35 for headings. Essential information must not rely on sizes below 12 px. Uppercase is used sparingly. The levels are Tailwind utilities `text-display`, `text-h1` … `text-h4`, `text-body-lg`, `text-body`, `text-small` and `text-caption` (size, line height and weight); `h1`–`h4` use Manrope. Page titles use `text-h1`, sections `text-h2`, card titles `text-h4`; interface text, buttons, inputs, labels and tables are 14 px.
+No essential information is set below 12 px. Uppercase is not used for labels. `h1`–`h3` use `text-h1`–`text-h3` and `text-wrap: balance`; running text keeps a measure of at most 75 characters.
 
 **Acceptance criteria**
 
 - **AC-BRAND-013-1**
   - **Given** `global.css`
   - **When** the theme text sizes are read
-  - **Then** `text-display`, `text-h1` … `text-h4`, `text-body-lg`, `text-body`, `text-small` and `text-caption` exist with the size and weight of the table, line height 1.5 for text levels and between 1.2 and 1.35 for headings
+  - **Then** the eight utilities exist with the size, line height, weight and tracking of the table, and `text-display` and `text-h4` no longer exist
 - **AC-BRAND-013-2**
-  - **Given** `h1`–`h4` elements
-  - **When** they render
-  - **Then** they use Manrope
-- **AC-BRAND-013-3**
-  - **Given** page titles, section titles and card titles
+  - **Given** page titles and section titles
   - **When** they are inspected
-  - **Then** they use `text-h1`, `text-h2` and `text-h4` respectively
+  - **Then** page titles use `text-h1` and section titles `text-h2`
+- **AC-BRAND-013-3**
+  - **Given** any rendered text
+  - **When** its computed font size is read
+  - **Then** it is at least 12 px
 
 ### REQ-BRAND-014 — Radii
 
-Legacy ID: BRAND-14.
-
-Radii: `--radius-xs` 4 px (compact elements), `--radius-sm` 6 px (inputs, controls), `--radius-md` 10 px (buttons, cards), `--radius-lg` 14 px (highlighted panels), `--radius-xl` 20 px (main containers), `rounded-full` (avatars, pills). These replace the multipliers derived from `--radius` in `global.css`.
+Controls have a 3 px radius (`--radius-control`): buttons, inputs, textareas, selects, status chips and checkboxes. Radio buttons are circular. Everything else has square corners (radius 0): tables, rules, ruled rows, sections, menus, popovers, dialogs, sheets, toasts and tooltips. The radius tokens of v1.0 (`--radius-xs` … `--radius-xl`) are removed.
 
 **Acceptance criteria**
 
 - **AC-BRAND-014-1**
   - **Given** `global.css`
   - **When** the radius tokens are read
-  - **Then** `--radius-xs` is 4 px, `--radius-sm` 6 px, `--radius-md` 10 px, `--radius-lg` 14 px and `--radius-xl` 20 px, as fixed values (not multipliers of `--radius`)
+  - **Then** `--radius-control` is 3 px and `--radius-xs`, `--radius-sm`, `--radius-md`, `--radius-lg` and `--radius-xl` do not exist
+- **AC-BRAND-014-2**
+  - **Given** a button, an input, a select and a status chip, and a menu, a dialog and a toast
+  - **When** their computed `border-radius` is read
+  - **Then** the controls have 3 px and the others 0
 
-### REQ-BRAND-015 — Spacing
+### REQ-BRAND-015 — Spacing and layout
 
-Legacy ID: BRAND-15.
-
-Spacing uses multiples of 4 px (Tailwind's default `--spacing: 0.25rem`): 16 px between components, 24–32 px between sections.
+Spacing uses multiples of 4 px (Tailwind's default `--spacing: 0.25rem`): tight inside a group (4–12 px), generous between groups (24–32 px), with more space above a heading than below it. Breakpoints are Tailwind's defaults (`sm` 640, `md` 768, `lg` 1024, `xl` 1280 px). Page gutters are 16 px below `md`, 24 px from `md` and 44 px from `lg`. Dashboard content is at most 80 rem (1280 px) wide; the answering page column at most 42 rem (672 px); auth pages at most 24 rem (384 px). No layout scrolls horizontally at 320 px wide or more.
 
 **Acceptance criteria**
 
@@ -334,70 +329,92 @@ Spacing uses multiples of 4 px (Tailwind's default `--spacing: 0.25rem`): 16 px 
   - **Given** `global.css`
   - **When** it is read
   - **Then** `--spacing` is not overridden (Tailwind default `0.25rem`)
+- **AC-BRAND-015-2**
+  - **Given** a dashboard page at 1440 px, 1024 px, 768 px and 375 px wide
+  - **When** its gutters are measured
+  - **Then** they are 44 px, 44 px, 24 px and 16 px, and the content is at most 1280 px wide
+- **AC-BRAND-015-3**
+  - **Given** every page at 320 px wide
+  - **When** it renders
+  - **Then** the document has no horizontal scroll
 
 ### REQ-BRAND-016 — Elevation
 
-Legacy ID: BRAND-16.
-
-Elevation is built with contrast, borders and soft shadows: level 0 flat surfaces, level 1 cards with a subtle border, level 2 menus and popovers, level 3 dialogs. Shadows are subtle and adapted to each theme; they are not used as general decoration.
+Page content is flat: structure comes from hairline rules (`--rule`) and strong rules (`--rule-strong`), never from cards, shadows or tinted panels. Only overlays are elevated — menus, popovers, select lists, tooltips, dialogs, sheets and toasts — on `--surface-raised` with a 1 px `--rule-strong` border (tooltips: `--ink` ground, `--paper` text, no border) and one soft shadow with offset and blur: light `0 8px 24px rgb(20 20 20 / 0.12)`, dark `0 8px 24px rgb(0 0 0 / 0.5)`. Dialogs and sheets dim the page behind with a scrim of `--ink` at 40 % (light) or `--paper` at 70 % (dark). No glass, blur or backdrop-filter is used.
 
 **Acceptance criteria**
 
 - **AC-BRAND-016-1**
-  - **Given** a card
-  - **When** it renders
-  - **Then** it has a subtle border on the card surface (level 1)
+  - **Given** any page
+  - **When** its non-overlay elements are inspected
+  - **Then** none has a `box-shadow` or a card container
+- **AC-BRAND-016-2**
+  - **Given** an open menu, popover, dialog, sheet or toast
+  - **When** its computed style is read
+  - **Then** it has the `--surface-raised` background, a 1 px `--rule-strong` border and the theme's shadow
+- **AC-BRAND-016-3**
+  - **Given** the web source
+  - **When** it is searched for `backdrop-blur` and `backdrop-filter`
+  - **Then** there is no match
 
 ### REQ-BRAND-017 — Icons
 
-Legacy ID: BRAND-17.
-
-Icons come from `lucide-react` (REQ-FE-002): 20 px standard, 16 px compact, 24 px highlighted. Icon-only buttons have an accessible label (`aria-label` or visually hidden text).
+Icons come from `lucide-react` (REQ-FE-002) at their default stroke width: 16 px inside controls, table rows and status labels, 20 px in the top bar and the menu sheet. Icons accompany text; icon-only buttons (theme selector, menu button, actions menu, password visibility, copy and open link) have an accessible name. No emoji or Unicode glyph stands in for an icon.
 
 **Acceptance criteria**
 
 - **AC-BRAND-017-1**
   - **Given** every icon-only button
   - **When** its accessible name is computed
-  - **Then** it is non-empty (`aria-label` or visually hidden text)
+  - **Then** it is non-empty
 - **AC-BRAND-017-2**
   - **Given** the web source
   - **When** icon imports are inspected
-  - **Then** icons come from `lucide-react`
+  - **Then** icons come from `lucide-react` with their default stroke width
 
 ### REQ-BRAND-018 — Buttons
 
-Legacy ID: BRAND-18.
+Button variants (`components/ui/button.tsx`), all with the 3 px radius, `text-body` weight 600, height 40 px (44 px below `md`):
 
-Buttons: *primary* uses `--primary` (Midnight 900 light / Turquoise 500 dark) for main actions (create, save, confirm); *secondary* is transparent or secondary surface with a subtle border; *tertiary* (`ghost`/`link`) has no permanent background or border; *destructive* uses the error color and irreversible actions keep the confirmation dialog (REQ-FE-025). Every button has normal, hover, focus, active, disabled and loading states.
+| Variant | Normal | Hover / active |
+|---------|--------|----------------|
+| `default` (primary) | `--teal` fill, `--on-teal` text | `--teal-strong` fill |
+| `outline` (secondary) | transparent, 1 px `--input-border`, `--ink` text | `--surface-subtle` fill |
+| `ghost` | transparent, no border, `--ink` text | `--surface-subtle` fill |
+| `link` | `--teal` text, underline offset 3 px | underline thickness 2 px |
+| `destructive` | `--rust` fill, `--on-rust` text | `--rust-strong` fill |
+
+Every button also has a focus state (REQ-BRAND-020), a disabled state (50 % opacity, `not-allowed` cursor, no hover change) and, where it starts a request, a loading state (spinner icon before the label, `aria-busy="true"`, the label kept, the button disabled). Each page has at most one primary button in view. Irreversible actions keep the confirmation dialog (REQ-FE-025).
 
 **Acceptance criteria**
 
 - **AC-BRAND-018-1**
   - **Given** `components/ui/button.tsx`
   - **When** its variants are read
-  - **Then** the default variant uses `--primary`, `outline`/`secondary` use a transparent or secondary surface with a subtle border, `ghost`/`link` have no permanent background or border, and `destructive` uses `--destructive`
+  - **Then** they are `default`, `outline`, `ghost`, `link` and `destructive` with the colors of the table
 - **AC-BRAND-018-2**
   - **Given** a button
   - **When** it is hovered, focused, pressed or disabled
-  - **Then** each state has a distinct style
+  - **Then** each state has the style specified, and a disabled button does not react to hover
+- **AC-BRAND-018-3**
+  - **Given** a button that starts a request
+  - **When** the request is pending
+  - **Then** it shows a spinner before its label, has `aria-busy="true"` and is disabled
 
 ### REQ-BRAND-019 — Forms
 
-Legacy ID: BRAND-19.
-
-Forms use persistent labels, mark required fields, show client-side validation errors next to the field and errors returned by the API in a toast with the API detail (as REQ-FE-015, REQ-FE-019, REQ-FE-023, REQ-FE-027 and REQ-FE-028 specify), keep entered data on error and are fully keyboard operable (REQ-FE-004, REQ-FE-019, REQ-FE-023, REQ-FE-028).
+Forms use persistent labels above their fields (`text-body` weight 600), mark required fields, show client-side validation errors under the field (rust, with an icon, linked with `aria-describedby`, the field marked `aria-invalid="true"` and outlined in `--rust`) and errors returned by the API in a toast with the API detail (as REQ-FE-015, REQ-FE-019, REQ-FE-023, REQ-FE-027 and REQ-FE-028 specify), keep entered data on error and are fully keyboard operable (REQ-FE-004, REQ-FE-019, REQ-FE-023, REQ-FE-028). Inputs, textareas and selects have a 1 px `--input-border` outline, `--paper` fill, 3 px radius and 40 px height (44 px below `md`); placeholders use `--ink-muted`. Checkboxes and radios are outlined with `--input-border` and filled with `--teal` when checked.
 
 **Acceptance criteria**
 
 - **AC-BRAND-019-1**
   - **Given** any form field
   - **When** it renders
-  - **Then** it has a visible label associated with it (not only a placeholder)
+  - **Then** it has a visible label above it, associated with it (not only a placeholder)
 - **AC-BRAND-019-2**
   - **Given** a form submitted with an invalid field
   - **When** validation fails
-  - **Then** a client-side validation error appears next to its field, an error returned by the API appears in a toast with the API `detail`, and in both cases the entered values are kept
+  - **Then** a client-side validation error appears under its field in rust with an icon, the field has `aria-invalid="true"` and `aria-describedby` pointing to the error; an error returned by the API appears in a toast with the API `detail`; in both cases the entered values are kept
 - **AC-BRAND-019-3**
   - **Given** any form
   - **When** it is used with the keyboard only
@@ -405,86 +422,91 @@ Forms use persistent labels, mark required fields, show client-side validation e
 - **AC-BRAND-019-4**
   - **Given** the create-survey form (`apps/web/src/pages/SurveyCreatePage.tsx`) with a select question whose option text is empty
   - **When** it is submitted
-  - **Then** the submission is blocked and "El contenido de la opción es obligatorio" appears next to that option input
+  - **Then** the submission is blocked and "El contenido de la opción es obligatorio" appears under that option input
 
 ### REQ-BRAND-020 — Accessibility target
 
-Legacy ID: BRAND-20.
+Target WCAG 2.2 level AA in both themes: text contrast ≥ 4.5:1 (≥ 3:1 for large text), non-text and focus indicator contrast ≥ 3:1, visible focus, keyboard navigation, accessible labels, text alternatives for charts (the numbers are text, REQ-BRAND-028), and target size at least 24 × 24 px (44 px tall for the answering page's options, REQ-FE-034). Focus is shown with `:focus-visible` as a 2 px `--teal` outline with a 2 px offset. Measured pairs (WCAG relative luminance):
 
-Target WCAG 2.2 level AA: text contrast ≥ 4.5:1 (≥ 3:1 for large text), non-text and focus indicator contrast ≥ 3:1, visible focus, keyboard navigation, accessible labels, text alternatives for relevant charts. The guide's colors left six pairs below AA (measured 2026-10-01); legacy OQ-21 was resolved on 2026-10-02 with per-theme variants that keep the guide's colors for fills and use a darker or lighter step for text and focus:
+| Pair | Light | Dark |
+|------|------:|-----:|
+| `--ink` on `--paper` | 18.42 | 15.98 |
+| `--ink-muted` on `--paper` | 6.76 | 7.77 |
+| `--ink-muted` on `--surface-subtle` / `--surface-raised` | 6.25 | 6.90 |
+| `--teal` (text, focus ring) on `--paper` | 6.04 | 8.31 |
+| `--teal` on `--surface-subtle` / `--surface-raised` | 5.59 | 7.38 |
+| `--rust` (text) on `--paper` | 7.31 | 7.86 |
+| `--rust` on `--surface-subtle` / `--surface-raised` | 6.75 | 6.99 |
+| `--on-teal` on `--teal` | 6.04 | 8.31 |
+| `--on-teal` on `--teal-strong` | 8.47 | 9.95 |
+| `--on-rust` on `--rust` | 7.31 | 7.86 |
+| `--on-rust` on `--rust-strong` | 9.57 | 9.47 |
+| `--ink` on `--teal-tint` | 14.95 | 10.43 |
+| `--input-border` on `--paper` (non-text) | 4.22 | 4.81 |
+| `--teal` bar on `--rule` track (non-text) | 4.87 | 5.82 |
+| `--rust` bar on `--rule` track (non-text) | 5.89 | 5.51 |
 
-| Pair | Guide value → ratio | Used instead → ratio |
-|------|---------------------|----------------------|
-| Light `--brand` text on Neutral 200 | Turquoise 700 → 3.84 | Turquoise 800 → 5.91 |
-| Light focus ring on Neutral 200 | Turquoise 600 → 2.30 | Turquoise 700 → 3.84 |
-| Success text on Neutral 100 (light) | `#16A34A` → 3.30 | `--success-text` `#15803D` → 5.02 |
-| Warning text on Neutral 100 (light) | `#D97706` → 3.19 | `--warning-text` `#B45309` → 5.02 |
-| Error text on Midnight 900 (dark) | `#DC2626` → 3.68 | `--destructive-text` `#F87171` → 6.42 |
-| Info text on Midnight 900 (dark) | `#2563EB` → 3.44 | `--info-text` `#60A5FA` → 6.99 |
-
-Focus rings use `--ring` at full opacity (2 px). Checkbox and radio outlines use `--muted-foreground`. Legacy OQ-22 (decided 2026-10-02): text inputs, textareas and selects are outlined with `--input-border` (Slate 500 on Neutral 100, 4.76:1; Midnight 400 on Midnight 800, 4.23:1), while `--border`/`--input` stay soft for cards, tables and tinted backgrounds; light `--muted-foreground` is Slate 600 (6.45:1 on Midnight 100, 6.87:1 on Slate 100) instead of the guide's Slate 500.
+`--rule` (1.24 light, 1.43 dark on `--paper`) is used only for decorative separators and bar tracks, never as the only boundary of a control.
 
 **Acceptance criteria**
 
 - **AC-BRAND-020-1**
-  - **Given** each text token pair of REQ-BRAND-009 and REQ-BRAND-007 on its intended surface
+  - **Given** each pair of the table in each theme
   - **When** its contrast ratio is computed
-  - **Then** it is ≥ 4.5:1 (≥ 3:1 for large text), including the "Used instead" values of the table
+  - **Then** it is at least the value shown (and so ≥ 4.5:1 for text pairs and ≥ 3:1 for non-text pairs)
 - **AC-BRAND-020-2**
-  - **Given** a focused interactive element
+  - **Given** a focused interactive element reached with the keyboard
   - **When** focus is visible
-  - **Then** the ring uses `--ring` at full opacity, 2 px wide
+  - **Then** it has a 2 px `--teal` outline with a 2 px offset
 - **AC-BRAND-020-3**
-  - **Given** text inputs, textareas and selects
+  - **Given** inputs, textareas, selects, checkboxes, radios and secondary buttons
   - **When** they render
-  - **Then** they are outlined with `--input-border`; checkboxes and radios are outlined with `--muted-foreground`
+  - **Then** their boundary is `--input-border`, never `--rule`
+- **AC-BRAND-020-4**
+  - **Given** any interactive element
+  - **When** its target size is measured
+  - **Then** it is at least 24 × 24 px
 
-### REQ-BRAND-021 — Isotype
+### REQ-BRAND-021 — Logo (interim wordmark)
 
-Legacy ID: BRAND-21.
-
-Isotype (final design, approved 2026-10-01): a stylized "S" made of two thick strokes with round caps — an upper stroke rising to the right and curling back down, and a lower stroke descending to the left and curling up — plus two circular nodes, one left of the upper stroke and one right of the lower stroke. The reference artwork is the owner's raster sheet [`docs/brand/sondix-identity-guide.png`](../brand/sondix-identity-guide.png); it is redrawn as SVG (approved 2026-10-01); the SVG redraw was validated by the owner on 2026-10-02. The redraw is point-symmetric: the lower stroke is the upper stroke rotated 180° about the centre of the isotype. Relative to the isotype height, the stroke width is 12.4 % and each node's radius is 11.4 %. Proportions and nodes are never altered; the minimum clear space equals the diameter of one node.
+Until the new logo is decided and specified (PH-BRAND-4), the logo slot shows an interim wordmark: the text "Sondix" in Work Sans 700, 20 px, `--ink`, as a component `components/Logo.tsx` that every place showing the logo uses (top bar, menu sheet, auth pages, answering page footer). Replacing it with the final logo only changes that component.
 
 **Acceptance criteria**
 
 - **AC-BRAND-021-1**
-  - **Given** the isotype SVGs in `apps/web/src/assets/brand/`
-  - **When** their geometry is read
-  - **Then** the two strokes are point-symmetric about the centre, the stroke width is 12.4 % and each node radius 11.4 % of the isotype height, with round caps
+  - **Given** the top bar, the menu sheet, the login and accept-invitation pages and the answering page footer
+  - **When** they render the logo
+  - **Then** they use `components/Logo.tsx`, which renders "Sondix" in Work Sans 700 at 20 px in `--ink`
 
-### REQ-BRAND-022 — Side navigation pattern
+### REQ-BRAND-022 — Top bar navigation pattern
 
-Legacy ID: BRAND-22.
-
-Side navigation (guide §8.2): a sidebar with only the sections that exist plus a top bar (legacy OQ-18, decided 2026-10-09); the guide's full structure (Resumen, Encuestas, Participantes, Resultados, Informes, Administración) is the target, and each section is added when its feature exists. Collapsible to icons on desktop, a sheet on mobile. Details in REQ-FE-031.
+Navigation is a top bar (REQ-FE-016, REQ-FE-031) holding only the sections that exist; there is no sidebar. Below `md` the sections fold into a menu button that opens a sheet. The shadcn `ui/sidebar.tsx` component and the `sidebar_state` cookie are removed.
 
 **Acceptance criteria**
 
 - **AC-BRAND-022-1**
   - **Given** the dashboard
   - **When** it renders
-  - **Then** it has a sidebar listing only existing sections and a top bar, collapsible to icons on desktop and a sheet on mobile (as verified by REQ-FE-031)
+  - **Then** navigation is a top bar with only the existing sections, and below `md` a menu button opens them in a sheet (as verified by REQ-FE-016 and REQ-FE-031)
+- **AC-BRAND-022-2**
+  - **Given** `apps/web/src`
+  - **When** it is searched for `ui/sidebar` and `sidebar_state`
+  - **Then** there is no match
 
-### REQ-BRAND-023 — Textures only on the login page
+### REQ-BRAND-023 — No textures
 
-Legacy ID: BRAND-23.
-
-Textures (digital noise, signal gradient between Midnight and Turquoise, glow) are used only on the login page (`/auth/login`), in a brand panel beside the form: Midnight 900 background, low-opacity texture, the large gradient isotype and the name "Sondix". On narrow screens the panel is hidden. Textures never sit behind the form, tables or body text; the rest of the web app has no textures. Promotional material and documentation may use them freely. Implementation (`pages/LoginPage.tsx`, `components/LoginBrandPanel.tsx`): from the `lg` breakpoint the page splits in two columns, the panel on the left; the panel uses fixed colors (same look in both themes), a 135° gradient Midnight 900 → Midnight 800 → Turquoise 900, a blurred Turquoise 500 glow at 15 % and an SVG fractal-noise texture (`brand-noise` utility) at 7 %, and is `aria-hidden` (decorative). While the panel is visible the small isotype in the login card is hidden.
+The app uses no textures, gradients, glows, noise, glass or decorative imagery on any page: the world's character comes from type, rules, density and data. The login brand panel of v1.0 (`LoginBrandPanel`, `brand-noise`) is removed.
 
 **Acceptance criteria**
 
 - **AC-BRAND-023-1**
-  - **Given** `/auth/login` at `lg` or wider
-  - **When** it renders
-  - **Then** the page has two columns with `LoginBrandPanel` on the left, `aria-hidden`, showing the large gradient isotype and "Sondix" on a 135° gradient Midnight 900 → Midnight 800 → Turquoise 900, a Turquoise 500 glow at 15 % and the `brand-noise` texture at 7 %, identical in both themes; the small isotype in the login card is hidden
+  - **Given** `apps/web/src/components`, `apps/web/src/pages`, `apps/web/src/styles` and `apps/web/src/lib`
+  - **When** they are searched for `brand-noise`, `LoginBrandPanel`, `gradient` and `glow`
+  - **Then** there is no match
 - **AC-BRAND-023-2**
-  - **Given** `/auth/login` below `lg`
+  - **Given** every page in both themes
   - **When** it renders
-  - **Then** the panel is hidden and the login card shows the small isotype
-- **AC-BRAND-023-3**
-  - **Given** any other page
-  - **When** it is inspected
-  - **Then** it uses no texture (`brand-noise`, brand gradient or glow)
+  - **Then** no element has a gradient or image background
 
 ### REQ-BRAND-024 — Voice and tone
 
@@ -499,76 +521,177 @@ UI copy is Spanish (REQ-FE-006), professional, clear and direct: it states what 
   - **When** it is read
   - **Then** it is in Spanish (verified with REQ-FE-006)
 
-### REQ-BRAND-025 — Logo colors and variants
+### REQ-BRAND-025 — Former logo assets removed
 
-Legacy ID: BRAND-25.
-
-Logo colors. The *claro* (color) isotype uses a turquoise-to-cyan gradient that is **exclusive to the logo** (it is not a palette color and must not be used elsewhere in the UI); the *oscuro* isotype is a single ink. Gradient values (validated 2026-10-02): strokes run from `#4AEEC8` (top right) to `#12B2D6` (bottom left); the nodes carry their own vertical gradient, `#2FDDB8` to `#17C9AB`. The logo is flat (no highlights or shadows). The wordmark "Sondix" is set in Manrope (Bold) with −0.025 em tracking, converted to outlines, to the right of the isotype (horizontal lockup): its cap height is 58 % of the isotype height and the gap between isotype and wordmark is 29 %. Variants, as SVG files in `apps/web/src/assets/brand/` (the gradient isotype is a single file used on both backgrounds):
-
-| Background | Isotype *claro* | Isotype *oscuro* | Logo with wordmark | Monochrome logo |
-|------------|-----------------|------------------|--------------------|-----------------|
-| Light | gradient (`isotype-gradient.svg`) | Midnight 900 (`isotype-midnight.svg`) | gradient isotype + Midnight 900 text (`logo-light.svg`) | Midnight 900 (`logo-mono-midnight.svg`) |
-| Dark | gradient (`isotype-gradient.svg`) | white (`isotype-white.svg`) | gradient isotype + white text (`logo-dark.svg`) | white (`logo-mono-white.svg`) |
+The v1.0 logo assets (`isotype-gradient.svg`, `isotype-midnight.svg`, `isotype-white.svg`, `logo-light.svg`, `logo-dark.svg`, `logo-mono-midnight.svg`, `logo-mono-white.svg` in `apps/web/src/assets/brand/`) and the v1.0 logo gradient are no longer used by the app and are deleted. The new logo assets are specified in PH-BRAND-4.
 
 **Acceptance criteria**
 
 - **AC-BRAND-025-1**
-  - **Given** `apps/web/src/assets/brand/`
-  - **When** it is listed
-  - **Then** it holds `isotype-gradient.svg`, `isotype-midnight.svg`, `isotype-white.svg`, `logo-light.svg`, `logo-dark.svg`, `logo-mono-midnight.svg` and `logo-mono-white.svg`
-- **AC-BRAND-025-2**
-  - **Given** the gradient isotype
-  - **When** its fills are read
-  - **Then** the strokes run `#4AEEC8` → `#12B2D6` and the nodes `#2FDDB8` → `#17C9AB`, with no highlights or shadows
-- **AC-BRAND-025-3**
-  - **Given** `apps/web/src` outside the logo SVGs
-  - **When** it is searched for the logo gradient values
-  - **Then** there is no match
-- **AC-BRAND-025-4**
-  - **Given** the logos with wordmark
-  - **When** they are read
-  - **Then** the wordmark is outlined text to the right of the isotype, Midnight 900 in `logo-light.svg` and white in `logo-dark.svg`
+  - **Given** `apps/web/src`
+  - **When** it is searched for the seven file names above and, outside the interim app icons of REQ-BRAND-026, for `#4AEEC8`, `#12B2D6`, `#2FDDB8` and `#17C9AB`
+  - **Then** there is no match, and the seven files do not exist
 
-### REQ-BRAND-026 — App icon, favicon and logo placement
+### REQ-BRAND-026 — App icon and favicon (interim)
 
-Legacy ID: BRAND-26.
-
-App icon and favicon: a Midnight 900 rounded square (corner radius 22.5 % of the side) with the gradient isotype (*icono claro*, `app-icon-light.svg`) or the white isotype (*icono oscuro*, `app-icon-dark.svg`), the isotype spanning 60 % of the width. The favicon (`apps/web/index.html`; `apps/web/public/favicon.svg` plus a 32 px `favicon.png` fallback) uses the *icono claro*. The logo with wordmark matching the active theme (`logo-light.svg`, or `logo-dark.svg` under the `.dark` class of REQ-BRAND-011) is shown in the sidebar header at 28 px tall (`h-7`, REQ-FE-031) and, only on mobile (below `md`), in the dashboard header at 24 px tall (`h-6`, REQ-FE-016). The login form (REQ-FE-015) and the invitation acceptance page (REQ-FE-028) show the gradient isotype (`isotype-gradient.svg`), which works on both themes. The former raster `logo.png` is removed.
+Until PH-BRAND-4, the app icon and favicon files stay as they are: `apps/web/public/favicon.svg` and the 32 px `favicon.png` fallback, linked from `apps/web/index.html`, and `app-icon-light.svg` / `app-icon-dark.svg` in `apps/web/src/assets/brand/`. PH-BRAND-4 replaces them with the new logo.
 
 **Acceptance criteria**
 
 - **AC-BRAND-026-1**
   - **Given** `apps/web/index.html`
   - **When** it is read
-  - **Then** it links `/favicon.svg` (SVG) and `/favicon.png` (32 × 32 PNG), both the *icono claro*
-- **AC-BRAND-026-2**
-  - **Given** `app-icon-light.svg` and `app-icon-dark.svg`
-  - **When** they are read
-  - **Then** each is a Midnight 900 square with corner radius 22.5 % of the side holding the gradient (light) or white (dark) isotype at 60 % of the width
-- **AC-BRAND-026-3**
-  - **Given** the expanded sidebar
+  - **Then** it links `/favicon.svg` (SVG) and `/favicon.png` (32 × 32 PNG)
+
+### REQ-BRAND-027 — Signature move: ruled small multiples on a common scale
+
+The signature move of the visual system is a **ruled row of small multiples**: a set of equal cells, one per item being compared, all drawn on one common scale so that they can be compared at a glance. It is one shared component, `components/SmallMultiples.tsx`, used on the dashboard (one cell per active survey, REQ-FE-032) and in the statistics tab (one cell per select question, REQ-FE-033). Nowhere else.
+
+- **Frame:** the row has a 1 px `--rule-strong` rule above and below; cells are separated by 1 px `--rule` vertical rules (no outer side borders, no fill, no shadow, no radius). When cells wrap onto several lines, each line is separated by a 1 px `--rule` horizontal rule.
+- **Columns:** 4 cells per line from `lg`, 2 from `md`, 1 below `md` (then cells stack, separated by horizontal `--rule` rules). The statistics tab uses 3 / 2 / 1 (REQ-FE-033).
+- **Cell:** 16 px padding; a title (`text-body` weight 600, wrapping to at most two lines, then truncated with an ellipsis and the full text as `title`); an optional figure (`text-figure`); then one labelled bar per measure (REQ-BRAND-028), all on the row's common scale.
+- **Caption:** under the row, `text-caption` in `--ink-muted`, stating the common scale (e.g. "Escala común: 0–100 respuestas").
+- **Semantics:** the row is a `<section>` with an accessible name; each cell is a list item of an `<ul>`; every number is text.
+
+**Acceptance criteria**
+
+- **AC-BRAND-027-1**
+  - **Given** a small-multiples row at `lg`, `md` and below `md`
   - **When** it renders
-  - **Then** the logo matching the theme is 28 px tall (`h-7`)
-- **AC-BRAND-026-4**
-  - **Given** the dashboard header below `md`
-  - **When** it renders
-  - **Then** the logo matching the theme is 24 px tall (`h-6`); from `md` up the header shows no logo
-- **AC-BRAND-026-5**
-  - **Given** the login form and the accept-invitation page
+  - **Then** it shows 4, 2 and 1 cells per line (3, 2 and 1 in the statistics tab), with a `--rule-strong` rule above and below, `--rule` rules between cells and between lines, and no fill, shadow or radius
+- **AC-BRAND-027-2**
+  - **Given** two cells whose values are 40 and 80 on a common scale of 0–100
   - **When** they render
-  - **Then** they show `isotype-gradient.svg`
-- **AC-BRAND-026-6**
-  - **Given** the repository
-  - **When** it is searched for `logo.png`
-  - **Then** no such file exists or is referenced
+  - **Then** the bar of the second is twice as long as the bar of the first, and both rows of bars have the same total track length
+- **AC-BRAND-027-3**
+  - **Given** a small-multiples row
+  - **When** it renders
+  - **Then** a caption under it states the common scale, and it is a `<section>` with an accessible name holding a `<ul>` with one `<li>` per cell
+- **AC-BRAND-027-4**
+  - **Given** the web source
+  - **When** `SmallMultiples` usages are listed
+  - **Then** it is used only in the dashboard and the statistics tab
+
+### REQ-BRAND-028 — Bar component
+
+Every data bar of the app is one small custom component, `components/Bar.tsx`, in HTML and CSS (no chart library; `recharts` and `ui/chart.tsx` are removed, REQ-FE-002). A bar row is a three-column grid: label (`text-caption`, `--ink-muted`, left), track (8 px tall, `--rule`, square ends) with its fill (`--teal`, or `--rust` for incomplete answers) whose width is `value / scaleMax` of the track, and value text (`text-caption`, tabular figures, right-aligned, optionally followed by a percentage). A value of 0 draws no fill but keeps its track and its "0". When the label does not fit (below `md`, or longer than the label column), the label goes on its own line above the track and value. The track and fill are `aria-hidden`; the label and value are real text, so the chart reads without color and without the graphic.
+
+**Acceptance criteria**
+
+- **AC-BRAND-028-1**
+  - **Given** a bar with value 25 on a scale of 100
+  - **When** it renders
+  - **Then** its fill is 25 % of the track width, and the label and "25" are visible text
+- **AC-BRAND-028-2**
+  - **Given** a bar with value 0
+  - **When** it renders
+  - **Then** it shows an empty track and the text "0"
+- **AC-BRAND-028-3**
+  - **Given** `apps/web/package.json` and `apps/web/src`
+  - **When** they are searched for `recharts` and `ui/chart`
+  - **Then** there is no match
+- **AC-BRAND-028-4**
+  - **Given** a bar
+  - **When** the accessibility tree is read
+  - **Then** the track is hidden and the label and value are exposed as text
+
+### REQ-BRAND-029 — Dense tables
+
+Data tables (`ui/table.tsx`, `ui/data-table.tsx`) are dense and ruled: no outer border, no fill, no radius; header cells `text-small` weight 600 in `--ink-muted`, left-aligned, with a 1 px `--rule-strong` rule under the header row; body cells `text-body`, 11 px vertical and 14 px horizontal padding, separated by 1 px `--rule` rules; numeric columns (counts, dates) right-aligned in tabular figures; rows highlight with `--surface-subtle` on hover; sortable headers are buttons showing the sort direction with an icon and `aria-sort` on the header cell. Below `md`, every table becomes a list of stacked rows: each row is a block separated by 1 px `--rule` rules, its first column as the row title (`text-body` weight 600) and the other columns as label–value lines, the actions menu at the top right of the block; there is no horizontal scroll.
+
+**Acceptance criteria**
+
+- **AC-BRAND-029-1**
+  - **Given** a data table at `md` or wider
+  - **When** it renders
+  - **Then** it has a `--rule-strong` rule under the header, `--rule` rules between rows, no outer border, fill or radius, and numeric columns right-aligned with tabular figures
+- **AC-BRAND-029-2**
+  - **Given** a sortable column header
+  - **When** it is pressed
+  - **Then** the header cell's `aria-sort` changes between `ascending` and `descending` and an icon shows the direction
+- **AC-BRAND-029-3**
+  - **Given** a data table below `md`
+  - **When** it renders
+  - **Then** each row is a stacked block with its first column as title, the other columns as label–value lines and the actions menu at the top right, with no horizontal scroll
+
+### REQ-BRAND-030 — Status chips and status labels
+
+Status filter chips (REQ-FE-018, REQ-FE-027) are toggle buttons with the 3 px radius and `aria-pressed`: unselected, transparent with a 1 px `--input-border` outline and `--ink` text; selected, `--ink` fill with `--paper` text. Status labels in tables and headers are text, not filled badges: "Activa" and "Aceptada" in `--teal` weight 600; "Inactiva", "Pendiente", "Revocada" and "Caducada" in `--ink` or `--ink-muted`; the "Bloqueada" label (REQ-FE-026) is `--ink-muted` text with a 16 px lock icon.
+
+**Acceptance criteria**
+
+- **AC-BRAND-030-1**
+  - **Given** a status chip
+  - **When** it is selected and unselected
+  - **Then** selected it has an `--ink` fill with `--paper` text and `aria-pressed="true"`; unselected it is transparent with an `--input-border` outline and `aria-pressed="false"`
+- **AC-BRAND-030-2**
+  - **Given** survey and invitation status labels and the "Bloqueada" label
+  - **When** they render
+  - **Then** they are text with the colors specified, with no filled badge background, and "Bloqueada" has a lock icon
+
+### REQ-BRAND-031 — Motion
+
+Motion is limited to state changes: color and background transitions of controls, and the opening and closing of menus, popovers, dialogs, sheets and toasts (a fade; menus also slide 4 px and sheets slide in from their edge). Every transition lasts at most 150 ms with an ease-out curve, starting from an already-visible state. There are no entrance animations, scroll effects, animated counters or animated bars. Under `prefers-reduced-motion: reduce`, every transition and animation is disabled.
+
+**Acceptance criteria**
+
+- **AC-BRAND-031-1**
+  - **Given** every transition and animation in the app
+  - **When** its computed duration is read
+  - **Then** it is at most 150 ms with an ease-out timing function
+- **AC-BRAND-031-2**
+  - **Given** `prefers-reduced-motion: reduce`
+  - **When** any control is hovered or any overlay opens
+  - **Then** no transition or animation runs
+- **AC-BRAND-031-3**
+  - **Given** a page load and a data load
+  - **When** content appears
+  - **Then** it appears without an entrance animation and bars are drawn at their final width
+
+### REQ-BRAND-032 — Browser surfaces
+
+The parts the browser draws carry the design, in both themes: text selection (`::selection`) uses `--teal-tint` with `--ink` text; the caret (`caret-color`) is `--teal`; native controls use `accent-color: var(--teal)`; scrollbars use `scrollbar-color` with `--input-border` on `--paper` and `scrollbar-width: thin`; links have `text-underline-offset: 3px`; `color-scheme` is `light` or `dark` to match the theme; the focus ring is the one of REQ-BRAND-020.
+
+**Acceptance criteria**
+
+- **AC-BRAND-032-1**
+  - **Given** `global.css`
+  - **When** it is read
+  - **Then** it sets `::selection`, `caret-color`, `accent-color`, `scrollbar-color`, `scrollbar-width`, `text-underline-offset` and `color-scheme` from the world tokens as specified, for both themes
+- **AC-BRAND-032-2**
+  - **Given** the dark theme
+  - **When** text is selected
+  - **Then** the selection uses the dark `--teal-tint` with `--ink` text
+
+### REQ-BRAND-033 — Loading, empty and error states
+
+Every data view has explicit states in the world's terms: **loading** shows skeleton rules (8 px `--rule` bars in the shape of the content, no shimmer) or, for whole pages, a single line of `--ink-muted` text (e.g. "Cargando panel..."); **empty** shows one line of `--ink-muted` text, plus a link or button to the next action when one exists; **error** shows one line of `--rust` text with an icon, plus "Reintentar" when the request can be retried. No illustration or icon-only empty state is used.
+
+**Acceptance criteria**
+
+- **AC-BRAND-033-1**
+  - **Given** a data view whose request is pending
+  - **When** it renders
+  - **Then** it shows skeleton rules without animation (or the page's loading line)
+- **AC-BRAND-033-2**
+  - **Given** a data view with no data
+  - **When** it renders
+  - **Then** it shows one line of `--ink-muted` text and, when one exists, the next action
+- **AC-BRAND-033-3**
+  - **Given** a data view whose request failed
+  - **When** it renders
+  - **Then** it shows one line of `--rust` text with an icon and a "Reintentar" button that repeats the request
 
 ## Implementation phases
 
 | Phase | Title | Status | REQ-IDs covered |
 |---|---|---|---|
-| PH-BRAND-1 | Existing implementation (migrated) | Done | REQ-BRAND-001, REQ-BRAND-002, REQ-BRAND-003, REQ-BRAND-004, REQ-BRAND-005, REQ-BRAND-006, REQ-BRAND-007, REQ-BRAND-008, REQ-BRAND-009, REQ-BRAND-010, REQ-BRAND-011, REQ-BRAND-012, REQ-BRAND-013, REQ-BRAND-014, REQ-BRAND-015, REQ-BRAND-016, REQ-BRAND-017, REQ-BRAND-018, REQ-BRAND-020, REQ-BRAND-021, REQ-BRAND-022, REQ-BRAND-023, REQ-BRAND-025, REQ-BRAND-026 |
-| PH-BRAND-2 | Visible option-text error | Planned | REQ-BRAND-019 |
+| PH-BRAND-1 | Existing implementation (migrated; v1.0 visual system, superseded by DEV-003) | Done | REQ-BRAND-001, REQ-BRAND-002, REQ-BRAND-003, REQ-BRAND-004, REQ-BRAND-005, REQ-BRAND-024 (and the v1.0 versions of REQ-BRAND-006 … REQ-BRAND-018, REQ-BRAND-020 … REQ-BRAND-023, REQ-BRAND-025, REQ-BRAND-026) |
+| PH-BRAND-3 | Redesign foundation: tokens, Work Sans, both themes, restyled primitives, browser surfaces, top-bar shell | Done | REQ-BRAND-001, REQ-BRAND-006, REQ-BRAND-007, REQ-BRAND-008, REQ-BRAND-009, REQ-BRAND-010, REQ-BRAND-011, REQ-BRAND-012, REQ-BRAND-013, REQ-BRAND-014, REQ-BRAND-015, REQ-BRAND-016, REQ-BRAND-017, REQ-BRAND-018, REQ-BRAND-020, REQ-BRAND-021, REQ-BRAND-022, REQ-BRAND-024, REQ-BRAND-026, REQ-BRAND-027, REQ-BRAND-028, REQ-BRAND-029, REQ-BRAND-030, REQ-BRAND-031, REQ-BRAND-032, REQ-BRAND-033, REQ-FE-001, REQ-FE-002, REQ-FE-006, REQ-FE-013, REQ-FE-016, REQ-FE-029, REQ-FE-031 |
+| PH-BRAND-4 | New logo, app icon and favicon | Planned | REQ-BRAND-021, REQ-BRAND-025, REQ-BRAND-026 (rewritten after the logo decision round) |
 
-PH-BRAND-2 shows the empty option-text error ("El contenido de la opción es obligatorio") next to its option input in `apps/web/src/pages/SurveyCreatePage.tsx`; today it blocks the submission without showing any message.
+The redesign task (`feat/web-redesign`) runs seven phases in this order: PH-STAT-2 ([STATS.md](STATS.md)), PH-BRAND-3, PH-FE-3, PH-FE-4, PH-FE-5, PH-FE-6 ([FRONTEND.md](FRONTEND.md)) and PH-BRAND-4.
 
-REQ-BRAND-024 (Spanish UI copy) is covered by PH-FE-2 in [FRONTEND.md](FRONTEND.md): two loading texts are still in English.
+- **PH-BRAND-3** also delivers the Spanish loading texts formerly planned as PH-FE-2 ("Cargando panel...", "Redirigiendo...") and builds the shared components every later phase uses (`SmallMultiples`, `Bar`, tables, chips, status labels, states), exercised there with the pages that already exist. Pages not yet redesigned keep working on the new tokens. It removed the v1.0 `LoginBrandPanel` ahead of PH-FE-5, because it could not render without the removed v1.0 tokens; the rest of REQ-BRAND-023 and the auth page frame (REQ-FE-030) are still delivered by PH-FE-5. The v1.0 `card` and `chart` primitives and `recharts` stay until PH-FE-4, and the v1.0 logo SVGs until PH-FE-5 (REQ-BRAND-025), where the pages that still use them are redesigned.
+- **PH-BRAND-4** starts with a logo decision round run by the Manager (two or three SVG concepts). After the user's pick, REQ-BRAND-021, REQ-BRAND-025 and REQ-BRAND-026 are rewritten with the chosen logo's construction (geometry, colors in both themes, sizes, variants, app icon and favicon) and approved before the Implementer draws the final SVGs, app icons and favicons. Until then the interim wordmark of REQ-BRAND-021 is used.
+- REQ-BRAND-019 is covered by PH-FE-4 and REQ-BRAND-023 and REQ-BRAND-025 by PH-FE-5 (in [FRONTEND.md](FRONTEND.md)), where the pages they concern are redesigned.

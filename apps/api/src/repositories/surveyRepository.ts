@@ -3,12 +3,14 @@ import type {
 } from "../generated/prisma/models.js";
 import { prisma, rethrowUniqueViolation } from "../lib/prisma.js";
 import type {
+  ActiveSurveyStats,
   CreateSurveyData,
   ISurveyRepository,
   OptionStats,
   QueryString,
   Question,
   Survey,
+  SurveyListItem,
   SurveyStats,
   SurveySummary,
   SurveyChanges,
@@ -25,7 +27,7 @@ export default class SurveyRepository implements ISurveyRepository {
     page,
     limit,
     sort,
-  }: QueryString): Promise<{ surveys: Survey[]; total: number }> {
+  }: QueryString): Promise<{ surveys: SurveyListItem[]; total: number }> {
     const where: any = {
       deleted_at: null,
     };
@@ -73,18 +75,42 @@ export default class SurveyRepository implements ISurveyRepository {
     }
 
     const take = limit ? limit : this.defaultTake;
-    // `total` counts every match of the same filters, not just this page.
-    const [results, total] = await prisma.$transaction([
-      prisma.surveys.findMany({
+    // `total` counts every match of the same filters, not just this page. The
+    // answer counts of the page are computed in the same transaction
+    // (SURV-07, REQ-SURV-021).
+    const { results, total, counts } = await prisma.$transaction(async (tx) => {
+      const results = await tx.surveys.findMany({
         where,
         take,
         skip: page ? (page - 1) * take : this.defaultSkip,
         orderBy,
-      }),
-      prisma.surveys.count({ where }),
-    ]);
+      });
+      const total = await tx.surveys.count({ where });
+      const ids = results.map((r) => r.id);
+      const counts: {
+        survey_id: string;
+        answer_count: number;
+        completed_count: number;
+      }[] = ids.length
+        ? await tx.$queryRaw`
+            SELECT a.survey_id::text AS survey_id,
+                   count(*)::int AS answer_count,
+                   count(*) FILTER (
+                     WHERE jsonb_array_length(a.responses) = jsonb_array_length(s.questions)
+                   )::int AS completed_count
+            FROM answers a
+                     JOIN surveys s ON s.id = a.survey_id
+            WHERE a.deleted_at IS NULL
+              AND a.survey_id = ANY(${ids}::uuid[])
+            GROUP BY a.survey_id;`
+        : [];
+      return { results, total, counts };
+    });
 
-    const serializedData: Survey[] = results.map((r) => {
+    const countsById = new Map(counts.map((c) => [c.survey_id, c]));
+
+    const serializedData: SurveyListItem[] = results.map((r) => {
+      const count = countsById.get(r.id);
       return {
         id: r.id,
         name: r.name,
@@ -96,6 +122,8 @@ export default class SurveyRepository implements ISurveyRepository {
         updatedAt: r.updated_at,
         activatedAt: r.activated_at,
         isLocked: r.is_locked,
+        answerCount: count?.answer_count ?? 0,
+        completedCount: count?.completed_count ?? 0,
       };
     });
 
@@ -109,6 +137,42 @@ export default class SurveyRepository implements ISurveyRepository {
       prisma.surveys.count({ where: { deleted_at: null, is_active: true } }),
     ]);
     return { all, active };
+  }
+
+  // The 8 most recently activated active surveys with their answer counts,
+  // in one query (REQ-STAT-009).
+  async getActiveSurveyStats(): Promise<ActiveSurveyStats[]> {
+    const rows: {
+      slug: string;
+      name: string;
+      total_answers: number;
+      completed_answers: number;
+      incomplete_answers: number;
+    }[] = await prisma.$queryRaw`
+      SELECT s.slug,
+             s.name,
+             count(a.id)::int AS total_answers,
+             count(a.id) FILTER (
+               WHERE jsonb_array_length(a.responses) = jsonb_array_length(s.questions)
+             )::int AS completed_answers,
+             count(a.id) FILTER (
+               WHERE jsonb_array_length(a.responses) < jsonb_array_length(s.questions)
+             )::int AS incomplete_answers
+      FROM surveys s
+               LEFT JOIN answers a ON a.survey_id = s.id AND a.deleted_at IS NULL
+      WHERE s.deleted_at IS NULL
+        AND s.is_active = true
+      GROUP BY s.id
+      ORDER BY s.activated_at DESC NULLS LAST, s.name ASC
+      LIMIT 8;`;
+
+    return rows.map((r) => ({
+      slug: r.slug,
+      name: r.name,
+      totalAnswers: r.total_answers,
+      completedAnswers: r.completed_answers,
+      incompleteAnswers: r.incomplete_answers,
+    }));
   }
 
   async getBySlug(slug: string): Promise<Survey | null> {

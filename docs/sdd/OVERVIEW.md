@@ -4,7 +4,7 @@
 
 - **Module:** Overview
 - **Module code:** OV
-- **Version:** v1.0
+- **Version:** v1.1
 - **Status:** Approved
 - **Last updated:** 2026-10-27
 
@@ -17,6 +17,30 @@ Requirement numbers keep the legacy IDs: legacy `OV-01` is `REQ-OV-001`.
 ### Purpose
 
 **Sondix** (repository `survey-system`) is a university project: an enterprise system to create and manage employee surveys, share them through a public link, collect anonymous answers and review results and statistics.
+
+### Audiences
+
+Sondix is judged by three audiences at once, and serves all of them:
+
+- **University evaluators**, who assess it in the project's presentation.
+- **A team that uses it day to day**: its managers run real surveys with it, and its employees answer them.
+- **Recruiters and clients**, for whom it is a personal portfolio piece of the author.
+
+### Usage context
+
+- **Public answering page:** respondents open it from a mix of mobile and desktop devices, with no dominant device. It is designed mobile-first and makes use of the extra width on desktop.
+- **Manager dashboard:** used mainly on desktop, and adapted to mobile.
+
+### Quality bar for the web UI
+
+Sondix is an enterprise system: the web UI must look professional and serious. Because it is also a university project and a portfolio piece, it must at the same time look interesting: sober, yet distinctive enough to stand out in the presentation and the portfolio.
+
+The web UI fails if it:
+
+- looks like a generic SaaS or component-library dashboard template;
+- is so showy that it hurts usability: excessive motion, low contrast, or data that is hard to read;
+- makes the public answering page look like a generic online form builder (e.g. Google Forms);
+- resembles the visual system it replaces in the 2026 redesign (the one specified by [BRAND.md](BRAND.md) v1.0).
 
 ### Actors
 

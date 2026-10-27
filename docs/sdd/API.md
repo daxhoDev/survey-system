@@ -4,7 +4,7 @@
 
 - **Module:** API conventions
 - **Module code:** API
-- **Version:** v1.0
+- **Version:** v1.1
 - **Status:** Approved
 - **Last updated:** 2026-10-27
 
@@ -36,6 +36,7 @@ All endpoints live under `/api/v1` (REQ-API-001).
 | DELETE | `/api/v1/surveys/:slug` | required | [SURV](SURVEYS.md) |
 | GET | `/api/v1/surveys/:slug/stats` | required | [STAT](STATS.md) |
 | GET | `/api/v1/stats/surveys` | required | [STAT](STATS.md) |
+| GET | `/api/v1/stats/surveys/active` | required | [STAT](STATS.md) |
 | POST | `/api/v1/surveys/:slug/answers` | public | [ANS](ANSWERS.md) |
 | GET | `/api/v1/surveys/:slug/answers` | required | [ANS](ANSWERS.md) |
 | GET | `/api/v1/surveys/:slug/answers/:id` | required | [ANS](ANSWERS.md) |

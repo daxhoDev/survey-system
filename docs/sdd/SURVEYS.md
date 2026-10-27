@@ -4,7 +4,7 @@
 
 - **Module:** Surveys
 - **Module code:** SURV
-- **Version:** v1.0
+- **Version:** v1.1
 - **Status:** Approved
 - **Last updated:** 2026-10-27
 
@@ -53,7 +53,7 @@ Related: [DATA_MODEL.md](DATA_MODEL.md), [API.md](API.md), [ANSWERS.md](ANSWERS.
 
 | Method | Path | Access | Requirements |
 |--------|------|--------|--------------|
-| GET | `/api/v1/surveys` | authenticated | REQ-SURV-005, REQ-SURV-006, REQ-SURV-007, REQ-SURV-020 |
+| GET | `/api/v1/surveys` | authenticated | REQ-SURV-005, REQ-SURV-006, REQ-SURV-007, REQ-SURV-020, REQ-SURV-021 |
 | POST | `/api/v1/surveys` | authenticated | REQ-SURV-008, REQ-SURV-009, REQ-SURV-010 |
 | GET | `/api/v1/surveys/:slug` | public, optional session | REQ-SURV-011, REQ-SURV-012, REQ-SURV-013 |
 | PATCH | `/api/v1/surveys/:slug` | authenticated | REQ-SURV-014, REQ-SURV-015, REQ-SURV-016 |
@@ -178,7 +178,7 @@ Offset is `(page - 1) * limit`.
 
 Legacy ID: SURV-07.
 
-Response `200 { data: Survey[], meta: { results, total, page, limit } }` where `results` is the number of items in this page and `total` the number of non-deleted surveys matching the same filters across all pages (one `COUNT` in the same transaction as the page query).
+Response `200 { data: SurveyListItem[], meta: { results, total, page, limit } }` (`SurveyListItem` is a Survey plus the answer counts of REQ-SURV-021) where `results` is the number of items in this page and `total` the number of non-deleted surveys matching the same filters across all pages (one `COUNT` in the same transaction as the page query).
 
 **Acceptance criteria**
 
@@ -443,9 +443,34 @@ Without `sort`, the list is ordered by `created_at` descending, tie-break `name`
   - **When** the list is requested
   - **Then** it is ordered as in the list query string table, with its tie-break
 
+### REQ-SURV-021 — Answer counts in the survey list
+
+Each item of `GET /api/v1/surveys` carries, besides the Survey fields, `answerCount` (the survey's non-deleted answers) and `completedCount` (its non-deleted answers with `responses.length == questions.length`, as `completedAnswers` in REQ-STAT-002). Both are computed in PostgreSQL in the same transaction as the page query and serialized as JSON numbers (REQ-API-004). Schema: `surveyListItemSchema` (`SurveyListItem`) in `packages/schemas/src/surveySchema.ts`, used only by the list response; the other survey endpoints keep returning `Survey`. They feed the "Respuestas" and "Completas" columns of the dashboard table (REQ-FE-017). The OpenAPI document and the web client are updated (REQ-API-032).
+
+**Acceptance criteria**
+
+- **AC-SURV-021-1**
+  - **Given** a survey with 2 questions and three non-deleted answers (two answering both questions, one answering 1) plus one soft-deleted answer
+  - **When** `GET /api/v1/surveys` lists it
+  - **Then** its item has `answerCount: 3` and `completedCount: 2`, both JSON numbers
+- **AC-SURV-021-2**
+  - **Given** a survey without answers
+  - **When** the list includes it
+  - **Then** its item has `answerCount: 0` and `completedCount: 0`
+- **AC-SURV-021-3**
+  - **Given** `GET /api/v1/surveys/:slug`, `POST /api/v1/surveys` and `PATCH /api/v1/surveys/:slug`
+  - **When** they respond
+  - **Then** their body has no `answerCount` or `completedCount`
+- **AC-SURV-021-4**
+  - **Given** the OpenAPI document and the web's generated client
+  - **When** they are read
+  - **Then** the list response items use `SurveyListItem` with `answerCount` and `completedCount`
+
 ## Implementation phases
 
 | Phase | Title | Status | REQ-IDs covered |
 |---|---|---|---|
 | PH-SURV-1 | Existing implementation (migrated) | Done | REQ-SURV-001, REQ-SURV-002, REQ-SURV-003, REQ-SURV-004, REQ-SURV-006, REQ-SURV-007, REQ-SURV-008, REQ-SURV-009, REQ-SURV-010, REQ-SURV-011, REQ-SURV-012, REQ-SURV-013, REQ-SURV-014, REQ-SURV-015, REQ-SURV-016, REQ-SURV-017, REQ-SURV-018, REQ-SURV-019, REQ-SURV-020 |
 | PH-SURV-2 | Integer page and limit | Planned | REQ-SURV-005 |
+
+REQ-SURV-021 (and the response shape change of REQ-SURV-007) is covered by PH-STAT-2 in [STATS.md](STATS.md), the first phase of the redesign task.

@@ -4,13 +4,13 @@
 
 - **Module:** Statistics
 - **Module code:** STAT
-- **Version:** v1.0
+- **Version:** v1.1
 - **Status:** Approved
 - **Last updated:** 2026-10-27
 
 ## Description
 
-The per-survey statistics endpoint and its computation, and the survey counters summary.
+The per-survey statistics endpoint and its computation, the survey counters summary, and the statistics of the most recently activated active surveys.
 
 Requirement numbers keep the legacy IDs: legacy `STAT-04` is `REQ-STAT-004`.
 
@@ -41,6 +41,24 @@ Code: `SurveyController.getStatsBySlug`, `SurveyService.getStatsBySlug`, `Survey
 ### `GET /api/v1/stats/surveys` — authenticated
 
 Code: `routes/statsRouter.ts` (mounted at `/api/v1/stats`), `SurveyController.getSummary`, `SurveyService.getSummary`, `SurveyRepository.getSummary`. Schema: `surveySummarySchema` (`SurveySummary`) in `packages/schemas/src/surveySchema.ts`. Operation `getSurveySummary`.
+
+### `GET /api/v1/stats/surveys/active` — authenticated
+
+Code: `routes/statsRouter.ts`, `SurveyController.getActiveSurveyStats`, `SurveyService.getActiveSurveyStats`, `SurveyRepository.getActiveSurveyStats` (raw SQL). Schema: `activeSurveyStatsSchema` (`ActiveSurveyStats`) in `packages/schemas/src/surveySchema.ts`. Operation `getActiveSurveyStats`. It feeds the dashboard small multiples (REQ-FE-032).
+
+```jsonc
+{
+  "data": [                     // at most 8 items, most recently activated first
+    {
+      "slug": "clima-laboral-2026",
+      "name": "Clima laboral 2026",
+      "totalAnswers": 83,       // non-deleted answers of the survey
+      "completedAnswers": 71,   // as in SurveyStats
+      "incompleteAnswers": 12   // as in SurveyStats
+    }
+  ]
+}
+```
 
 ## Requirements
 
@@ -176,8 +194,46 @@ Legacy ID: STAT-08.
   - **When** the summary is requested
   - **Then** the response is `401`
 
+### REQ-STAT-009 — Statistics of the most recently activated surveys
+
+`GET /api/v1/stats/surveys/active` (authenticated) responds `200 { data: ActiveSurveyStats[] }` with the 8 most recently activated active surveys: non-deleted surveys with `is_active = true`, ordered by `activated_at` descending (the time of the latest activation, REQ-SURV-014), tie-break `name` ascending, at most 8 items. Each item holds `slug`, `name`, `totalAnswers`, `completedAnswers` and `incompleteAnswers`, with the same definitions as REQ-STAT-002 and ignoring soft-deleted answers (REQ-STAT-006); a survey without answers has `0` in every count. Everything is computed in one PostgreSQL query (REQ-STAT-003) and counts are JSON numbers. Query parameters are ignored. With no active survey, `data` is `[]`. Like `GET /stats/surveys`, the path lives outside `/surveys` so it can never clash with a survey slug. The endpoint is registered in the OpenAPI document and the web client is regenerated (REQ-API-029, REQ-API-032).
+
+**Acceptance criteria**
+
+- **AC-STAT-009-1**
+  - **Given** 10 active surveys activated at different times, 1 inactive survey and 1 soft-deleted active survey
+  - **When** an authenticated user calls `GET /api/v1/stats/surveys/active`
+  - **Then** the response is `200` with the 8 most recently activated active surveys, newest activation first, and neither the inactive nor the deleted survey
+- **AC-STAT-009-2**
+  - **Given** an active survey with 3 questions and three non-deleted answers (two answering 3 questions, one answering 2) plus one soft-deleted answer
+  - **When** the endpoint is called
+  - **Then** its item is `{ slug, name, totalAnswers: 3, completedAnswers: 2, incompleteAnswers: 1 }`, with every count a JSON number
+- **AC-STAT-009-3**
+  - **Given** an active survey with no answers
+  - **When** the endpoint is called
+  - **Then** its item has `0` in every count
+- **AC-STAT-009-4**
+  - **Given** two active surveys with the same `activated_at`
+  - **When** the endpoint is called
+  - **Then** they come in ascending name order
+- **AC-STAT-009-5**
+  - **Given** no active survey
+  - **When** the endpoint is called
+  - **Then** the response is `200 { data: [] }`
+- **AC-STAT-009-6**
+  - **Given** no `jwt` cookie
+  - **When** the endpoint is called
+  - **Then** the response is `401`
+- **AC-STAT-009-7**
+  - **Given** the OpenAPI document (`/api/v1/docs-raw`) and the web's generated client
+  - **When** they are read
+  - **Then** they include `GET /api/v1/stats/surveys/active` with operation `getActiveSurveyStats` and its response schema
+
 ## Implementation phases
 
 | Phase | Title | Status | REQ-IDs covered |
 |---|---|---|---|
 | PH-STAT-1 | Existing implementation (migrated) | Done | REQ-STAT-001, REQ-STAT-002, REQ-STAT-003, REQ-STAT-004, REQ-STAT-005, REQ-STAT-006, REQ-STAT-007, REQ-STAT-008 |
+| PH-STAT-2 | Web redesign, API additions: active-survey statistics and answer counts in the survey list | Done | REQ-STAT-009, REQ-SURV-007, REQ-SURV-021 |
+
+PH-STAT-2 is the first phase of the redesign task `feat/web-redesign` (phase order in [BRAND.md](BRAND.md), Implementation phases). It changes the API, the shared schemas, the OpenAPI document and the generated web client only; no page uses the new data until PH-FE-3.

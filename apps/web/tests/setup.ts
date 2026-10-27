@@ -18,7 +18,7 @@ globalThis.ResizeObserver ??= ResizeObserverStub as never;
 Element.prototype.scrollIntoView ??= () => {};
 Element.prototype.hasPointerCapture ??= () => false;
 Element.prototype.releasePointerCapture ??= () => {};
-// The sidebar's useIsMobile reads matchMedia; jsdom has none (desktop width).
+// lib/theme.ts reads matchMedia (prefers-color-scheme); jsdom has none.
 window.matchMedia ??= ((query: string) => ({
   matches: false,
   media: query,

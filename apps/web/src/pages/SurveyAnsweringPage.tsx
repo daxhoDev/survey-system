@@ -128,8 +128,8 @@ export default function SurveyAnsweringPage() {
       <div className="w-full max-w-2xl mx-auto py-12 px-4">
         <Card className="border-destructive/20 bg-destructive/5">
           <CardHeader className="text-center flex flex-col items-center">
-            <AlertCircle className="size-12 text-destructive-text mb-4" />
-            <CardTitle className="text-h3 text-destructive-text">
+            <AlertCircle className="size-12 text-rust mb-4" />
+            <CardTitle className="text-h3 text-rust">
               Encuesta no encontrada
             </CardTitle>
             <CardDescription>
@@ -145,10 +145,10 @@ export default function SurveyAnsweringPage() {
   if (submitAnswer.isSuccess) {
     return (
       <div className="w-full max-w-2xl mx-auto py-12 px-4">
-        <Card className="border-success/30 bg-success/5">
+        <Card className="border-rule">
           <CardHeader className="text-center flex flex-col items-center">
-            <CheckCircle2 className="size-12 text-success mb-4" aria-hidden="true" />
-            <CardTitle className="text-h2 text-success-text">
+            <CheckCircle2 className="size-12 text-teal mb-4" aria-hidden="true" />
+            <CardTitle className="text-h2 text-teal">
               ¡Muchas gracias!
             </CardTitle>
             <CardDescription>
@@ -163,7 +163,7 @@ export default function SurveyAnsweringPage() {
 
   return (
     <div className="w-full max-w-2xl mx-auto py-12 px-4">
-      <Card className="border-border/60 bg-card/60 backdrop-blur shadow-xl">
+      <Card className="border-border/60 bg-card/60 shadow-xl">
         <CardHeader className="border-b border-border/40 pb-6">
           <CardTitle className="text-h1">
             {survey.name}
@@ -188,7 +188,7 @@ export default function SurveyAnsweringPage() {
                     <Label className="text-sm font-semibold text-foreground">
                       {question.name}{" "}
                       {question.isRequired && (
-                        <span className="text-destructive-text">*</span>
+                        <span className="text-rust">*</span>
                       )}
                     </Label>
                     <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded font-medium">
@@ -211,7 +211,7 @@ export default function SurveyAnsweringPage() {
                         })}
                       />
                       {hasError && (
-                        <p className="text-xs text-destructive-text mt-1">
+                        <p className="text-xs text-rust mt-1">
                           {hasError.message as string}
                         </p>
                       )}
@@ -263,7 +263,7 @@ export default function SurveyAnsweringPage() {
                         )}
                       />
                       {hasError && (
-                        <p className="text-xs text-destructive-text mt-1">
+                        <p className="text-xs text-rust mt-1">
                           {hasError.message as string}
                         </p>
                       )}
@@ -328,7 +328,7 @@ export default function SurveyAnsweringPage() {
                         }}
                       />
                       {hasError && (
-                        <p className="text-xs text-destructive-text mt-1">
+                        <p className="text-xs text-rust mt-1">
                           {hasError.message as string}
                         </p>
                       )}

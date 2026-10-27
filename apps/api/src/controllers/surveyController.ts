@@ -39,6 +39,12 @@ export default class SurveyController {
     res.type("json").status(200).send(json({ data: summary }));
   }
 
+  // GET /api/v1/stats/surveys/active (REQ-STAT-009).
+  async getActiveSurveyStats(_req: ProtectedRequest, res: Response) {
+    const stats = await this.service.getActiveSurveyStats();
+    res.type("json").status(200).send(json({ data: stats }));
+  }
+
   async getBySlug(req: ProtectedRequest, res: Response, next: NextFunction) {
     getLogger().info({ slug: req.params.slug }, `Fetching survey by slug...`);
     const session: Session = req.user

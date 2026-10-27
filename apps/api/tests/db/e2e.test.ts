@@ -4,6 +4,7 @@ import app from "../../src/app.js";
 import RefreshTokenRepository from "../../src/repositories/refreshTokenRepository.js";
 import UserRepository from "../../src/repositories/userRepository.js";
 import AuthService from "../../src/services/authService.js";
+import { v7 } from "uuid";
 import { questions } from "../helpers/fixtures.js";
 import { prisma, resetDatabase } from "../helpers/database.js";
 
@@ -203,5 +204,233 @@ describe("full flow against PostgreSQL", () => {
     const emails = (await prisma.users.findMany({ select: { email: true } })).map((u) => u.email);
     expect(emails.sort()).toEqual(["new.user@example.com", "owner@example.com"]);
     expect((await prisma.invitations.findFirstOrThrow()).email).toBe("new.user@example.com");
+  });
+});
+
+// Direct inserts for the counting scenarios of PH-STAT-2.
+let ipSeq = 0;
+async function insertSurvey(
+  name: string,
+  data: {
+    is_active?: boolean;
+    activated_at?: Date | null;
+    deleted_at?: Date | null;
+    created_at?: Date;
+    questions?: unknown;
+  } = {},
+) {
+  const id = v7();
+  await prisma.surveys.create({
+    data: {
+      id,
+      name,
+      slug: name.toLowerCase().replaceAll(" ", "-"),
+      questions: (data.questions ?? questions) as never,
+      is_active: data.is_active ?? false,
+      is_locked: data.is_active ?? false,
+      activated_at: data.activated_at ?? null,
+      deleted_at: data.deleted_at ?? null,
+      ...(data.created_at ? { created_at: data.created_at } : {}),
+    },
+  });
+  return id;
+}
+async function insertAnswer(surveyId: string, answered: number, deleted = false) {
+  ipSeq += 1;
+  await prisma.answers.create({
+    data: {
+      id: v7(),
+      survey_id: surveyId,
+      origin_ip: `10.9.${Math.floor(ipSeq / 250)}.${ipSeq % 250}`,
+      responses: questions
+        .slice(0, answered)
+        .map((q) => ({ id: q.id, content: q.type === "TEXT_ANSWER" ? "ok" : [1] })),
+      deleted_at: deleted ? new Date() : null,
+    },
+  });
+}
+const at = (minute: number) => new Date(Date.UTC(2026, 5, 1, 12, minute));
+
+describe("GET /api/v1/stats/surveys/active (REQ-STAT-009)", () => {
+  const path = "/api/v1/stats/surveys/active";
+
+  it("AC-STAT-009-1: the 8 most recently activated active surveys, newest first", async () => {
+    for (let i = 1; i <= 10; i++) {
+      await insertSurvey(`Active survey ${String(i).padStart(2, "0")}`, {
+        is_active: true,
+        activated_at: at(i),
+      });
+    }
+    // Newer activation dates than every active survey: they would come first
+    // if they were not filtered out.
+    await insertSurvey("Inactive survey", { is_active: false, activated_at: at(30) });
+    await insertSurvey("Deleted active survey", {
+      is_active: true,
+      activated_at: at(31),
+      deleted_at: new Date(),
+    });
+    await createOwner();
+    const jwt = jwtOf(await login());
+
+    const res = await request(app).get(path).set("Cookie", jwt);
+    expect(res.status).toBe(200);
+    expect(res.body.data.map((s: { name: string }) => s.name)).toEqual(
+      [10, 9, 8, 7, 6, 5, 4, 3].map((i) => `Active survey ${String(i).padStart(2, "0")}`),
+    );
+  });
+
+  it("AC-STAT-009-2: counts ignore deleted answers and are JSON numbers", async () => {
+    const id = await insertSurvey("Counted survey", { is_active: true, activated_at: at(1) });
+    await insertAnswer(id, 3);
+    await insertAnswer(id, 3);
+    await insertAnswer(id, 2);
+    await insertAnswer(id, 3, true);
+    await createOwner();
+    const jwt = jwtOf(await login());
+
+    const res = await request(app).get(path).set("Cookie", jwt);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      data: [
+        {
+          slug: "counted-survey",
+          name: "Counted survey",
+          totalAnswers: 3,
+          completedAnswers: 2,
+          incompleteAnswers: 1,
+        },
+      ],
+    });
+    expect(res.text).toContain('"totalAnswers":3');
+  });
+
+  it("AC-STAT-009-3: a survey without answers has 0 in every count", async () => {
+    await insertSurvey("Empty survey", { is_active: true, activated_at: at(1) });
+    await createOwner();
+    const jwt = jwtOf(await login());
+
+    const res = await request(app).get(path).set("Cookie", jwt);
+    expect(res.body.data).toEqual([
+      {
+        slug: "empty-survey",
+        name: "Empty survey",
+        totalAnswers: 0,
+        completedAnswers: 0,
+        incompleteAnswers: 0,
+      },
+    ]);
+  });
+
+  it("AC-STAT-009-4: the same activated_at comes in ascending name order", async () => {
+    await insertSurvey("Zulu survey", { is_active: true, activated_at: at(5) });
+    await insertSurvey("Alpha survey", { is_active: true, activated_at: at(5) });
+    await insertSurvey("Older survey", { is_active: true, activated_at: at(1) });
+    await createOwner();
+    const jwt = jwtOf(await login());
+
+    const res = await request(app).get(path).set("Cookie", jwt);
+    expect(res.body.data.map((s: { name: string }) => s.name)).toEqual([
+      "Alpha survey",
+      "Zulu survey",
+      "Older survey",
+    ]);
+  });
+
+  it("AC-STAT-009-5: no active survey → 200 { data: [] }", async () => {
+    await insertSurvey("Draft survey");
+    await createOwner();
+    const jwt = jwtOf(await login());
+
+    const res = await request(app).get(path).set("Cookie", jwt);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: [] });
+  });
+
+  it("REQ-STAT-009: query parameters are ignored", async () => {
+    await insertSurvey("Alpha survey", { is_active: true, activated_at: at(1) });
+    await insertSurvey("Beta survey", { is_active: true, activated_at: at(2) });
+    await createOwner();
+    const jwt = jwtOf(await login());
+
+    const plain = await request(app).get(path).set("Cookie", jwt);
+    const withQuery = await request(app)
+      .get(`${path}?search=alpha&active=false&limit=1&page=2&sort=name`)
+      .set("Cookie", jwt);
+    expect(withQuery.status).toBe(200);
+    expect(withQuery.body).toEqual(plain.body);
+    expect(plain.body.data).toHaveLength(2);
+  });
+
+  it("AC-STAT-009-6: without the jwt cookie → 401", async () => {
+    expect((await request(app).get(path)).status).toBe(401);
+  });
+});
+
+describe("answer counts in GET /api/v1/surveys (REQ-SURV-021)", () => {
+  const twoQuestions = questions.slice(0, 2);
+
+  it("AC-SURV-021-1, AC-SURV-021-2: answerCount and completedCount per item, as JSON numbers", async () => {
+    const counted = await insertSurvey("Counted survey", {
+      is_active: true,
+      activated_at: at(1),
+      questions: twoQuestions,
+      created_at: at(2),
+    });
+    await insertSurvey("Empty survey", { created_at: at(1) });
+    await insertAnswer(counted, 2);
+    await insertAnswer(counted, 2);
+    await insertAnswer(counted, 1);
+    await insertAnswer(counted, 2, true);
+    await createOwner();
+    const jwt = jwtOf(await login());
+
+    const res = await request(app).get("/api/v1/surveys").set("Cookie", jwt);
+    expect(res.status).toBe(200);
+    const byName = Object.fromEntries(
+      res.body.data.map((s: { name: string }) => [s.name, s]),
+    );
+    expect(byName["Counted survey"]).toMatchObject({ answerCount: 3, completedCount: 2 });
+    expect(byName["Empty survey"]).toMatchObject({ answerCount: 0, completedCount: 0 });
+    expect(res.text).toContain('"answerCount":3');
+    expect(res.text).toContain('"completedCount":2');
+    expect(res.body.meta).toEqual({ results: 2, total: 2, page: 1, limit: 10 });
+  });
+
+  it("REQ-SURV-021: each page item carries its own counts", async () => {
+    const first = await insertSurvey("First survey", { created_at: at(1), is_active: true, activated_at: at(1) });
+    const second = await insertSurvey("Second survey", { created_at: at(2), is_active: true, activated_at: at(2) });
+    await insertAnswer(first, 3);
+    await insertAnswer(second, 3);
+    await insertAnswer(second, 1);
+    await createOwner();
+    const jwt = jwtOf(await login());
+
+    const page2 = await request(app).get("/api/v1/surveys?limit=1&page=2").set("Cookie", jwt);
+    expect(page2.body.data).toHaveLength(1);
+    expect(page2.body.data[0]).toMatchObject({ name: "First survey", answerCount: 1, completedCount: 1 });
+    const page1 = await request(app).get("/api/v1/surveys?limit=1&page=1").set("Cookie", jwt);
+    expect(page1.body.data[0]).toMatchObject({ name: "Second survey", answerCount: 2, completedCount: 1 });
+  });
+
+  it("AC-SURV-021-3: GET, POST and PATCH of a single survey carry no counts", async () => {
+    await createOwner();
+    const jwt = jwtOf(await login());
+
+    const created = await request(app)
+      .post("/api/v1/surveys")
+      .set("Cookie", jwt)
+      .send({ name: "Employee Satisfaction Survey", questions });
+    const surveyPath = `/api/v1/surveys/${created.body.data.slug}`;
+    const patched = await request(app)
+      .patch(surveyPath)
+      .set("Cookie", jwt)
+      .send({ isActive: true });
+    const fetched = await request(app).get(surveyPath).set("Cookie", jwt);
+
+    for (const res of [created, patched, fetched]) {
+      expect(res.status).toBeLessThan(300);
+      expect(res.body.data).not.toHaveProperty("answerCount");
+      expect(res.body.data).not.toHaveProperty("completedCount");
+    }
   });
 });

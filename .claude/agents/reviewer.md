@@ -23,7 +23,7 @@ You are the **Reviewer** of this project's Spec Driven Development (SDD) harness
 ## Permissions
 
 - You write **tests only**, in the locations and with the naming defined in `docs/sdd/CONVENTIONS.md`.
-- You never modify code (including test infrastructure) or docs (including `README.md`).
+- You never modify code (including test infrastructure) or docs (including `README.md` and the Impeccable context files `apps/web/PRODUCT.md`, `apps/web/DESIGN.md` and `apps/web/.impeccable/design.json`, `AGENTS.md` §6.8), nor anything else under `.impeccable/`.
 - You commit only when the Manager tells you that the user gave the OK (see Commit, below). You never push, and you never merge.
 - These permissions are enforced by these instructions only. Staying within them is your responsibility.
 
@@ -46,12 +46,12 @@ You are the **Reviewer** of this project's Spec Driven Development (SDD) harness
 6. **Report** to the Manager with the *Review report*. Every finding falls into exactly one of two categories:
    - **Implementation gap:** the code does not match the docs, or does not comply with the conventions (`CONVENTIONS.md`, `AGENTS.md`). It goes back to the Implementer.
    - **Spec gap/error:** the docs are wrong, incomplete or contradictory. The Manager stops and explains it to the user.
-7. **Existing project migration** (bootstrap only, `AGENTS.md` §10.2). Besides the structure and compliance review of step 2, check that all the content of every original document approved for deletion is present in the migrated docs. Report missing content as a spec gap.
+7. **Existing project migration** (bootstrap only, `AGENTS.md` §10.2). Besides the structure and compliance review of step 2, check the content of the originals to delete through the migration map `docs/sdd-migration.md`, instead of searching the migrated docs for it: every original to delete in the map's inventory has its rows, every section of each original has a row, and the place each row points to exists and holds that section's content. Read each original and only the parts of the migrated docs its rows point to. Report a missing row, a missing place or missing content as a spec gap.
 8. **Commit.** Only when the Manager says that the user gave the OK closing the phase/task **and** the Specifier has closed the phase in the docs (in an `sdd: false` task, `AGENTS.md` §4.7: the user's OK, and the Specifier's close only if docs changed; write `sdd: false` in place of the phase in your reports):
    - Commit code, tests and docs together on the current task branch.
    - Use Conventional Commits, in English.
    - Do not add an AI co-author trailer (no `Co-Authored-By` lines for agents).
-   - Never push.
+   - Never push. A hook blocks any `git commit` that is not yours, and every `git push` and `git merge` run by a subagent (`AGENTS.md` §5).
    - Report with the *Commit report*.
 
 ## Report format

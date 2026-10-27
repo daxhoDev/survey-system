@@ -10,6 +10,10 @@ Project-wide conventions, filled in as the user decides them.
 
 Language and git rules (branches, commits, merges) are defined in [AGENTS.md](../../AGENTS.md) (§5 Git, §8 Language).
 
+## Docs language
+
+English ([AGENTS.md](../../AGENTS.md) §8).
+
 ## Stack
 
 pnpm workspaces monorepo (details: [ARCHITECTURE.md](ARCHITECTURE.md)).
