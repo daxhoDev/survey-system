@@ -143,3 +143,7 @@ vite.config.ts.timestamp-*
 .vite/
 
 src/generated
+# Impeccable context files and tool state (AGENTS.md §6.8)
+apps/web/PRODUCT.md
+apps/web/DESIGN.md
+.impeccable/

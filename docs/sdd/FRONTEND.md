@@ -4,13 +4,13 @@
 
 - **Module:** Frontend
 - **Module code:** FE
-- **Version:** v1.0
+- **Version:** v2.0
 - **Status:** Approved
 - **Last updated:** 2026-10-27
 
 ## Description
 
-The web app (`apps/web`): stack and UI conventions, the generated API client, routes, and every page (login, dashboard layout, header, side navigation, survey list, survey creation and details, invitations, invitation acceptance, public answering page). Brand identity (Sondix name, color tokens, light/dark themes, typography, radii, logo) is specified in [BRAND.md](BRAND.md).
+The web app (`apps/web`): stack and UI conventions, the generated API client, routes, and every page (login, dashboard layout, top bar and section navigation, survey list with the active-survey small multiples, survey creation and details with its statistics, invitations, invitation acceptance, public answering page). Brand identity and the visual system («Anuario estadístico»: color tokens, light/dark themes, typography, shape, tables, small multiples, bars, motion, logo) are specified in [BRAND.md](BRAND.md); this module specifies where and how each page uses them.
 
 Requirement numbers keep the legacy IDs: legacy `FE-13` is `REQ-FE-013`.
 
@@ -21,7 +21,7 @@ Related: [BRAND.md](BRAND.md), [ARCHITECTURE.md](ARCHITECTURE.md), [API.md](API.
 | Path | Element | Access |
 |------|---------|--------|
 | `/` | redirect → `/auth/login` | public |
-| `/auth/login` | `AuthPage` › `LoginPage` (holds `LoginBrandPanel` + `LoginForm`) | public |
+| `/auth/login` | `AuthPage` › `LoginPage` (holds `LoginForm`) | public |
 | `/auth/invite/:token` | `AuthPage` › `AcceptInvitationPage` | public |
 | `/dashboard` | `DashboardPage` › `Surveys` | session |
 | `/dashboard/surveys/create` | `DashboardPage` › `SurveyCreatePage` | session |
@@ -33,17 +33,17 @@ Related: [BRAND.md](BRAND.md), [ARCHITECTURE.md](ARCHITECTURE.md), [API.md](API.
 
 | Area | Code | Requirements |
 |------|------|--------------|
-| Login | `pages/LoginPage.tsx`, `components/login-form.tsx`, `components/LoginBrandPanel.tsx`, `components/PasswordInput.tsx` | REQ-FE-015, REQ-FE-030 |
+| Login | `pages/AuthPage.tsx`, `pages/LoginPage.tsx`, `components/login-form.tsx`, `components/PasswordInput.tsx` | REQ-FE-015, REQ-FE-030 |
 | Dashboard layout and session guard | `pages/DashboardPage.tsx` | REQ-FE-013 |
-| Header | `components/DashboardHeader.tsx`, `components/ThemeSelector.tsx` | REQ-FE-016, REQ-FE-029 |
-| Side navigation | `components/AppSidebar.tsx` | REQ-FE-031 |
-| Survey list (`/dashboard`) | `components/Surveys.tsx`, `components/ListPagination.tsx` | REQ-FE-017, REQ-FE-018 |
+| Top bar and section navigation | `components/TopBar.tsx`, `components/ThemeSelector.tsx`, `components/Logo.tsx` | REQ-FE-016, REQ-FE-029, REQ-FE-031 |
+| Survey list (`/dashboard`) | `components/Surveys.tsx`, `components/ActiveSurveys.tsx`, `components/ListPagination.tsx` | REQ-FE-017, REQ-FE-018, REQ-FE-032 |
 | Create survey | `pages/SurveyCreatePage.tsx` | REQ-FE-019, REQ-FE-020 |
-| Survey details | `pages/SurveyDetailsPage.tsx`, `components/LockedBadge.tsx` | REQ-FE-021, REQ-FE-022, REQ-FE-026 |
+| Survey details | `pages/SurveyDetailsPage.tsx`, `components/SurveyStatistics.tsx`, `components/LockedBadge.tsx` | REQ-FE-021, REQ-FE-022, REQ-FE-026, REQ-FE-033 |
 | Invitations (`/dashboard/invitations`) | `pages/InvitationsPage.tsx` | REQ-FE-027 |
-| Accept invitation (`/auth/invite/:token`, public) | `pages/AcceptInvitationPage.tsx` | REQ-FE-028 |
-| Answering (`/surveys/:slug`, public) | `pages/SurveyAnsweringPage.tsx` | REQ-FE-023, REQ-FE-024 |
+| Accept invitation (`/auth/invite/:token`, public) | `pages/AuthPage.tsx`, `pages/AcceptInvitationPage.tsx` | REQ-FE-028, REQ-FE-030 |
+| Answering (`/surveys/:slug`, public) | `pages/SurveyAnsweringPage.tsx` | REQ-FE-023, REQ-FE-024, REQ-FE-034 |
 | Destructive confirmations | `components/ConfirmationDialog.tsx` | REQ-FE-025 |
+| Shared visual components | `components/SmallMultiples.tsx`, `components/Bar.tsx` | REQ-BRAND-027, REQ-BRAND-028 |
 
 ## Requirements
 
@@ -51,27 +51,31 @@ Related: [BRAND.md](BRAND.md), [ARCHITECTURE.md](ARCHITECTURE.md), [API.md](API.
 
 Legacy ID: FE-01.
 
-Vite 8 + React 19 with the React Compiler (`babel-plugin-react-compiler` via `@rolldown/plugin-babel`), TypeScript, Tailwind CSS 4 (`@tailwindcss/vite`), `tw-animate-css`, Inter variable font. Inter for body text and Manrope (`@fontsource-variable/manrope`) for headings. Brand identity (Sondix name, color tokens, light/dark themes, typography, radii) is in [BRAND.md](BRAND.md).
+Vite 8 + React 19 with the React Compiler (`babel-plugin-react-compiler` via `@rolldown/plugin-babel`), TypeScript, Tailwind CSS 4 (`@tailwindcss/vite`), `tw-animate-css`, and the Work Sans variable font (`@fontsource-variable/work-sans`, REQ-BRAND-012) as the only family. Brand identity and the visual system are in [BRAND.md](BRAND.md).
 
 **Acceptance criteria**
 
 - **AC-FE-001-1**
   - **Given** `apps/web/package.json` and `apps/web/vite.config.ts`
   - **When** they are read
-  - **Then** the app uses Vite 8, React 19, TypeScript, Tailwind CSS 4 through `@tailwindcss/vite`, `tw-animate-css`, `@fontsource-variable/inter`, `@fontsource-variable/manrope`, and the React Compiler (`babel-plugin-react-compiler`) through `@rolldown/plugin-babel`
+  - **Then** the app uses Vite 8, React 19, TypeScript, Tailwind CSS 4 through `@tailwindcss/vite`, `tw-animate-css`, `@fontsource-variable/work-sans` (and neither `@fontsource-variable/inter` nor `@fontsource-variable/manrope`), and the React Compiler (`babel-plugin-react-compiler`) through `@rolldown/plugin-babel`
 
 ### REQ-FE-002 — UI component libraries
 
 Legacy ID: FE-02.
 
-UI components are shadcn/ui (config `components.json`) in `apps/web/src/components/ui`, built on `radix-ui`; icons from `lucide-react`; toasts with `sonner` (`<Toaster position="top-center" theme={theme} />`, following the active theme, REQ-BRAND-011); tables with `@tanstack/react-table` (`ui/data-table.tsx`); charts with `recharts` through `ui/chart.tsx`.
+UI components are shadcn/ui primitives (config `components.json`) in `apps/web/src/components/ui`, built on `radix-ui` and restyled against the tokens of [BRAND.md](BRAND.md) (REQ-BRAND-009); icons from `lucide-react`; toasts with `sonner` (`<Toaster position="top-center" theme={theme} />`, following the active theme, REQ-BRAND-011); tables with `@tanstack/react-table` (`ui/data-table.tsx`, REQ-BRAND-029). Data bars are the custom `components/Bar.tsx` (REQ-BRAND-028); there is no chart library. Primitives no longer used are removed: `ui/sidebar.tsx`, `ui/card.tsx` and `ui/chart.tsx`, and the `recharts` dependency.
 
 **Acceptance criteria**
 
 - **AC-FE-002-1**
   - **Given** the web source
   - **When** UI primitives, icons, toasts, tables and charts are looked up
-  - **Then** primitives come from `components/ui` (shadcn/ui on `radix-ui`, configured in `components.json`), icons from `lucide-react`, tables from `ui/data-table.tsx` (`@tanstack/react-table`) and charts from `ui/chart.tsx` (`recharts`)
+  - **Then** primitives come from `components/ui` (shadcn/ui on `radix-ui`, configured in `components.json`), icons from `lucide-react`, tables from `ui/data-table.tsx` (`@tanstack/react-table`) and data bars from `components/Bar.tsx`
+- **AC-FE-002-3**
+  - **Given** `apps/web/src/components/ui` and `apps/web/package.json`
+  - **When** they are read
+  - **Then** `sidebar.tsx`, `card.tsx` and `chart.tsx` do not exist and `recharts` is not a dependency
 - **AC-FE-002-2**
   - **Given** the app root (`App.tsx`)
   - **When** it renders
@@ -278,9 +282,9 @@ The API base URL comes from `VITE_API_URL` (REQ-CFG-007, REQ-CFG-009). Query key
 
 Legacy ID: FE-13.
 
-`DashboardPage` is the session guard: it calls `useGetCurrentUser`; while loading shows "Cargando panel...", on error navigates to `/auth/login`. Layout: `TooltipProvider` > `SidebarProvider` with the side navigation (`AppSidebar`, REQ-FE-031) and a `SidebarInset` holding `DashboardHeader` + centered `<Outlet />` (max width 6xl). The sidebar's open state is read back from the `sidebar_state` cookie it writes, so a collapsed sidebar stays collapsed after a reload.
+`DashboardPage` is the session guard: it calls `useGetCurrentUser`; while loading shows the single line "Cargando panel..." (REQ-BRAND-033), on error navigates to `/auth/login`. Layout: `TooltipProvider` > the top bar (`TopBar`, REQ-FE-016) above a `<main>` holding the centered `<Outlet />`, at most 80 rem wide with the gutters of REQ-BRAND-015. There is no sidebar and no `sidebar_state` cookie (REQ-BRAND-022).
 
-The code today shows the English text "Loading dashboard..." (`apps/web/src/pages/DashboardPage.tsx`); it is corrected in PH-FE-2.
+The code today shows the English text "Loading dashboard..." (`apps/web/src/pages/DashboardPage.tsx`); it is corrected in PH-BRAND-3.
 
 **Acceptance criteria**
 
@@ -295,11 +299,7 @@ The code today shows the English text "Loading dashboard..." (`apps/web/src/page
 - **AC-FE-013-3**
   - **Given** a valid session
   - **When** a `/dashboard` route is opened
-  - **Then** the page renders `AppSidebar` and a `SidebarInset` with `DashboardHeader` and the child route centered with max width 6xl
-- **AC-FE-013-4**
-  - **Given** the cookie `sidebar_state=false`
-  - **When** the dashboard is loaded
-  - **Then** the sidebar starts collapsed
+  - **Then** the page renders `TopBar` and, in a `<main>` element, the child route centered, at most 80 rem (1280 px) wide
 
 ### REQ-FE-014 — No signup page
 
@@ -339,59 +339,73 @@ Email + password validated with the web's `loginFormSchema` (REQ-FE-004). Copy: 
   - **When** the form is submitted
   - **Then** the error's `detail` is shown in a toast
 
-### REQ-FE-016 — Dashboard header
+### REQ-FE-016 — Top bar
 
 Legacy ID: FE-16.
 
-Top bar of the dashboard (`components/DashboardHeader.tsx`): the sidebar toggle ("Mostrar u ocultar menú", REQ-FE-031), the theme selector (REQ-FE-029), the user's initial and username, and logout. On mobile only (below `md`), where the sidebar is a closed sheet, it also shows the Sondix logo as the link to `/dashboard` (accessible name "Sondix, ir a encuestas"); on desktop the logo lives in the sidebar. Navigation to sections is in the sidebar, not here. Logout asks for confirmation in a dialog; on success clears the whole query cache and navigates to `/auth/login`. When the current user is not available once loading has finished, the header shows "Redirigiendo..." in place of the user and logout.
+Top bar of the dashboard (`components/TopBar.tsx`), full width, 58 px tall, on `--paper` with a 2 px `--rule-strong` rule under it, content aligned with the page gutters (REQ-BRAND-015). From `md`, left to right: the logo (REQ-BRAND-021) as the link to `/dashboard` (accessible name "Sondix, ir a encuestas"); the section navigation (REQ-FE-031); then, pushed to the right, the theme selector (REQ-BRAND-011), the username in `--ink-muted` and the "Salir" button (`ghost`). Below `md`: the logo on the left and, on the right, a menu button (icon-only, accessible name "Abrir menú", `aria-expanded`) that opens a sheet from the right holding the section navigation, the theme options "Claro" / "Oscuro" / "Sistema" as a radio group labelled "Tema", the username and "Salir"; the sheet closes on navigation, on Escape and with its close button ("Cerrar menú"). "Salir" asks for confirmation (`ConfirmationDialog`, REQ-FE-025); on success it clears the whole query cache and navigates to `/auth/login`. When the current user is not available once loading has finished, the top bar shows "Redirigiendo..." in place of the username and "Salir".
 
-The code today shows the English text "Redirecting..."; it is corrected in PH-FE-2.
+The code today shows the English text "Redirecting..."; it is corrected in PH-BRAND-3.
 
 **Acceptance criteria**
 
 - **AC-FE-016-1**
-  - **Given** a session
-  - **When** the header renders
-  - **Then** it shows the sidebar toggle, the theme selector, the user's initial and username, and a logout button
+  - **Given** a session and a viewport at `md` or wider
+  - **When** the top bar renders
+  - **Then** it shows, in order, the logo linking to `/dashboard` (accessible name "Sondix, ir a encuestas"), the sections "Encuestas" and "Invitaciones", the theme button "Tema", the username and "Salir", above a 2 px `--rule-strong` rule
 - **AC-FE-016-2**
   - **Given** a viewport below `md`
-  - **When** the header renders
-  - **Then** it shows the Sondix logo as a link to `/dashboard` with accessible name "Sondix, ir a encuestas"; from `md` up the link is hidden
+  - **When** the menu button "Abrir menú" is pressed and then a section is chosen
+  - **Then** a sheet opens with the sections, the "Tema" radio group, the username and "Salir", `aria-expanded` is `true` while it is open, and the sheet closes on navigation
 - **AC-FE-016-3**
-  - **Given** the user presses logout
+  - **Given** the user presses "Salir"
   - **When** the confirmation dialog is confirmed and the API answers `204`
   - **Then** the whole query cache is cleared and the app navigates to `/auth/login`
 - **AC-FE-016-4**
   - **Given** the current-user query has finished loading without a user
-  - **When** the header renders
-  - **Then** it shows "Redirigiendo..." instead of the user and logout
+  - **When** the top bar renders
+  - **Then** it shows "Redirigiendo..." instead of the username and "Salir"
 
-### REQ-FE-017 — Survey list counters and table
+### REQ-FE-017 — Survey list: title, summary line and table
 
 Legacy ID: FE-17.
 
-`components/Surveys.tsx` (`/dashboard`) shows the cards "Total de encuestas" and "Encuestas activas" from `GET /stats/surveys` (REQ-STAT-008, unaffected by the list filters), a "Crear encuesta" button and a table (name, creation date, status badge, actions menu: view details, activate/deactivate). Creating, activating/deactivating or deleting a survey invalidates both the list and the counters.
+`components/Surveys.tsx` (`/dashboard`), top to bottom:
+
+1. **Header row:** the title "Encuestas" (`text-h1`) with, under it, the summary line "{all} encuestas · {active} activas · {all − active} inactivas" (`text-small`, `--ink-muted`, tabular figures) from `GET /stats/surveys` (REQ-STAT-008, unaffected by the list filters); singulars when a count is 1 ("1 encuesta", "1 activa", "1 inactiva"). The primary button "Crear encuesta" (link to `/dashboard/surveys/create`) sits on the right of the title, baseline-aligned; below `md` it goes under the summary line, full width.
+2. **Active surveys** small multiples (REQ-FE-032).
+3. **The survey list** (REQ-FE-018): toolbar, table and pagination.
+
+The table (REQ-BRAND-029) has the columns "Nombre" (the survey name as a link to its details), "Estado" (the status label "Activa" / "Inactiva" and, for a locked survey, the "Bloqueada" label, REQ-FE-026, REQ-BRAND-030), "Respuestas" (`answerCount`) and "Completas" (`completedCount`) (REQ-SURV-021, right-aligned), "Fecha de creación" (`es-CU`, right-aligned), and a last column with the actions menu (icon-only button "Acciones de {name}": "Ver detalles", "Activar" / "Desactivar"). Below `md` the rows stack (REQ-BRAND-029). Creating, activating/deactivating or deleting a survey invalidates the list, the summary and the active-survey statistics (REQ-FE-032); deleting an answer (REQ-FE-022) invalidates the list and the active-survey statistics, whose counts include it.
 
 **Acceptance criteria**
 
 - **AC-FE-017-1**
-  - **Given** `GET /stats/surveys` returns `{ all: 7, active: 3 }`
+  - **Given** `GET /stats/surveys` returns `{ all: 12, active: 4 }`
   - **When** `/dashboard` renders
-  - **Then** "Total de encuestas" shows 7 and "Encuestas activas" shows 3, whatever filters the list has
+  - **Then** the summary line reads "12 encuestas · 4 activas · 8 inactivas", whatever filters the list has
 - **AC-FE-017-2**
-  - **Given** the survey list
-  - **When** it renders
-  - **Then** it shows a "Crear encuesta" button and a table with name, creation date, status badge and an actions menu (view details, activate/deactivate)
+  - **Given** `{ all: 1, active: 1 }`
+  - **When** `/dashboard` renders
+  - **Then** the summary line reads "1 encuesta · 1 activa · 0 inactivas"
 - **AC-FE-017-3**
+  - **Given** the survey list
+  - **When** it renders at `md` or wider
+  - **Then** it shows the "Crear encuesta" primary button and a table with the columns Nombre, Estado, Respuestas, Completas, Fecha de creación and the actions menu (Ver detalles, Activar/Desactivar), with Respuestas, Completas and Fecha de creación right-aligned in tabular figures
+- **AC-FE-017-4**
+  - **Given** a list item with `answerCount: 83` and `completedCount: 71`
+  - **When** its row renders
+  - **Then** "Respuestas" shows 83 and "Completas" shows 71
+- **AC-FE-017-5**
   - **Given** a survey is created, activated, deactivated or deleted
   - **When** the mutation succeeds
-  - **Then** both the survey list query and the summary query are invalidated
+  - **Then** the survey list, the summary and the active-survey statistics queries are invalidated
 
 ### REQ-FE-018 — Paginated, searchable, filterable list
 
 Legacy ID: FE-18.
 
-The table is server-paginated, 10 per page, newest first by default (REQ-SURV-020). Above it, a search box ("Buscar por nombre", queried 300 ms after typing pauses) and status chips Todas / Activas / Inactivas (`aria-pressed`); the "Nombre" and "Fecha de creación" headers sort ascending/descending. Below it, `components/ListPagination.tsx`: "Mostrando 11–20 de 43", "Página 2 de 5", Anterior / Siguiente, using `meta.total` (REQ-SURV-007). Search, status, sort and page live in the URL (`?search=&active=&sort=&page=`, defaults omitted) so reload, links and returning from a survey keep them; changing search, status or sort goes back to page 1. While a new page loads the previous one stays visible (dimmed). Empty states: "Ninguna encuesta coincide con la búsqueda o el filtro." with filters, otherwise an invitation to create the first survey. The API's `date` filter is not exposed.
+The table is server-paginated, 10 per page, newest first by default (REQ-SURV-020). Above it, a toolbar: a search box ("Buscar por nombre", queried 300 ms after typing pauses) taking the free width, and status chips Todas / Activas / Inactivas (`aria-pressed`, REQ-BRAND-030); below `md` the search box takes a full line and the chips go under it. The "Nombre" and "Fecha de creación" headers sort ascending/descending (`aria-sort`, REQ-BRAND-029). Below it, `components/ListPagination.tsx`: "Mostrando 11–20 de 43", "Página 2 de 5", Anterior / Siguiente, using `meta.total` (REQ-SURV-007). Search, status, sort and page live in the URL (`?search=&active=&sort=&page=`, defaults omitted) so reload, links and returning from a survey keep them; changing search, status or sort goes back to page 1. The "Ver todas las activas" link of REQ-FE-032 sets the status to Activas the same way. While a new page loads the previous one stays visible (dimmed to 50 % opacity, without animation). Empty states: "Ninguna encuesta coincide con la búsqueda o el filtro." with filters, otherwise an invitation to create the first survey. The API's `date` filter is not exposed.
 
 **Acceptance criteria**
 
@@ -436,7 +450,9 @@ The table is server-paginated, 10 per page, newest first by default (REQ-SURV-02
 
 Legacy ID: FE-19.
 
-`pages/SurveyCreatePage.tsx`: form with name (required, min 5) and a dynamic list of questions (name required min 5, type select, required checkbox, options for select types). On submit, question ids and option ids are numbered sequentially from 1. On success invalidates the survey list, toasts and returns to `/dashboard`.
+`pages/SurveyCreatePage.tsx`: form with name (required, min 5) and a dynamic list of questions (name required min 5, type select, required checkbox, options for select types). On submit, question ids and option ids are numbered sequentially from 1. On success invalidates the survey list, the summary and the active-survey statistics, toasts and returns to `/dashboard`.
+
+Layout (the existing copy is kept; the title becomes "Nueva encuesta" in sentence case): a back link "Volver a encuestas", the title (`text-h1`), the general fields, then the questions as a numbered list of ruled sections (1 px `--rule` between them, the question number in tabular figures before its name field, no cards); each question holds its name, type select, required checkbox and, for select types, its options with "Añadir opción" and an icon-only "Eliminar opción" button per option, plus an icon-only "Eliminar pregunta" button. Below the list, "Añadir pregunta" (`outline`); at the end, "Crear encuesta" (primary, loading state "Creando..."). Fields follow REQ-BRAND-019, so the empty-option error of AC-BRAND-019-4 is shown under its input.
 
 **Acceptance criteria**
 
@@ -474,7 +490,7 @@ There is no UI to edit a survey's name or questions after creation (the API supp
 
 Legacy ID: FE-21.
 
-`pages/SurveyDetailsPage.tsx`: header with name, slug, activate/deactivate button and delete button (confirmation dialog; on success navigates to `/dashboard`).
+`pages/SurveyDetailsPage.tsx`: a back link "Encuestas" (to `/dashboard`, keeping the list's query string when it came from there), then a header with the name (`text-h1`), under it a line with the status label, the "Bloqueada" label when locked and the slug (`--ink-muted`), and on the right the buttons "Activar" / "Desactivar" (`outline`) and "Eliminar" (`destructive`; confirmation dialog; on success navigates to `/dashboard`). Below `md` the buttons go under the header, side by side.
 
 **Acceptance criteria**
 
@@ -495,7 +511,9 @@ Tabs, each loading its data lazily when opened:
 
 - **Detalles**: public link `${window.location.origin}/surveys/${slug}` with copy/open buttons; list of questions with type, required badge and options.
 - **Respuestas**: table (short id, date, IP, "Ver respuestas"); a side sheet shows each question with the resolved response text and allows deleting the answer after a confirmation dialog.
-- **Estadísticas**: total/completed/incomplete cards and one horizontal bar chart per select question.
+- **Estadísticas**: the yearbook treatment of REQ-FE-033.
+
+The tabs are standard underline tabs: the active tab in `--ink` weight 600 with a 2 px `--teal` underline, the others in `--ink-muted`, over a 1 px `--rule` line. The public link is shown as text in tabular figures inside a 1 px `--input-border` field with the icon-only buttons "Copiar enlace" and "Abrir enlace". Questions are a numbered ruled list (number, name, type, "Obligatoria" label, options as an indented list). The answers table follows REQ-BRAND-029 and the side sheet REQ-BRAND-016.
 
 **Acceptance criteria**
 
@@ -514,13 +532,13 @@ Tabs, each loading its data lazily when opened:
 - **AC-FE-022-4**
   - **Given** the "Estadísticas" tab
   - **When** it renders
-  - **Then** it shows total, completed and incomplete cards and one horizontal bar chart per select question
+  - **Then** it shows the summary line, the completed/incomplete bar and the small multiples of REQ-FE-033, with no cards
 
 ### REQ-FE-023 — Answering page
 
 Legacy ID: FE-23.
 
-`pages/SurveyAnsweringPage.tsx` loads the survey by slug; shows "Encuesta no encontrada" on error. Renders textarea (`TEXT_ANSWER`), radio group (`SINGLE_SELECT`, value sent as `[optionId]`) or checkboxes (`MULTI_SELECT`). Required questions are marked with `*` and validated client-side; empty responses are omitted from the payload. On success shows a thank-you card; on error toasts `error.detail`.
+`pages/SurveyAnsweringPage.tsx` loads the survey by slug; shows "Encuesta no encontrada" on error. Renders textarea (`TEXT_ANSWER`), radio group (`SINGLE_SELECT`, value sent as `[optionId]`) or checkboxes (`MULTI_SELECT`). Required questions are marked with `*` and validated client-side: each unanswered required question shows "Esta pregunta es obligatoria" under it and focus moves to the first of them; empty responses are omitted from the payload. On success shows the thank-you state; on error toasts `error.detail`. Layout and states: REQ-FE-034.
 
 **Acceptance criteria**
 
@@ -531,7 +549,7 @@ Legacy ID: FE-23.
 - **AC-FE-023-2**
   - **Given** a required question left empty
   - **When** the form is submitted
-  - **Then** a client-side error is shown and no request is sent
+  - **Then** "Esta pregunta es obligatoria" is shown under it, focus moves to the first unanswered required question, and no request is sent
 - **AC-FE-023-3**
   - **Given** a `SINGLE_SELECT` choice of option 2 and an empty optional question
   - **When** the form is submitted
@@ -539,7 +557,7 @@ Legacy ID: FE-23.
 - **AC-FE-023-4**
   - **Given** the API answers `201`
   - **When** the form is submitted
-  - **Then** a thank-you card is shown
+  - **Then** the thank-you state of REQ-FE-034 replaces the form
 - **AC-FE-023-5**
   - **Given** the API answers with an error
   - **When** the form is submitted
@@ -583,14 +601,14 @@ Every confirmation of a destructive action (logout, survey deletion, answer dele
 
 Legacy ID: FE-26.
 
-A locked survey (`isLocked`) shows a "Bloqueada" badge next to its status, in the dashboard table (REQ-FE-017) and in the details header (REQ-FE-021). Hovering or focusing it shows the tooltip "Ya fue activada: nombre y preguntas no se pueden modificar". The badge is the shared component `components/LockedBadge.tsx`.
+A locked survey (`isLocked`) shows a "Bloqueada" label (lock icon and text, REQ-BRAND-030) next to its status, in the dashboard table (REQ-FE-017) and in the details header (REQ-FE-021). Hovering or focusing it shows the tooltip "Ya fue activada: nombre y preguntas no se pueden modificar". The label is the shared component `components/LockedBadge.tsx` and is focusable so the tooltip is reachable by keyboard.
 
 **Acceptance criteria**
 
 - **AC-FE-026-1**
   - **Given** a survey with `isLocked: true`
   - **When** it appears in the dashboard table or the details header
-  - **Then** a "Bloqueada" badge (`LockedBadge`) is shown next to its status; an unlocked survey shows none
+  - **Then** a "Bloqueada" label with a lock icon (`LockedBadge`) is shown next to its status; an unlocked survey shows none
 - **AC-FE-026-2**
   - **Given** the badge
   - **When** it is hovered or focused
@@ -600,7 +618,9 @@ A locked survey (`isLocked`) shows a "Bloqueada" badge next to its status, in th
 
 Legacy ID: FE-27.
 
-`pages/InvitationsPage.tsx` (`/dashboard/invitations`) is reached from "Invitaciones" in the side navigation (REQ-FE-031). A form with the email creates an invitation; on success it shows the link `${window.location.origin}/auth/invite/${token}` with a copy button and the note that it is shown only once and expires in 48 hours; `409` shows the API detail in a toast. Below, a table of invitations (email, status badge — Pendiente / Aceptada / Revocada / Caducada —, invited by, created and expiry dates) with a "Revocar" action on pending ones, confirmed with `ConfirmationDialog` (REQ-FE-025). The link of the last created invitation stays visible until another one is created or the page is left. Above the table, a status filter (Todas / Pendiente / Aceptada / Revocada / Caducada, default Todas) filters on the client: the API returns every invitation (REQ-AUTH-025).
+`pages/InvitationsPage.tsx` (`/dashboard/invitations`) is reached from "Invitaciones" in the side navigation (REQ-FE-031). A form with the email creates an invitation; on success it shows the link `${window.location.origin}/auth/invite/${token}` with a copy button and the note that it is shown only once and expires in 48 hours; `409` shows the API detail in a toast. Below, a table of invitations (email, status badge — Pendiente / Aceptada / Revocada / Caducada —, invited by, created and expiry dates) with a "Revocar" action on pending ones, confirmed with `ConfirmationDialog` (REQ-FE-025). The link of the last created invitation stays visible until another one is created or the page is left. Above the table, a status filter (Todas / Pendiente / Aceptada / Revocada / Caducada, default Todas, as status chips, REQ-BRAND-030) filters on the client: the API returns every invitation (REQ-AUTH-025).
+
+Layout: title "Invitaciones" (`text-h1`); the form as one line (the email field taking the free width and the primary button; stacked below `md`); the created link, when shown, as a ruled block (1 px `--rule-strong` rules above and below) holding the link in a read-only field, the icon-only "Copiar enlace" button and the note; then the chips and the table (REQ-BRAND-029; stacked rows below `md`), with status labels per REQ-BRAND-030 and "Revocar" as a `ghost` button in `--rust`.
 
 **Acceptance criteria**
 
@@ -633,7 +653,7 @@ Legacy ID: FE-27.
 
 Legacy ID: FE-28.
 
-`pages/AcceptInvitationPage.tsx` (`/auth/invite/:token`, public) loads the invitation by token. If it is invalid shows "Invitación no válida o caducada". If the visitor already has a session (`getCurrentUser` succeeds), the form is not shown: the page says that there is a session open as that username and must be closed to accept the invitation, with a "Cerrar sesión" button confirmed with `ConfirmationDialog` (REQ-FE-025); after logging out the query cache is cleared and the form appears. Otherwise shows the email ("Correo electrónico", read only) and a form with username, password and password confirmation, validated with the web's `acceptInvitationFormSchema` (REQ-FE-004); both password fields use `PasswordInput` (REQ-FE-015), each with its own visibility toggle. On success stores the user in the `getCurrentUser` cache (`{ data: user }`) and navigates to `/dashboard`; on error shows the API detail in a toast. UI copy in Spanish (REQ-FE-006).
+`pages/AcceptInvitationPage.tsx` (`/auth/invite/:token`, public) loads the invitation by token. If it is invalid shows "Invitación no válida o caducada". If the visitor already has a session (`getCurrentUser` succeeds), the form is not shown: the page says that there is a session open as that username and must be closed to accept the invitation, with a "Cerrar sesión" button confirmed with `ConfirmationDialog` (REQ-FE-025); after logging out the query cache is cleared and the form appears. Otherwise shows the email ("Correo electrónico", read only) and a form with username, password and password confirmation, validated with the web's `acceptInvitationFormSchema` (REQ-FE-004); both password fields use `PasswordInput` (REQ-FE-015), each with its own visibility toggle. On success stores the user in the `getCurrentUser` cache (`{ data: user }`) and navigates to `/dashboard`; on error shows the API detail in a toast. UI copy in Spanish (REQ-FE-006). Layout: the auth page frame of REQ-FE-030.
 
 **Acceptance criteria**
 
@@ -666,70 +686,180 @@ Legacy ID: FE-28.
   - **When** the form is submitted
   - **Then** the API detail is shown in a toast
 
-### REQ-FE-029 — Theme selector and logo wordmark
+### REQ-FE-029 — Theme selector and logo placement
 
 Legacy ID: FE-29.
 
-The header shows a theme selector ("Claro" / "Oscuro" / "Sistema", REQ-BRAND-011). The product name "Sondix" is the wordmark of the theme-aware SVG logo (REQ-BRAND-001, REQ-BRAND-026), switching with the theme.
+The top bar offers the theme selector (REQ-BRAND-011): the "Tema" button from `md`, and the "Tema" radio group in the menu sheet below `md` (REQ-FE-016). The logo (REQ-BRAND-021) is shown in the top bar, the menu sheet, the auth page frame (REQ-FE-030) and the answering page footer (REQ-FE-034); no separate "Sondix" text is rendered next to it.
 
 **Acceptance criteria**
 
 - **AC-FE-029-1**
-  - **Given** the dashboard header
-  - **When** it renders
-  - **Then** it has a theme selector with the options "Claro", "Oscuro" and "Sistema"
+  - **Given** the top bar at `md` or wider, and the menu sheet below `md`
+  - **When** they render
+  - **Then** the first has the "Tema" button and the second the "Tema" radio group, both with "Claro", "Oscuro" and "Sistema"
 - **AC-FE-029-2**
-  - **Given** the light or dark theme
-  - **When** the logo is shown
-  - **Then** it is `logo-light.svg` in light and `logo-dark.svg` in dark, and no separate "Sondix" text is rendered next to it
+  - **Given** the top bar, the menu sheet, the auth pages and the answering page
+  - **When** they render
+  - **Then** each shows the logo component once and no separate "Sondix" text next to it
 
-### REQ-FE-030 — Login brand panel
+### REQ-FE-030 — Auth page frame
 
 Legacy ID: FE-30.
 
-The login page shows the textured Sondix brand panel beside the form on wide screens (REQ-BRAND-023).
+The login (`/auth/login`) and accept-invitation (`/auth/invite/:token`) pages share one frame (`pages/AuthPage.tsx`): a single centered column on `--paper`, at most 24 rem wide, vertically centered from `md` and starting 48 px from the top below `md`; the logo (REQ-BRAND-021), under it the line "Sistema de gestión de encuestas" (`text-small`, `--ink-muted`), then a 2 px `--rule-strong` rule, then the page's title (`text-h2`), description and form, with full-width fields and primary button. There is no brand panel, no texture and no card (REQ-BRAND-023).
 
 **Acceptance criteria**
 
 - **AC-FE-030-1**
-  - **Given** `/auth/login` at the `lg` breakpoint or wider
-  - **When** it renders
-  - **Then** `LoginBrandPanel` is shown beside the login form; below `lg` it is hidden
+  - **Given** `/auth/login` and `/auth/invite/:token` at any width
+  - **When** they render
+  - **Then** each shows a single centered column at most 24 rem wide with the logo, the line "Sistema de gestión de encuestas", a 2 px `--rule-strong` rule and the page's form, with no side panel, card or texture
 
-### REQ-FE-031 — Side navigation
+### REQ-FE-031 — Section navigation
 
 Legacy ID: FE-31.
 
-Sidebar (`components/AppSidebar.tsx`, shadcn `ui/sidebar.tsx`, REQ-BRAND-022) with only the sections that exist: "Encuestas" (`/dashboard`, active on `/dashboard` and `/dashboard/surveys/*`) and, under the group label "Administración", "Invitaciones" (`/dashboard/invitations`). The header holds the Sondix logo (the theme-aware lockup, or the isotype when collapsed) as the link to `/dashboard`. The active item is highlighted with `--sidebar-accent` and has `aria-current="page"`. On desktop it collapses to an icon rail (toggle button, rail or Ctrl/⌘+B) with tooltips, and the state persists in the `sidebar_state` cookie; on mobile (below `md`) it opens as a sheet from the toggle and closes on navigation. New sections are added here when they exist.
+The top bar's section navigation (`components/TopBar.tsx`, REQ-BRAND-022) holds only the sections that exist: "Encuestas" (`/dashboard`, active on `/dashboard` and `/dashboard/surveys/*`) and "Invitaciones" (`/dashboard/invitations`). "Crear encuesta" is not a section: it is the primary button of the survey list (REQ-FE-017). Items are links (`text-body`, 10 px × 14 px padding); the active one is weight 700 with a 2 px `--teal` underline (inset at the bottom of the bar) and `aria-current="page"`; hover shows the underline in `--rule`. Below `md` the same items are listed in the menu sheet (REQ-FE-016), the active one marked the same way. New sections are added here when they exist.
 
 **Acceptance criteria**
 
 - **AC-FE-031-1**
-  - **Given** the sidebar
+  - **Given** the section navigation
   - **When** it renders
-  - **Then** it shows "Encuestas" (`/dashboard`) and, under "Administración", "Invitaciones" (`/dashboard/invitations`), and no other section
+  - **Then** it shows "Encuestas" (`/dashboard`) and "Invitaciones" (`/dashboard/invitations`), and no other item
 - **AC-FE-031-2**
   - **Given** the current path is `/dashboard` or `/dashboard/surveys/<slug>`
-  - **When** the sidebar renders
-  - **Then** "Encuestas" has `aria-current="page"` and the `--sidebar-accent` highlight; on `/dashboard/invitations`, "Invitaciones" does
-- **AC-FE-031-3**
-  - **Given** the sidebar header
-  - **When** it renders expanded or collapsed
-  - **Then** it shows the theme-aware lockup expanded, the isotype collapsed, linking to `/dashboard`
-- **AC-FE-031-4**
-  - **Given** a desktop viewport
-  - **When** the toggle, the rail or Ctrl/⌘+B is used
-  - **Then** the sidebar collapses to an icon rail with tooltips and `sidebar_state` is written to a cookie
-- **AC-FE-031-5**
-  - **Given** a viewport below `md`
-  - **When** the toggle is pressed and then a section is chosen
-  - **Then** the sidebar opens as a sheet and closes on navigation
+  - **When** the navigation renders
+  - **Then** "Encuestas" has `aria-current="page"`, weight 700 and the 2 px `--teal` underline; on `/dashboard/invitations`, "Invitaciones" does
 
-## Implementation phases
+### REQ-FE-032 — Active surveys small multiples
+
+On `/dashboard`, between the header row and the survey list, `components/ActiveSurveys.tsx` shows the most recently activated active surveys as small multiples (REQ-BRAND-027) from `GET /stats/surveys/active` (REQ-STAT-009), in the order received (at most 8, 4 / 2 / 1 per line):
+
+- **Section:** a `<section>` with accessible name "Encuestas activas".
+- **Cell:** the survey name as a link to `/dashboard/surveys/{slug}` (title), the total of answers as the figure (`text-figure`, with the accessible text "{n} respuestas"), and two bars: "Completas" (`completedAnswers`, teal) and "Incompletas" (`incompleteAnswers`, rust).
+- **Common scale:** every bar of the row is drawn from 0 to the same `scaleMax`: the smallest value in the sequence 10, 20, 25, 50, 100, 200, 250, 500, 1000, 2000, 2500, 5000 … (1, 2, 2.5 and 5 × 10ᵏ, k ≥ 1) that is greater than or equal to the largest `totalAnswers` of the row (10 when every survey has 0 answers). The caption reads "Escala común: 0–{scaleMax} respuestas".
+- **More than shown:** when the summary's `active` (REQ-STAT-008) is greater than the number of cells, the caption line also holds the link "Ver todas las activas", which sets the list's status filter to Activas (REQ-FE-018) and moves focus to the list.
+- **Empty:** with no active survey, the row is replaced by the line "No hay encuestas activas. Activa una encuesta para empezar a recoger respuestas." (`--ink-muted`), between the same two rules.
+- **Loading and error:** skeleton cells while loading; on error, the error line with "Reintentar" (REQ-BRAND-033). The rest of the page does not wait for it.
+
+**Acceptance criteria**
+
+- **AC-FE-032-1**
+  - **Given** `GET /stats/surveys/active` returns 3 surveys with totals 83, 41 and 12
+  - **When** `/dashboard` renders at `lg`
+  - **Then** the section "Encuestas activas" shows 3 cells in the order received, each with the name linking to its details, the total, and the "Completas" and "Incompletas" bars, and the caption "Escala común: 0–100 respuestas"
+- **AC-FE-032-2**
+  - **Given** a largest total of 7, 20, 120 or 0
+  - **When** the scale is computed
+  - **Then** `scaleMax` is 10, 20, 200 or 10 respectively
+- **AC-FE-032-3**
+  - **Given** a cell with 71 completed and 12 incomplete answers on a scale of 100
+  - **When** it renders
+  - **Then** the "Completas" bar is teal at 71 % of the track and the "Incompletas" bar is rust at 12 %, each with its number as text
+- **AC-FE-032-4**
+  - **Given** 8 cells and a summary with `active: 11`
+  - **When** "Ver todas las activas" is pressed
+  - **Then** the list is filtered to Activas (URL `active=true`, page 1) and focus moves to the list
+- **AC-FE-032-5**
+  - **Given** a summary with `active` equal to the number of cells
+  - **When** the row renders
+  - **Then** there is no "Ver todas las activas" link
+- **AC-FE-032-6**
+  - **Given** `GET /stats/surveys/active` returns `[]`
+  - **When** `/dashboard` renders
+  - **Then** the row shows "No hay encuestas activas. Activa una encuesta para empezar a recoger respuestas."
+- **AC-FE-032-7**
+  - **Given** the request fails
+  - **When** the row renders
+  - **Then** it shows the error line with "Reintentar", and the survey list still renders
+
+### REQ-FE-033 — Statistics tab
+
+The "Estadísticas" tab (`components/SurveyStatistics.tsx`, data from `GET /surveys/:slug/stats`, REQ-STAT-002) reads like a yearbook page:
+
+1. **Summary line:** "{totalAnswers} respuestas · {completedAnswers} completas · {incompleteAnswers} incompletas · {questionCount} preguntas" (`text-body`, tabular figures; singulars when a count is 1).
+2. **Completion bar:** one full-width stacked bar (8 px, square ends) whose teal segment is `completedAnswers / totalAnswers` and rust segment `incompleteAnswers / totalAnswers`, with the labels "Completas {n} ({p})" and "Incompletas {n} ({p})" under it as text (percentages with `Intl.NumberFormat("es-CU", { style: "percent" })`, rounded to integers).
+3. **Small multiples by question** (REQ-BRAND-027, 3 / 2 / 1 cells per line), one cell per select question in `optionStats` order: the title "{question number}. {question name}", a caption with the type ("Selección única" / "Selección múltiple"), and one bar per option (REQ-BRAND-028, teal) labelled with the option text and valued "{responseCount} · {p}", where `p = responseCount / totalAnswers`. Every bar of every cell uses the same scale, 0 to `totalAnswers`, so a bar's length is the share of respondents who chose that option. The caption under the row reads "Escala común: 0–{totalAnswers} respuestas (100 %)" and, when any question is a multiple choice, also "En selección múltiple los porcentajes pueden sumar más de 100 %".
+4. **Text questions** are not charted: when the survey has any, a closing line reads "{n} preguntas de texto libre: consulta sus respuestas en la pestaña Respuestas." (singular for 1).
+
+With `totalAnswers = 0`, the tab shows only the line "Todavía no hay respuestas para esta encuesta." Loading and error follow REQ-BRAND-033.
+
+**Acceptance criteria**
+
+- **AC-FE-033-1**
+  - **Given** stats with 83 answers, 71 completed, 12 incomplete and 5 questions
+  - **When** the tab renders
+  - **Then** the summary line reads "83 respuestas · 71 completas · 12 incompletas · 5 preguntas" and the completion bar has a teal segment of 71/83 and a rust segment of 12/83, labelled "Completas 71 (86 %)" and "Incompletas 12 (14 %)"
+- **AC-FE-033-2**
+  - **Given** a `SINGLE_SELECT` question whose options have 50 and 33 responses out of 83 answers
+  - **When** its cell renders
+  - **Then** the bars are 50/83 and 33/83 of the track, valued "50 · 60 %" and "33 · 40 %", on the same scale as every other cell
+- **AC-FE-033-3**
+  - **Given** a survey with a `MULTI_SELECT` question
+  - **When** the tab renders
+  - **Then** the caption includes "En selección múltiple los porcentajes pueden sumar más de 100 %"
+- **AC-FE-033-4**
+  - **Given** a survey with 2 `TEXT_ANSWER` questions
+  - **When** the tab renders
+  - **Then** they have no cell and the closing line reads "2 preguntas de texto libre: consulta sus respuestas en la pestaña Respuestas."
+- **AC-FE-033-5**
+  - **Given** `totalAnswers = 0`
+  - **When** the tab renders
+  - **Then** it shows only "Todavía no hay respuestas para esta encuesta."
+
+### REQ-FE-034 — Answering page: questionnaire sheet
+
+The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, designed mobile-first, that must not look like a generic online form builder:
+
+- **Frame:** no top bar; one column on `--paper`, at most 42 rem wide, centered, 16 px gutters below `md`; no cards, no colored header band, no tinted page ground. From `lg`, the question numbers hang in a left gutter outside the column.
+- **Header:** the survey name (`text-h1`), under it "{n} preguntas · Las marcadas con * son obligatorias." (`text-small`, `--ink-muted`), then a 2 px `--rule-strong` rule.
+- **Questions:** each is a `<fieldset>` whose `<legend>` holds the number (tabular figures, `--ink-muted`) and the question text (`text-h3`) with ` *` when required (the asterisk `aria-hidden`, plus visually hidden text "(obligatoria)"); questions are separated by 1 px `--rule` rules and 32 px of space.
+- **Options:** each radio or checkbox option is a full-width row at least 44 px tall whose whole area toggles it (the label wraps the control); hover shows `--surface-subtle`; a checked row shows `--teal-tint` behind it and the control filled in teal. The textarea (`text-body-lg`) is at least 4 rows tall, with the placeholder "Escribe tu respuesta aquí...".
+- **Errors:** "Esta pregunta es obligatoria" under the question in `--rust` with an icon; the fieldset gets `aria-invalid="true"` and `aria-describedby` to the message (REQ-FE-023).
+- **Progress:** "{answered} de {n} respondidas" counts the questions with a non-empty response. Below `md` it is a slim line stuck to the top of the viewport (`--paper` with a 1 px `--rule` under it, the text and a 2 px teal progress bar on a `--rule` track); from `md` it is shown, not sticky, next to the submit button.
+- **Submit:** the primary button "Enviar respuestas" (loading "Enviando..."), full width below `md`.
+- **Thank-you state:** the form is replaced by the survey name, a 2 px `--rule-strong` rule, "¡Muchas gracias!" (`text-h2`) and "Tus respuestas a la encuesta {name} han sido enviadas correctamente."; focus moves to the heading.
+- **Not found:** the same frame with "Encuesta no encontrada" (`text-h1`) and "La encuesta que estás intentando acceder no existe o no está disponible." (REQ-FE-024).
+- **Loading:** the frame with skeleton rules in the shape of the header and two questions (REQ-BRAND-033).
+- **Footer:** the logo (REQ-BRAND-021) at the bottom of the column, `--ink-muted`, small.
+
+**Acceptance criteria**
+
+- **AC-FE-034-1**
+  - **Given** a survey with 5 questions, 2 of them required
+  - **When** the page renders at 375 px and at 1440 px
+  - **Then** it shows the name, "5 preguntas · Las marcadas con * son obligatorias.", a 2 px rule and five numbered fieldsets separated by rules, in one column at most 42 rem wide, with no card, header band or tinted ground, and no horizontal scroll
+- **AC-FE-034-2**
+  - **Given** a select question
+  - **When** a point anywhere in an option row is clicked or tapped
+  - **Then** that option toggles, and the row is at least 44 px tall
+- **AC-FE-034-3**
+  - **Given** a viewport below `md` and 2 of 5 questions answered
+  - **When** the page is scrolled
+  - **Then** the line "2 de 5 respondidas" with its progress bar stays visible at the top of the viewport
+- **AC-FE-034-4**
+  - **Given** a required question
+  - **When** its legend is read by the accessibility tree
+  - **Then** it includes "(obligatoria)" and the visible asterisk is hidden from it
+- **AC-FE-034-5**
+  - **Given** the API answers `201`
+  - **When** the form is submitted
+  - **Then** the thank-you state shows "¡Muchas gracias!" and focus is on that heading
+- **AC-FE-034-6**
+  - **Given** the page
+  - **When** it renders
+  - **Then** the logo is shown once, in the footer
+
+## Implementation phases## Implementation phases
 
 | Phase | Title | Status | REQ-IDs covered |
 |---|---|---|---|
 | PH-FE-1 | Existing implementation (migrated) | Done | REQ-FE-001, REQ-FE-002, REQ-FE-003, REQ-FE-004, REQ-FE-005, REQ-FE-007, REQ-FE-008, REQ-FE-009, REQ-FE-010, REQ-FE-011, REQ-FE-012, REQ-FE-014, REQ-FE-015, REQ-FE-017, REQ-FE-018, REQ-FE-019, REQ-FE-020, REQ-FE-021, REQ-FE-022, REQ-FE-023, REQ-FE-024, REQ-FE-025, REQ-FE-026, REQ-FE-027, REQ-FE-028, REQ-FE-029, REQ-FE-030, REQ-FE-031 |
-| PH-FE-2 | Spanish loading texts | Planned | REQ-FE-006, REQ-FE-013, REQ-FE-016, REQ-BRAND-024 |
+| PH-FE-3 | Redesign: dashboard (summary line, active-survey small multiples, survey list) | Planned | REQ-FE-017, REQ-FE-018, REQ-FE-026, REQ-FE-032 |
+| PH-FE-4 | Redesign: create survey and survey details (header, tabs, answers, statistics) | Planned | REQ-FE-019, REQ-FE-021, REQ-FE-022, REQ-FE-033, REQ-BRAND-019 |
+| PH-FE-5 | Redesign: invitations, login and accept invitation | Planned | REQ-FE-015, REQ-FE-027, REQ-FE-028, REQ-FE-030, REQ-BRAND-023, REQ-BRAND-025 |
+| PH-FE-6 | Redesign: public answering page | Planned | REQ-FE-023, REQ-FE-024, REQ-FE-034 |
 
-PH-FE-2 replaces "Loading dashboard..." (`apps/web/src/pages/DashboardPage.tsx`) with "Cargando panel..." and "Redirecting..." (`apps/web/src/components/DashboardHeader.tsx`) with "Redirigiendo...".
+The former PH-FE-2 (Spanish loading texts "Cargando panel..." and "Redirigiendo...") is delivered by PH-BRAND-3, which rewrites the files involved; REQ-FE-001, REQ-FE-002, REQ-FE-006, REQ-FE-013, REQ-FE-016, REQ-FE-029 and REQ-FE-031 are covered there ([BRAND.md](BRAND.md)). The redesign task's phase order is in [BRAND.md](BRAND.md), Implementation phases.

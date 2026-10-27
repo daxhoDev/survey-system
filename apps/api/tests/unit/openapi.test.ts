@@ -22,7 +22,7 @@ describe("OpenAPI document (API-30, API-31)", () => {
     expect(doc.servers).toEqual([{ url: "/" }]);
   });
 
-  it("documents the 20 endpoints with the operationIds used by the web client", () => {
+  it("documents the 21 endpoints with the operationIds used by the web client", () => {
     expect(operations.map((o) => o.operationId).sort()).toEqual(
       [
         "acceptInvitation",
@@ -31,6 +31,7 @@ describe("OpenAPI document (API-30, API-31)", () => {
         "createSurveyAnswer",
         "deleteSurveyAnswerById",
         "deleteSurveyBySlug",
+        "getActiveSurveyStats",
         "getAllInvitations",
         "getAllSurveyAnswers",
         "getAllSurveys",
@@ -104,6 +105,65 @@ describe("OpenAPI document (API-30, API-31)", () => {
       else if (o.operationId === "refreshAuthToken")
         expect(o.security).toEqual([{ refreshCookie: [] }]);
       else expect(o.security, o.operationId).toEqual([{ cookieAuth: [] }]);
+    }
+  });
+});
+
+type Schema = { $ref?: string; type?: string; items?: Schema; properties?: Record<string, Schema>; required?: string[] };
+const jsonSchemaOf = (operationId: string, status: string) =>
+  (op(operationId).responses[status] as { content: Record<string, { schema: Schema }> })
+    .content["application/json"]!.schema;
+const component = (ref: string) =>
+  doc.components!.schemas![ref.replace("#/components/schemas/", "")] as Schema;
+
+describe("OpenAPI additions of PH-STAT-2", () => {
+  it("AC-STAT-009-7, REQ-API-029: GET /stats/surveys/active is documented as getActiveSurveyStats", () => {
+    const get = (doc.paths ?? {})["/api/v1/stats/surveys/active"]?.get as
+      | { operationId: string; tags: string[]; security: unknown[]; responses: Record<string, unknown> }
+      | undefined;
+    expect(get).toBeDefined();
+    expect(get!.operationId).toBe("getActiveSurveyStats");
+    expect(get!.tags).toEqual(["Stats"]);
+    expect(get!.security).toEqual([{ cookieAuth: [] }]);
+    expect(Object.keys(get!.responses).sort()).toEqual(["200", "401", "429", "500"]);
+  });
+
+  it("AC-STAT-009-7: its 200 body is { data: ActiveSurveyStats[] }", () => {
+    const body = jsonSchemaOf("getActiveSurveyStats", "200");
+    expect(body.required).toContain("data");
+    expect(body.properties!.data!.type).toBe("array");
+    const item = component(body.properties!.data!.items!.$ref!);
+    expect(body.properties!.data!.items!.$ref).toBe("#/components/schemas/ActiveSurveyStats");
+    expect(Object.keys(item.properties!).sort()).toEqual(
+      ["completedAnswers", "incompleteAnswers", "name", "slug", "totalAnswers"],
+    );
+    for (const count of ["totalAnswers", "completedAnswers", "incompleteAnswers"]) {
+      expect(item.properties![count]!.type).toBe("integer");
+    }
+    expect(item.required!.sort()).toEqual(Object.keys(item.properties!).sort());
+  });
+
+  it("AC-SURV-021-4: getAllSurveys items are SurveyListItem with answerCount and completedCount", () => {
+    const body = jsonSchemaOf("getAllSurveys", "200");
+    expect(body.properties!.data!.items!.$ref).toBe("#/components/schemas/SurveyListItem");
+    const item = component("SurveyListItem");
+    const survey = component("Survey");
+    expect(Object.keys(item.properties!).sort()).toEqual(
+      [...Object.keys(survey.properties!), "answerCount", "completedCount"].sort(),
+    );
+    expect(item.properties!.answerCount!.type).toBe("integer");
+    expect(item.properties!.completedCount!.type).toBe("integer");
+    expect(item.required).toEqual(expect.arrayContaining(["answerCount", "completedCount"]));
+  });
+
+  it("AC-SURV-021-3: the single-survey operations keep returning Survey", () => {
+    for (const [operationId, status] of [
+      ["getSurveyBySlug", "200"],
+      ["createSurvey", "201"],
+      ["updateSurveyBySlug", "200"],
+    ] as const) {
+      const body = jsonSchemaOf(operationId, status);
+      expect(body.properties!.data!.$ref, operationId).toBe("#/components/schemas/Survey");
     }
   });
 });

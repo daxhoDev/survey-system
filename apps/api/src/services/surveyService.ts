@@ -27,6 +27,10 @@ export default class SurveyService implements ISurveyService {
     return this.repo.getSummary();
   }
 
+  async getActiveSurveyStats() {
+    return this.repo.getActiveSurveyStats();
+  }
+
   async getBySlug(slug: string, session: Session): Promise<Survey> {
     const survey = await this.repo.getBySlug(slug);
     const isVisible =

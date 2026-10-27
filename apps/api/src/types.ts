@@ -23,8 +23,11 @@ import type { Logger } from "pino";
 /////////////////////////////////////////////////////////////////////////////////////////////
 // REPOSITORIES
 export interface ISurveyRepository {
-  getAll(queries: QueryString): Promise<{ surveys: Survey[]; total: number }>;
+  getAll(
+    queries: QueryString,
+  ): Promise<{ surveys: SurveyListItem[]; total: number }>;
   getSummary(): Promise<SurveySummary>;
+  getActiveSurveyStats(): Promise<ActiveSurveyStats[]>;
   getBySlug(slug: string): Promise<Survey | null>;
   createOne(
     survey: CreateSurveyData & { id: string; slug: string },
@@ -183,6 +186,11 @@ export type Survey = CreateSurveyData & {
   activatedAt: Date | null;
   isLocked: boolean;
 };
+// Item of the survey list: a Survey plus its answer counts (REQ-SURV-021).
+export type SurveyListItem = Survey & {
+  answerCount: number;
+  completedCount: number;
+};
 export type Question = z.infer<typeof questionSchema>;
 
 export type CreateAnswerData = z.infer<typeof createAnswerSchema>;
@@ -245,6 +253,14 @@ export type OptionStats = {
 };
 
 export type SurveySummary = { all: number; active: number };
+
+export type ActiveSurveyStats = {
+  slug: string;
+  name: string;
+  totalAnswers: number;
+  completedAnswers: number;
+  incompleteAnswers: number;
+};
 
 export type SurveyStats = {
   totalAnswers: number;

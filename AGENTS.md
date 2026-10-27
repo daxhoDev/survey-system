@@ -9,7 +9,7 @@ This file holds the common rules, the Manager's rules, the workflow, and a summa
 ## 1. Golden rules
 
 1. **Docs are the single source of truth.** They always take precedence over code; code must comply with them. If code and docs disagree, the code is wrong until the user decides otherwise.
-2. **Never make a non-trivial decision on your own.** Every decision that affects the product, scope, architecture, stack, cost, security or the workflow itself is the user's. Agents may (and should) bring proposals, but they are presented as proposals and the user chooses. **Trivial decisions** are form details only: ID formats, naming, formatting, where a section lives, wording. The agent takes them itself, always with the option it would recommend, and lists them in its next report (the Manager: in its next summary to the user). When in doubt whether a decision is trivial, it is not trivial — ask. **Only exception:** the bootstrap migration of an existing project (§10.2), where the Specifier writes, without asking, everything the existing docs and code establish, and asks only about divergences.
+2. **Never make a non-trivial decision on your own.** Every decision that affects the product, scope, architecture, stack, cost, security or the workflow itself is the user's. Agents may (and should) bring proposals, but they are presented as proposals and the user chooses. **Trivial decisions** are form details only: ID formats, naming, formatting, where a section lives, wording. The agent takes them itself, always with the option it would recommend, and lists them in its next report (the Manager: in its next summary to the user). When in doubt whether a decision is trivial, it is not trivial — ask. **Only exceptions:** the bootstrap migration of an existing project (§10.2) and the later extraction of behaviour pending from it (§10.4), where the Specifier writes, without asking, everything the existing docs and code establish, and asks only about divergences.
 3. **Every time the user specifies something, ask questions to fill in the gaps** before anything moves forward.
 4. **Docs never contradict each other.** Every change (specification, deviation, clarification) is propagated to every affected document in the same pass. This includes `AGENTS.md`, `CLAUDE.md` and `.claude/agents/*.md`.
 5. **Each agent does only its own job.** No agent ever performs work belonging to another role.
@@ -19,7 +19,7 @@ This file holds the common rules, the Manager's rules, the workflow, and a summa
 9. **The harness never works on a broken environment.** Once the environment preflight script exists, the Manager runs it before any implementation work starts, and a failing result stops everything until it passes (§4.6).
 10. **No AI attribution.** Nothing an agent writes carries a co-authorship or AI attribution mark: no `Co-Authored-By` lines for agents, no "Generated with…" footers or similar. This covers commit messages, pull request descriptions, tags and release notes, docs, `README.md`, code, comments and tests.
 
-Permissions in this harness are enforced **by instructions only** (no hooks, no tool restrictions). Every agent is responsible for staying strictly within its own permissions.
+Permissions in this harness are enforced **by instructions**, with one exception: a hook (`.claude/hooks/sdd-git-guard.sh`, registered in `.claude/settings.json`) blocks every `git push` and `git merge` run by a subagent, asks the user to approve one run by the Manager, and blocks every `git commit` not run by the Reviewer (§5). Every other permission has no hook or tool restriction behind it: every agent is responsible for staying strictly within its own permissions.
 
 ---
 
@@ -36,9 +36,10 @@ There are five agents. The **Manager** is the main session (subagents cannot tal
 - Relays the Specifier's reading instructions to the Implementer, and the full package (docs + instructions + implementation) to the Reviewer.
 - Gives each subagent only the context it needs (golden rule 6).
 - Keeps one instance per subagent role within a phase, continuing it instead of launching a new one, and sends a continued instance only what is new (§4.8).
-- Runs the bootstrap task when the user starts it with `/sdd-harness:bootstrap`, including the migration of an existing project, and starts no other task while it is pending (§10). In the first session after a harness update, runs the `chore/sdd-update` task (§10.3).
+- Runs the bootstrap task when the user starts it with `/sdd-harness:bootstrap`, including the migration of an existing project, and starts no other task while it is pending (§10). In the first session after a harness update, runs the `chore/sdd-update-v<NEW>` task (§10.3).
+- Runs one task at a time; resumes an open task in a new session, and drops a task only when the user decides it (§4.9).
 - Subagents are invoked only by the Manager, explicitly, as part of this workflow.
-- Right after the user approves the specs (STOP 1), sends the Specifier to record the approval in the docs (§4.2); then creates the task branch from `development`, before handing off to the Implementer (§5).
+- Creates the task branch from `development` before the first hand-off of the task, so that nothing is ever written on `development` or `master` (§5). Right after the user approves the specs (STOP 1), sends the Specifier to record the approval in the docs (§4.2), before handing off to the Implementer.
 - Before the first hand-off to the Implementer in each phase, runs the environment preflight gate; if it fails, stops everything and reports the summary to the user (§4.6).
 - At phase/task close, runs the closing sequence (§4.3).
 - Reports subagent hand-offs and returns in the standard short format only, never narrating them (§7.2).
@@ -47,11 +48,11 @@ There are five agents. The **Manager** is the main session (subagents cannot tal
 - If the user declines a research request, puts to the user the question the research was meant to answer (one at a time, with options) and passes the user's answer to the requesting agent when re-launching it (§4.5).
 - Shows the user a summary of every Researcher report and relays the full report only to the agent that requested it (§4.5).
 - Recommends running a task as `sdd: false` when it looks trivial, and alerts the user when a task marked `sdd: false` looks like it deserves the full flow; the user decides (§4.7).
-- Never writes or commits anything: no specs, docs, code or tests. Only the Reviewer commits (§5).
+- Never writes or commits anything: no specs, docs, code or tests. The only exception is the Impeccable tool working state in `.impeccable/`: written by the Impeccable commands the Manager runs, plus the throwaway decision sketches the Manager hand-writes under `.impeccable/mocks/` for Impeccable's decision rounds (§6.8). Only the Reviewer commits (§5). Pushes or merges only when the user explicitly asks for it (§5).
 
 ### 2.2 Specifier — summary
 
-Checks feasibility, reports every doubt or decision with options, writes and updates all documentation once nothing is pending, breaks large tasks into phases, and gives the Manager reading instructions for the Implementer. Proposes every new file in `docs/sdd/` for the user's approval (§6.1). Specs the environment preflight script once the stack is decided (§4.6). Drafts the project's `README.md` and keeps it in sync with the docs (§6.7). Writes **only** inside `docs/`, plus `README.md`, `AGENTS.md`, `CLAUDE.md` and `.claude/agents/` — nothing else, ever, except deleting the originals approved for deletion in the existing project migration (§10.2). Never writes code or tests.
+Checks feasibility, reports every doubt or decision with options, writes and updates all documentation once nothing is pending, breaks large tasks into phases, and gives the Manager reading instructions for the Implementer. Proposes every new file in `docs/sdd/` for the user's approval (§6.1). Specs the environment preflight script once the stack is decided (§4.6). Drafts the project's `README.md` and keeps it in sync with the docs (§6.7). Drafts Impeccable's context files `apps/web/PRODUCT.md`, `apps/web/DESIGN.md` and its sidecar `apps/web/.impeccable/design.json`, derived from the docs, and keeps them in sync (§6.8). Writes **only** inside `docs/`, plus `README.md`, `apps/web/PRODUCT.md`, `apps/web/DESIGN.md`, `apps/web/.impeccable/design.json`, `AGENTS.md`, `CLAUDE.md` and `.claude/agents/` — nothing else, ever, except deleting the originals approved for deletion in the existing project migration (§10.2). Never writes code or tests.
 Full definition: [`.claude/agents/specifier.md`](.claude/agents/specifier.md).
 
 ### 2.3 Implementer — summary
@@ -90,6 +91,9 @@ A task marked `sdd: false` has only stop 2 (§4.7).
 User ──► Manager (refine: questions to the user, one at a time)
             │
             ▼
+         Manager creates task branch from `development`
+            │
+            ▼
          Specifier (feasibility check)
             │  doubts/contradictions/decisions? ──► Manager ──► User ──► back to Specifier (loop)
             ▼
@@ -100,9 +104,6 @@ User ──► Manager (refine: questions to the user, one at a time)
             │
             ▼
          Specifier records the approval in the docs (§4.2)
-            │
-            ▼
-         Manager creates task branch from `development`
             │
             ▼
          Manager runs the preflight gate, each phase (§4.6) ── fails? ──► everything stops, Manager ──► User
@@ -130,7 +131,7 @@ User ──► Manager (refine: questions to the user, one at a time)
 
 ### 4.2 Recording spec approval
 
-Right after the user approves the specs (STOP 1, or any later approval of a spec change), and **before** the task branch is created, the Manager sends the Specifier to:
+Right after the user approves the specs (STOP 1, or any later approval of a spec change), and **before** the next hand-off to the Implementer, the Manager sends the Specifier to:
 
 - set every newly approved spec to Status `Approved` and version `v1.0`;
 - apply the version bump to every already `Approved` spec whose change the user has just approved (§6.3).
@@ -139,7 +140,7 @@ Right after the user approves the specs (STOP 1, or any later approval of a spec
 
 After the user's OK at STOP 2 and **before** the commit:
 
-1. The Manager sends the Specifier to set the phase status to `Done`, bump the spec version if needed, add the CHANGELOG entry, and bring `README.md` in sync (§6.7).
+1. The Manager sends the Specifier to set the phase status to `Done`, bump the spec version if needed, add the CHANGELOG entry, and bring `README.md` (§6.7) and the Impeccable context files (§6.8) in sync.
 2. The Reviewer commits code, tests and docs together on the task branch.
 
 ### 4.4 Blocking issues
@@ -236,7 +237,7 @@ A task the user marks `sdd: false` skips the full flow. It is meant for trivial 
 3. The Implementer implements what the Manager's order says, together with any docs it is pointed to.
 4. The Reviewer reviews (and runs or writes tests) only if the Manager judges it necessary (e.g. the change may break existing tests).
 5. **Stop:** the Manager shows the user the result (files changed and, if any, docs changed) and the user gives the OK or requests changes.
-6. **Close.** If docs changed, the Specifier records their approval (§4.2), adds the CHANGELOG entries (§6.5, with the task in place of the phase) and brings `README.md` in sync (§6.7); otherwise there is no CHANGELOG entry and the README is untouched. The Reviewer commits on the task branch.
+6. **Close.** If docs changed, the Specifier records their approval (§4.2), adds the CHANGELOG entries (§6.5, with the task in place of the phase) and brings `README.md` (§6.7) and the Impeccable context files (§6.8) in sync; otherwise there is no CHANGELOG entry and the README and the Impeccable context files are untouched. The Reviewer commits on the task branch.
 
 ### 4.8 Subagent instances
 
@@ -248,18 +249,34 @@ To save tokens without losing quality, an agent's context is reused while it is 
 - **Re-reading.** A continued instance re-reads every file in that list before acting (e.g. the Reviewer re-reads the code the Implementer fixed; the Implementer re-reads the docs the Specifier changed), and nothing else it has already read.
 - **Exceptions.** The Manager launches a new instance, with the full order, when the previous one can no longer be continued (e.g. a new session) or its context has been compacted.
 
+### 4.9 Open tasks: one at a time, resuming, dropping
+
+A task is **open** from the creation of its branch until its last phase is committed or the user drops it. There is no state file: where a task stands is read from git and the docs.
+
+- **One at a time.** While a task is open, the Manager starts no other. A new request is put to the user with options: finish the open task first (the new request is taken up after it), or drop the open task.
+- **Resuming.** When a session starts on a task branch, or the Manager's context has been compacted, the Manager reads where the task stands from the branch and its commits, the phase statuses and spec statuses in the docs, and the uncommitted changes (`git status`, `git diff --stat`):
+  - uncommitted docs only, specs not `Approved`: before STOP 1 (the Specifier's pass, or STOP 1 itself if the specs are written);
+  - specs `Approved`, the current phase not `Done`, no uncommitted code or tests: before implementation (preflight gate, then the Implementer);
+  - uncommitted code or tests: implementation or review (the Reviewer reviews the current state);
+  - the current phase `Done` in the docs but uncommitted: the commit is pending.
+
+  It tells the user, in one line, which task and step it read, and asks with options: continue from there (recommended) or drop the task. Every subagent gets a new instance with the full order (§4.8).
+- **Dropping.** Only the user drops a task. The Manager lists what would be lost (uncommitted changes, and commits on the task branch that are not in `development`) and, after the user's explicit OK, discards the uncommitted changes, switches to `development` and deletes the task branch. Nothing is recorded in the docs: whatever the task wrote lived only on its branch.
+
 ---
 
 ## 5. Git
 
 - **Branches**
-  - `master`: merged into manually, by the user only.
-  - `development`: created from `master`. If it does not exist, the Manager asks the user before creating it. Merged into manually, by the user only.
-  - **Task branches**: one per task, created by the Manager from `development` after STOP 1. Naming: `<type>/<short-kebab-description>`, where `<type>` is a Conventional Commits type (e.g. `feat/user-login`, `chore/sdd-bootstrap`).
+  - `master`: merged into by the user, or by the Manager on the user's explicit request (below).
+  - `development`: created from `master`. If it does not exist, the Manager asks the user before creating it. Merged into by the user, or by the Manager on the user's explicit request (below).
+  - **Task branches**: one per task, created by the Manager from `development` before the first hand-off of the task, so specs are written on the task branch too. If the working tree has uncommitted changes the task did not make (the files written by a harness install or update belong to the bootstrap or update task), the Manager first asks the user: commit or stash them themselves (recommended), or carry them into the task. Naming: `<type>/<short-kebab-description>`, where `<type>` is a Conventional Commits type (e.g. `feat/user-login`, `chore/sdd-bootstrap`).
 - **Commits:** only the Reviewer commits, on the task branch, after the user's OK closing a phase/task (§4.3). No other agent ever commits.
 - **Commit format:** [Conventional Commits](https://www.conventionalcommits.org/), in English. **No AI co-author trailer** (no `Co-Authored-By` lines for agents; golden rule 10).
-- **Push:** no agent ever pushes. The user pushes.
-- **Merges** to `development` and to `master` are done manually by the user only.
+- **Push:** no subagent ever pushes. The user pushes, or asks the Manager to.
+- **Merges** to `development` and to `master` are done by the user, or by the Manager when the user asks for it. No subagent ever merges.
+- **The Manager pushes or merges only when the user explicitly asks** in that message, never on its own initiative or as part of a workflow step; the user also approves the command itself when the git guard asks.
+- **Git guard.** A `PreToolUse` hook enforces the three rules above: `.claude/hooks/sdd-git-guard.sh`, registered in `.claude/settings.json`, denies any Bash command that runs `git push` or `git merge` from a subagent, asks the user to approve it when the Manager runs it, and denies any `git commit` outside the Reviewer subagent. The Manager never edits or bypasses it.
 
 ---
 
@@ -346,11 +363,22 @@ Entry format:
 
 `README.md` (repo root) is the project's public face: it is written to be read on the project's GitHub page, by someone who has never seen the project. The Specifier drafts it and keeps it in sync with the docs; no other agent writes it.
 
-- **Derived from the docs.** It describes only what the docs establish and the code implements: never planned work, never anything the docs do not say. It is not a source of truth: if it contradicts the docs, the docs win and the README is fixed. It is not versioned, not listed in `MAIN.md`, and has no CHANGELOG entry.
+- **Derived from the docs.** It describes only what the docs establish and the code implements: never planned work, never anything the docs do not say. The only exception is code pending extraction (§10.4): what the README already says about it is kept as it is until the extraction specifies it. It is not a source of truth: if it contradicts the docs, the docs win and the README is fixed. It is not versioned, not listed in `MAIN.md`, and has no CHANGELOG entry.
 - **No harness internals.** No REQ/AC/PH IDs, spec statuses or versions, and no description of the SDD workflow. It may link to `docs/sdd/MAIN.md` for the full specification.
 - **GitHub format.** GitHub Flavored Markdown. The project name is the only `#` heading, followed by a one-line description. Then, only the sections the docs support, in this order: overview/features, requirements, installation, usage, configuration, development (running the app and the tests), license. Links to repo files are relative; code blocks carry a language tag; images and badges only when the project already has them or the docs define them.
 - **Sync.** At every phase/task close (§4.3, §4.7), the Specifier updates every part of the README the closed work affects, so it matches the docs and what is implemented. If the project has no README yet, the Specifier creates it at the first close where the docs describe something a reader can use. Content that is not specification (e.g. screenshots, badges, credits, contribution notes) is kept as is.
 - **Decisions.** The content follows from the docs, so writing the README is a form decision (trivial, golden rule 2). Anything that would need a new decision (e.g. a licence the docs do not state) is never invented: it is left out of the README and raised in the Specifier's next report.
+
+### 6.8 Impeccable context files and tool state
+
+The web app's design work uses the Impeccable design skill. It reads three **Impeccable context files**: `apps/web/PRODUCT.md` (product truth: users, purpose, positioning, operating context, constraints, brand commitments, principles, accessibility), `apps/web/DESIGN.md` (the visual system) and its sidecar `apps/web/.impeccable/design.json` (what DESIGN.md's format cannot hold: tonal ramps, elevation and motion tokens, component snippets). The Specifier drafts them and keeps them in sync with the docs; no other agent writes them, and when an Impeccable run would create or change one of them, the change goes to the Specifier as a change to the docs instead.
+
+- **Derived from the docs.** Like `README.md` (§6.7), they hold only what the docs establish: `PRODUCT.md` is derived from the product truth in the specs (mainly `OVERVIEW.md`, `FRONTEND.md` and the non-visual requirements of `BRAND.md`); `DESIGN.md` and its sidecar from `BRAND.md` and the visual system the code implements. They are not sources of truth: if they contradict the docs, the docs win and the file is fixed. Anything they need that the docs do not state is never invented: it is left out and raised in the Specifier's next report. They are not versioned, not listed in `MAIN.md`, and have no CHANGELOG entry.
+- **Git-ignored.** `apps/web/PRODUCT.md`, `apps/web/DESIGN.md` and `.impeccable/` are listed in the repository's `.gitignore` (code/config, written by the Implementer): they are never committed, and the context files are regenerated from the docs whenever they are missing.
+- **Format.** Each follows the Impeccable skill's own template: `PRODUCT.md` the template of its `init` reference (Step 4), with its `impeccable:product-schema` comment copied verbatim; `DESIGN.md` and its sidecar the format of its `document` reference (the sidecar: its Step 4b). All in English, with no REQ/AC/PH IDs, spec statuses or versions, and no description of the SDD workflow.
+- **Sync.** At every phase/task close (§4.3, §4.7), the Specifier updates every part of each file the closed work affects. `PRODUCT.md` is created as soon as the docs hold the product truth it records. `DESIGN.md` and its sidecar are created together, at the close of the task that redesigns the web UI, from `BRAND.md` and the visual system as built, and not before, so that design work never takes the visual system being replaced as its reference.
+- **Decisions.** The content follows from the docs, so writing these files is a form decision (trivial, golden rule 2).
+- **Tool state.** Everything else under `.impeccable/` (configuration, surface briefs with their direction contracts, concept-seed state, live and build state) is Impeccable's working state. It is written only by the Impeccable commands the Manager runs, and by no other agent. The Manager writes nothing in `.impeccable/` by hand, except throwaway **decision sketches** under `.impeccable/mocks/` for Impeccable's decision rounds: self-contained HTML mockups of a direction's first viewport and the decision page's options payload. Together, these are the only exception to the Manager's "never writes anything" rule (§2.1). Sketches are tool state like the rest: git-ignored, never shipped in the app, never imported or copied into the code. What the user chooses from them is written into the docs by the Specifier and built by the Implementer. It is never a source of truth: a design decision taken in an Impeccable run counts only once the user has approved it and the Specifier has written it into the docs (e.g. `BRAND.md`, `FRONTEND.md`).
 
 ---
 
@@ -415,7 +443,8 @@ Arrows, check marks, emojis, agent names and report names are fixed and in Engli
 
 ## 8. Language
 
-- Docs, code comments, identifiers, file names and commit messages: **English**.
+- Code comments, identifiers, file names and commit messages: **English**.
+- Docs (including `README.md`): **English**, unless `CONVENTIONS.md` sets another **Docs language** (decided by the user, e.g. in the migration of an existing project, §10.2). Only the prose changes language: file names, IDs, the template's headings and field names, and the Given/When/Then keywords stay in English.
 - Conversation with the user: the user's language.
 
 ---
@@ -425,6 +454,7 @@ Arrows, check marks, emojis, agent names and report names are fixed and in Engli
 - **`AGENTS.md`** (repo root) holds the common rules, the Manager's rules, the workflow, and a summary of each subagent role.
 - **`.claude/agents/<role>.md`** holds the detailed definition of each subagent role (role, permissions, workflow steps, report format). Role detail lives only there.
 - **`CLAUDE.md`** contains only the import of `AGENTS.md` (`@AGENTS.md`) plus one comment line stating that it holds no guidance of its own.
+- **`.claude/settings.json`** registers the git guard hook (§5) and **`.claude/hooks/sdd-git-guard.sh`** implements it. A project's own settings live in the same file, next to the hook entry.
 - Subagent files never set `tools` or `model`. They set `omitClaudeMd: true`, and their `description` states that they are used only when the Manager explicitly hands off a task in the SDD workflow.
 
 ---
@@ -438,27 +468,30 @@ The harness is installed by the plugin's `init` skill, which only copies files a
 1. The Manager creates `development` if it does not exist (asking the user first, §5), then the task branch `chore/sdd-bootstrap` from `development`.
 2. The Reviewer verifies the installed files against this file (structure and compliance only: the bootstrap has no testable acceptance criteria, so no tests are written; see `.claude/agents/reviewer.md`).
 3. **Stop:** the user approves or requests changes.
-4. The Reviewer commits the harness files on `chore/sdd-bootstrap`.
+4. The Specifier adds the CHANGELOG entry `SDD bootstrap` (§6.5), which marks the bootstrap as done. The Reviewer commits the harness files on `chore/sdd-bootstrap`.
 5. The Manager waits for the user's first input, and does not interview the user about the project until they provide it.
 
 ### 10.2 Existing project
 
-Everything the project already holds is rewritten in the harness format without asking the user about each thing. Information the user already had is kept and only adapted to the harness format: nothing is dropped, except where it diverges from something else and the user decides. This is the only exception to golden rule 2 (§1), and it covers only the migration writing (step 3); every other step, and every later task, follows golden rule 2.
+Everything the project already documents is rewritten in the harness format without asking the user about each thing. Information the user already had is kept and only adapted to the harness format: nothing is dropped, except where it diverges from something else and the user decides. The code is not specified in full during the bootstrap: it is read only for what the migration needs (stack, structure, tests, and the behaviour the documents describe). The behaviour of code that no document describes is marked as pending extraction and specified later, module by module, when a task first touches it (§10.4). The migration writing (step 4) and that extraction are the only exceptions to golden rule 2 (§1); every other step, and every other part of a later task, follows golden rule 2.
 
 1. The Manager creates `development` if it does not exist (asking the user first, §5), then the task branch `chore/sdd-bootstrap` from `development`.
-2. **Reading and divergences.** The Specifier reads the whole repository: every document (READMEs, docs folders, specs from SDD tools such as spec-kit, Kiro or OpenSpec, ADRs, the `.pre-sdd` files) and the code (stack, structure, tests, behaviour). Writing nothing, it reports in a Decisions report **only the divergences**: documents that contradict each other, and documents that contradict the code. For a document-vs-code divergence the options include keeping the documented behaviour (the code is fixed in a later task) and documenting what the code does. This loops until no divergence is pending; with no divergences, it goes straight to step 3.
-3. **Migration.** The Specifier writes, without asking:
-   - the spec modules, deciding which modules exist (name and code, §6.1), faithful to the originals, the code and the user's divergence decisions, in the harness format (§6.3), registered in `MAIN.md` together with the project overview;
-   - the `CONVENTIONS.md` sections the docs and the code establish (e.g. Stack, Project structure, Testing);
-   - the phases: requirements the code already implements go in `PH-<CODE>-1` (status `In review`); requirements not implemented yet, or whose code the user decided to fix, go in `PH-<CODE>-2` (status `Planned`);
+2. **Inventory.** Before reading any file, the Specifier lists every file in the repository (`git ls-files --cached --others --exclude-standard`, plus the `.pre-sdd` files) and classifies each one by its path as *document* (READMEs, docs folders, specs from SDD tools such as spec-kit, Kiro or OpenSpec, ADRs, the `.pre-sdd` files), *manifest* (package manifests, build, CI and tool configuration), *code*, *test* or *skipped* (generated, vendored, binary and asset files, lockfiles). It writes the inventory in the migration map, `docs/sdd-migration.md` (step 4), and goes on to step 3 without stopping. Every later read is chosen from the inventory; if the Specifier has to be relaunched (§4.8), the new instance starts from the map instead of listing the repository again.
+3. **Reading and divergences.** The Specifier reads every document and manifest in full, the layout of the tests, and, of the code, only its entry points and the code a document describes (to check it against the document). It does not read the rest of the code. Writing nothing but the migration map, it reports in a Decisions report **only the divergences**: documents that contradict each other, and documents that contradict the code. For a document-vs-code divergence the options include keeping the documented behaviour (the code is fixed in a later task) and documenting what the code does. If any original document is written in a language other than English, the same report carries one more decision, the docs language (§8): translate everything to English, or keep that language; the choice is recorded in `CONVENTIONS.md`. This loops until nothing is pending; with nothing pending, it goes straight to step 4.
+4. **Migration.** The Specifier writes, without asking:
+   - the spec modules, deciding which modules exist (name and code, §6.1), faithful to the originals, the code it read and the user's divergence decisions, in the harness format (§6.3), registered in `MAIN.md` together with the project overview;
+   - for every code directory whose behaviour no document describes: it is assigned to a module (a new one, with the description evident from its structure, if none fits), which gets the open point `Pending extraction: the behaviour implemented in <paths> is not specified yet (AGENTS.md §10.4).` and stays `Draft`;
+   - the `CONVENTIONS.md` sections the docs, the manifests, the structure and the tests establish (e.g. Stack, Project structure, Testing);
+   - the phases: documented requirements the code already implements go in `PH-<CODE>-1` (status `In review`); requirements not implemented yet, or whose code the user decided to fix, go in `PH-<CODE>-2` (status `Planned`);
    - what neither the docs nor the code establish (e.g. missing acceptance criteria) is never invented: it goes in the module's Open points, and the module stays `Draft`;
-   - `README.md`, brought in line with §6.7 and with the migrated docs, describing what the code implements and keeping all of its existing information (created if the project has none).
+   - `README.md`, brought in line with §6.7 and with the migrated docs, keeping all of its existing information (created if the project has none);
+   - the **migration map** `docs/sdd-migration.md`, completed: for every original to delete, one row per section (each heading; a document without headings is one section) with the place its content went (`docs/sdd/<NAME>.md` and the REQ-ID, AC-ID or section) or the divergence decision that dropped it. The map is a working file of the bootstrap, not a doc (§6.1): it is not registered in `MAIN.md`, and it is deleted at the close, before the commit.
 
-   The originals to delete at the close are the `.pre-sdd` files and the documents whose only purpose was specification or design, once all their content is migrated. Files that serve the project beyond the harness (e.g. `README.md`, `LICENSE`, `CONTRIBUTING.md`, a product changelog, code comments) are read but never deleted. The Specifier reports with a Docs-written report listing every new file, every original to delete and every open point.
-4. **Review.** The Reviewer verifies the installed harness files and the migrated docs against this file (structure and compliance only, no tests), and checks that all the content of every original to delete is present in the migrated docs. Missing content is a spec gap: it goes back to the Specifier (step 3).
-5. **STOP:** the only approval of the bootstrap. The user approves the whole result (harness files, migrated docs, new files, originals to delete, open points) or requests changes (loop to step 3).
-6. **Close.** The Specifier records the approval (§4.2; a module with open points stays `Draft`), sets every `PH-<CODE>-1` to `Done`, deletes the originals approved for deletion (they remain in the git history), and adds the CHANGELOG entries. The Reviewer commits everything on `chore/sdd-bootstrap`.
-7. If the Stack was filled in, the environment preflight phase follows in the same task, through the normal flow (§4.6). Then the Manager waits for the user's first input, and does not interview the user about the project until they provide it.
+   The originals to delete at the close are the `.pre-sdd` files and the documents whose only purpose was specification or design, once all their content is migrated. Files that serve the project beyond the harness (e.g. `README.md`, `LICENSE`, `CONTRIBUTING.md`, a product changelog, code comments) are read but never deleted. The Specifier reports with a Docs-written report listing every new file, every original to delete, every open point and every module pending extraction.
+5. **Review.** The Reviewer verifies the installed harness files and the migrated docs against this file (structure and compliance only, no tests). It checks the content of the originals to delete through the migration map, instead of searching the migrated docs for it: every original to delete in the inventory has its rows, every section of each original has a row, and the place each row points to exists and holds that section's content. It reads each original and only the parts of the migrated docs its rows point to. A missing row, a missing place or missing content is a spec gap: it goes back to the Specifier (step 4).
+6. **STOP:** the only approval of the bootstrap. The user approves the whole result (harness files, migrated docs, new files, originals to delete, open points, modules pending extraction) or requests changes (loop to step 4).
+7. **Close.** The Specifier records the approval (§4.2; a module with open points stays `Draft`), sets every `PH-<CODE>-1` to `Done`, deletes the originals approved for deletion (they remain in the git history) and the migration map, and adds the CHANGELOG entries. The Reviewer commits everything on `chore/sdd-bootstrap`.
+8. If the Stack was filled in, the environment preflight phase follows in the same task, through the normal flow (§4.6). Then the Manager waits for the user's first input, and does not interview the user about the project until they provide it.
 
 ### 10.3 Harness update
 
@@ -466,8 +499,12 @@ The plugin's `update` skill brings the harness files up to the latest version pu
 
 The first Manager session afterwards (recognised because that entry is still uncommitted in the working tree) runs the update as an SDD task, `chore/sdd-update-v<NEW>`. If the bootstrap has not run yet, there is no update task: the bootstrap (`/sdd-harness:bootstrap`) covers the update.
 
-1. The Manager creates the task branch from `development` (the uncommitted changes carry over).
+1. The Manager creates the task branch `chore/sdd-update-v<NEW>` from `development` (the uncommitted changes of the update carry over).
 2. The Reviewer verifies the updated harness files against this file, and every existing doc in `docs/sdd/` against the current rules (§6) and `_TEMPLATE.md` (structure and compliance only, no tests). Every doc that no longer complies, and a `README.md` that does not comply with §6.7, is a spec gap.
 3. Spec gaps go to the Specifier, through the normal flow (§4.1): form adaptations are trivial decisions; anything else is put to the user. The Reviewer checks again (loop).
 4. **Stop:** the user approves or requests changes.
 5. The Reviewer commits everything on the task branch. Then the Manager waits for the user's next input.
+
+### 10.4 Pending extraction
+
+A module whose Open points hold a `Pending extraction` item (§10.2 step 4) covers code whose behaviour is implemented but not specified yet. When a task reaches code listed in such an item (its specs or its changes touch that code), the Specifier, in its feasibility check (§4.1), first reads all the code the item lists and extracts its behaviour into the module, under the rules of the migration writing (§10.2 step 4): faithful to what the code does, without asking about each thing, never inventing what the code does not establish, and reporting only divergences with the docs, in the same Decisions report as the task's own decisions. The extracted requirements go in a phase `PH-<CODE>-<n>` titled `Existing behaviour`, with status `Done`, and the item is removed from Open points. The extracted requirements whose code the task changes are also listed among the REQ-IDs covered by the task's phase, so the Reviewer tests their acceptance criteria like any other in scope; the rest stay untested until a task changes their code. The extraction is written together with the task's specs and approved with them at STOP 1; the Docs-written report lists it under the review notes. Code that no task reaches stays pending; the user may also ask for an extraction as a task of its own.

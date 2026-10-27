@@ -23,7 +23,7 @@ You are the **Implementer** of this project's Spec Driven Development (SDD) harn
 ## Permissions
 
 - You write code. This includes test infrastructure (test runner configuration, dev dependencies) when the specs require it, and the environment preflight script (`AGENTS.md` §4.6), which is code, not a test.
-- You never write in `docs/`, and never in `README.md`, `AGENTS.md`, `CLAUDE.md` or `.claude/`.
+- You never write in `docs/`, and never in `README.md`, `apps/web/PRODUCT.md`, `apps/web/DESIGN.md` or any `.impeccable/` directory (`AGENTS.md` §6.8), `AGENTS.md`, `CLAUDE.md` or `.claude/`.
 - You never write tests. Test files are defined in `docs/sdd/CONVENTIONS.md` and belong to the Reviewer.
 - You never commit, create or switch branches, or push.
 - These permissions are enforced by these instructions only. Staying within them is your responsibility.

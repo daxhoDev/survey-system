@@ -1,6 +1,7 @@
 // In-memory repositories for HTTP tests without a database. They are wired in
 // with vi.mock on the repository modules (see tests/unit/http).
 import type {
+  ActiveSurveyStats,
   Answer,
   CreateAnswerData,
   CreateRefreshTokenData,
@@ -17,6 +18,7 @@ import type {
   RefreshToken,
   Survey,
   SurveyChanges,
+  SurveyListItem,
   User,
 } from "../../src/types.js";
 
@@ -38,6 +40,24 @@ export function resetStore() {
 
 const liveSurvey = (slug: string) =>
   store.surveys.find((s) => s.slug === slug && !s.deletedAt) ?? null;
+
+// Non-deleted answers of a survey and how many answer every question
+// (REQ-SURV-021, REQ-STAT-009).
+const answerCounts = (survey: Survey) => {
+  const answers = store.answers.filter(
+    (a) => a.surveyId === survey.id && !a.deletedAt,
+  );
+  const completed = answers.filter(
+    (a) => a.responses.length === survey.questions.length,
+  ).length;
+  return {
+    total: answers.length,
+    completed,
+    incomplete: answers.filter(
+      (a) => a.responses.length < survey.questions.length,
+    ).length,
+  };
+};
 
 export class FakeUserRepository implements IUserRepository {
   async createOne(data: Omit<User, "createdAt" | "deletedAt">) {
@@ -89,8 +109,37 @@ export class FakeRefreshTokenRepository implements IRefreshTokenRepository {
 
 export class FakeSurveyRepository implements ISurveyRepository {
   async getAll(_queries: QueryString) {
-    const surveys = store.surveys.filter((s) => !s.deletedAt);
+    const surveys: SurveyListItem[] = store.surveys
+      .filter((s) => !s.deletedAt)
+      .map((s) => {
+        const counts = answerCounts(s);
+        return {
+          ...s,
+          answerCount: counts.total,
+          completedCount: counts.completed,
+        };
+      });
     return { surveys, total: surveys.length };
+  }
+  async getActiveSurveyStats(): Promise<ActiveSurveyStats[]> {
+    return store.surveys
+      .filter((s) => !s.deletedAt && s.isActive)
+      .sort(
+        (a, b) =>
+          (b.activatedAt?.getTime() ?? 0) - (a.activatedAt?.getTime() ?? 0) ||
+          a.name.localeCompare(b.name),
+      )
+      .slice(0, 8)
+      .map((s) => {
+        const counts = answerCounts(s);
+        return {
+          slug: s.slug,
+          name: s.name,
+          totalAnswers: counts.total,
+          completedAnswers: counts.completed,
+          incompleteAnswers: counts.incomplete,
+        };
+      });
   }
   async getSummary() {
     const live = store.surveys.filter((s) => !s.deletedAt);

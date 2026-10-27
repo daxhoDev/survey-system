@@ -16,6 +16,7 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+  GetActiveSurveyStats200,
   GetSurveySummary200,
   Problem
 } from '../sondixAPI.schemas';
@@ -97,6 +98,83 @@ export function useGetSurveySummary<TData = Awaited<ReturnType<typeof getSurveyS
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetSurveySummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+export const getGetActiveSurveyStatsUrl = () => {
+
+
+
+
+  return `/api/v1/stats/surveys/active`
+}
+
+/**
+ * The 8 most recently activated active surveys (newest activation first, tie-break name ascending) with their answer counts. Query parameters are ignored (REQ-STAT-009).
+ * @summary Answer counts of the most recently activated surveys
+ */
+export const getActiveSurveyStats = async ( options?: RequestInit): Promise<GetActiveSurveyStats200> => {
+
+  return customInstance<GetActiveSurveyStats200>(getGetActiveSurveyStatsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetActiveSurveyStatsQueryKey = () => {
+    return [
+    `/api/v1/stats/surveys/active`
+    ] as const;
+    }
+
+
+export const getGetActiveSurveyStatsQueryOptions = <TData = Awaited<ReturnType<typeof getActiveSurveyStats>>, TError = Problem>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getActiveSurveyStats>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetActiveSurveyStatsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getActiveSurveyStats>>> = ({ signal }) => getActiveSurveyStats({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getActiveSurveyStats>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetActiveSurveyStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getActiveSurveyStats>>>
+export type GetActiveSurveyStatsQueryError = Problem
+
+
+/**
+ * @summary Answer counts of the most recently activated surveys
+ */
+
+export function useGetActiveSurveyStats<TData = Awaited<ReturnType<typeof getActiveSurveyStats>>, TError = Problem>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getActiveSurveyStats>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetActiveSurveyStatsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

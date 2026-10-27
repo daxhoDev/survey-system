@@ -15,6 +15,7 @@ beforeEach(() => {
   repo = {
     getAll: vi.fn().mockResolvedValue({ surveys: [active], total: 1 }),
     getSummary: vi.fn().mockResolvedValue({ all: 2, active: 1 }),
+    getActiveSurveyStats: vi.fn().mockResolvedValue([]),
     getBySlug: vi.fn(
       async (slug: string) =>
         ({ [active.slug]: active, [inactive.slug]: inactive })[slug] ?? null,
@@ -235,5 +236,23 @@ describe("SurveyService.getStatsBySlug", () => {
       questionCount: 0,
       optionStats: [],
     });
+  });
+});
+
+describe("SurveyService.getActiveSurveyStats (REQ-STAT-009)", () => {
+  it("returns the repository's statistics of the most recently activated surveys", async () => {
+    const stats = [
+      {
+        slug: "clima-laboral-2026",
+        name: "Clima laboral 2026",
+        totalAnswers: 3,
+        completedAnswers: 2,
+        incompleteAnswers: 1,
+      },
+    ];
+    repo.getActiveSurveyStats.mockResolvedValue(stats);
+
+    expect(await service.getActiveSurveyStats()).toEqual(stats);
+    expect(repo.getActiveSurveyStats).toHaveBeenCalledOnce();
   });
 });

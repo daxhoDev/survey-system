@@ -24,6 +24,10 @@ All notable changes to this project are recorded here, following the [Keep a Cha
 - 2026-10-27 · CONVENTIONS.md → v0.1 (Stack, Code style, Project structure, Testing, Dependencies, Other) · task chore/sdd-bootstrap
 - 2026-10-27 · ENV.md → v1.0 · task chore/sdd-bootstrap / PH-ENV-1
 - 2026-10-27 · CONVENTIONS.md → v0.2 (Environment preflight, script tests) · task chore/sdd-bootstrap / PH-ENV-1
+- 2026-10-27 · OVERVIEW.md → v1.1 · task feat/web-redesign
+- 2026-10-27 · STATS.md → v1.1 · task feat/web-redesign / PH-STAT-2
+- 2026-10-27 · SURVEYS.md → v1.1 · task feat/web-redesign / PH-STAT-2
+- 2026-10-27 · API.md → v1.1 · task feat/web-redesign / PH-STAT-2
 
 ### Changed
 
@@ -34,7 +38,11 @@ All notable changes to this project are recorded here, following the [Keep a Cha
 - 2026-10-27 · SDD harness updated (sdd-harness v1.0.0 → v1.1.0) · AGENTS.md
 - 2026-10-27 · SDD harness updated (sdd-harness v1.1.0 → v1.3.0) · AGENTS.md, .claude/agents/implementer.md, .claude/agents/researcher.md, .claude/agents/reviewer.md, .claude/agents/specifier.md
 - 2026-10-27 · SDD harness updated (sdd-harness v1.3.0 → v1.4.0) · AGENTS.md, .claude/agents/implementer.md, .claude/agents/reviewer.md, .claude/agents/specifier.md
+- 2026-10-27 · SDD harness updated (sdd-harness v1.4.0 → v1.5.0) · AGENTS.md, .claude/agents/reviewer.md, .claude/agents/specifier.md, docs/sdd/CONVENTIONS.md
+- 2026-10-27 · SDD harness updated (sdd-harness v1.5.0 → v1.6.0) · AGENTS.md, .claude/agents/reviewer.md, .claude/hooks/sdd-git-guard.sh (created), .claude/settings.json (created)
+- 2026-10-27 · Harness: Impeccable context files and tool state (§2.1, §2.2, §4.3, §4.7, §6.8) · AGENTS.md, .claude/agents/specifier.md, .claude/agents/implementer.md, .claude/agents/reviewer.md · task feat/web-redesign
 
 ### Removed
 
 - 2026-10-27 · legacy docs/sdd/00-sdd-process.md … 30-dev-workflow.md, docs/sdd/BACKLOG.md and the *.pre-sdd files (migrated) · task chore/sdd-bootstrap
+- 2026-10-27 · docs/brand/sondix-identity-guide.png · task feat/web-redesign · DEV-003
