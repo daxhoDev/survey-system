@@ -32,7 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import PasswordInput from "@/components/PasswordInput";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
-import isotype from "@/assets/brand/isotype-gradient.svg";
+import Logo from "@/components/Logo";
 
 const cardClass = "w-97/100 max-w-120";
 
@@ -61,7 +61,7 @@ export default function AcceptInvitationPage() {
         navigate("/dashboard");
       },
       onError(error) {
-        toast.error(<p className="text-destructive-text">{error.detail}</p>);
+        toast.error(error.detail);
       },
     },
   });
@@ -73,14 +73,14 @@ export default function AcceptInvitationPage() {
         queryClient.resetQueries();
       },
       onError(error) {
-        toast.error(<p className="text-destructive-text">{error.detail}</p>);
+        toast.error(error.detail);
       },
     },
   });
 
   if (invitation.isLoading || session.isLoading) {
     return (
-      <p className="text-sm text-muted-foreground animate-pulse">
+      <p role="status" className="text-body text-ink-muted">
         Cargando invitación...
       </p>
     );
@@ -90,7 +90,7 @@ export default function AcceptInvitationPage() {
     return (
       <Card className={`${cardClass} border-destructive/20 bg-destructive/5 text-center`}>
         <CardHeader>
-          <CardTitle className="text-destructive-text">
+          <CardTitle className="text-rust">
             Invitación no válida o caducada
           </CardTitle>
           <CardDescription>
@@ -139,7 +139,7 @@ export default function AcceptInvitationPage() {
   return (
     <Card className={cardClass}>
       <CardHeader className="text-center flex flex-col items-center">
-        <img src={isotype} alt="Sondix" className="w-15 mb-5" />
+        <Logo className="mb-5" />
         <CardTitle className="text-h3">Crea tu cuenta</CardTitle>
         <CardDescription>
           Te invitaron a unirte al sistema de gestión de encuestas.

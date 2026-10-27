@@ -71,7 +71,7 @@ function QuestionOptionsFields({
       </div>
 
       {fields.length === 0 && (
-        <p className="text-xs text-destructive-text">
+        <p className="text-xs text-rust">
           Debes añadir al menos una opción para esta pregunta.
         </p>
       )}
@@ -93,7 +93,7 @@ function QuestionOptionsFields({
               size="icon-xs"
               onClick={() => remove(optionIndex)}
               aria-label="Eliminar opción"
-              className="text-destructive-text hover:bg-destructive/10 size-9 cursor-pointer shrink-0"
+              className="text-rust hover:bg-destructive/10 size-9 cursor-pointer shrink-0"
             >
               <Trash className="size-3.5" />
             </Button>
@@ -181,7 +181,7 @@ export default function SurveyCreatePage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 py-8">
       <div className="flex items-center gap-2">
         <Button
           variant="ghost"
@@ -201,7 +201,7 @@ export default function SurveyCreatePage() {
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <Card className="border-border/60 bg-card/60 backdrop-blur shadow-md">
+        <Card className="border-border/60 bg-card/60 shadow-md">
           <CardHeader>
             <CardTitle>Configuración General</CardTitle>
             <CardDescription>
@@ -211,7 +211,7 @@ export default function SurveyCreatePage() {
           <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="survey-name">
-                Nombre de la Encuesta <span aria-hidden="true" className="text-destructive-text">*</span>
+                Nombre de la Encuesta <span aria-hidden="true" className="text-rust">*</span>
               </Label>
               <Input
                 id="survey-name"
@@ -226,7 +226,7 @@ export default function SurveyCreatePage() {
                 })}
               />
               {errors.name && (
-                <p className="text-xs text-destructive-text">
+                <p className="text-xs text-rust">
                   {errors.name.message}
                 </p>
               )}
@@ -265,7 +265,7 @@ export default function SurveyCreatePage() {
               return (
                 <Card
                   key={field.id}
-                  className="border-border/60 bg-card/60 backdrop-blur shadow-sm relative"
+                  className="border-border/60 bg-card/60 shadow-sm relative"
                 >
                   <div className="absolute right-4 top-4">
                     <Button
@@ -274,7 +274,7 @@ export default function SurveyCreatePage() {
                       size="icon-sm"
                       onClick={() => remove(index)}
                       aria-label="Eliminar pregunta"
-                      className="text-destructive-text hover:bg-destructive/10 cursor-pointer h-8 w-8"
+                      className="text-rust hover:bg-destructive/10 cursor-pointer h-8 w-8"
                     >
                       <Trash className="size-4" />
                     </Button>
@@ -285,7 +285,7 @@ export default function SurveyCreatePage() {
                       {/* Name */}
                       <div className="space-y-1.5">
                         <Label htmlFor={`q-${index}-name`}>
-                          Pregunta #{index + 1} <span aria-hidden="true" className="text-destructive-text">*</span>
+                          Pregunta #{index + 1} <span aria-hidden="true" className="text-rust">*</span>
                         </Label>
                         <Input
                           id={`q-${index}-name`}
@@ -300,7 +300,7 @@ export default function SurveyCreatePage() {
                           })}
                         />
                         {errors.questions?.[index]?.name && (
-                          <p className="text-xs text-destructive-text">
+                          <p className="text-xs text-rust">
                             {errors.questions[index]?.name?.message}
                           </p>
                         )}
@@ -311,7 +311,7 @@ export default function SurveyCreatePage() {
                         <Label htmlFor={`q-${index}-type`}>Tipo de Pregunta</Label>
                         <select
                           id={`q-${index}-type`}
-                          className="flex h-9 w-full rounded-sm border border-input-border bg-card px-3 py-1 text-sm transition-colors outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                          className="flex h-11 w-full rounded-control border border-input-border bg-paper px-3 py-1 text-body text-ink transition-colors duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-50 md:h-10"
                           {...register(`questions.${index}.type` as const)}
                         >
                           <option value="TEXT_ANSWER">

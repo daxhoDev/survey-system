@@ -1,10 +1,13 @@
 import {
   type ColumnDef,
+  type RowData,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -13,6 +16,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
+
+export type SortDirection = "ascending" | "descending" | "none";
+
+declare module "@tanstack/react-table" {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface ColumnMeta<TData extends RowData, TValue> {
+    /** Plain-text column name: the label of the value lines below md. */
+    label?: string;
+    /** Counts and dates: right-aligned, tabular figures. */
+    numeric?: boolean;
+    /** Sort state of a sortable column, exposed as `aria-sort`. */
+    sort?: SortDirection;
+    /** The row's actions menu: top right of the stacked row below md. */
+    actions?: boolean;
+  }
+}
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -20,6 +40,7 @@ interface DataTableProps<TData, TValue> {
   emptyMessage?: string;
 }
 
+// Data table on @tanstack/react-table, styled as REQ-BRAND-029.
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -32,49 +53,97 @@ export function DataTable<TData, TValue>({
   });
 
   return (
-    <div className="overflow-hidden rounded-md border bg-card dark:bg-transparent">
-      <Table>
-        <TableHeader>
-          {table.getHeaderGroups().map((headerGroup) => (
-            <TableRow key={headerGroup.id}>
-              {headerGroup.headers.map((header) => {
+    <Table>
+      <TableHeader>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => {
+              const meta = header.column.columnDef.meta;
+              return (
+                <TableHead
+                  key={header.id}
+                  aria-sort={meta?.sort}
+                  className={cn(meta?.numeric && "text-right")}
+                >
+                  {header.isPlaceholder
+                    ? null
+                    : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
+                </TableHead>
+              );
+            })}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows?.length ? (
+          table.getRowModel().rows.map((row) => (
+            <TableRow
+              key={row.id}
+              data-state={row.getIsSelected() && "selected"}
+            >
+              {row.getVisibleCells().map((cell) => {
+                const def = cell.column.columnDef;
+                const label =
+                  def.meta?.label ??
+                  (typeof def.header === "string" ? def.header : undefined);
                 return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
+                  <TableCell
+                    key={cell.id}
+                    data-label={label}
+                    data-actions={def.meta?.actions || undefined}
+                    className={cn(
+                      def.meta?.numeric && "figures text-right",
+                      def.meta?.actions && "w-px",
+                    )}
+                  >
+                    {flexRender(def.cell, cell.getContext())}
+                  </TableCell>
                 );
               })}
             </TableRow>
-          ))}
-        </TableHeader>
-        <TableBody>
-          {table.getRowModel().rows?.length ? (
-            table.getRowModel().rows.map((row) => (
-              <TableRow
-                key={row.id}
-                data-state={row.getIsSelected() && "selected"}
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))
-          ) : (
-            <TableRow>
-              <TableCell colSpan={columns.length} className="h-24 text-center">
-                {emptyMessage}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
-    </div>
+          ))
+        ) : (
+          <TableRow className="hover:bg-transparent">
+            <TableCell
+              colSpan={columns.length}
+              className="py-6 whitespace-normal text-ink-muted max-md:before:hidden"
+            >
+              {emptyMessage}
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+}
+
+interface SortableHeaderProps {
+  label: string;
+  sort: SortDirection;
+  onSort: () => void;
+}
+
+// Sortable column header: a button whose icon shows the sort direction; the
+// header cell carries the matching `aria-sort` (column `meta.sort`).
+export function SortableHeader({ label, sort, onSort }: SortableHeaderProps) {
+  const Icon =
+    sort === "ascending"
+      ? ArrowUp
+      : sort === "descending"
+        ? ArrowDown
+        : ArrowUpDown;
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="-mx-3 text-small font-semibold text-ink-muted hover:text-ink max-md:-mx-0 max-md:px-2"
+      onClick={onSort}
+    >
+      {label}
+      <Icon aria-hidden="true" />
+    </Button>
   );
 }

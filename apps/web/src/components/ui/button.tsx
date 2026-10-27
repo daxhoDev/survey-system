@@ -1,35 +1,40 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Slot } from "radix-ui"
+import { LoaderCircle } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+// Buttons (REQ-BRAND-018): 3 px radius, text-body weight 600, 44 px tall
+// below md and 40 px from md. Disabled buttons show the not-allowed cursor
+// and do not react to hover or press (hover/active styles need an enabled
+// button).
 const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding font-heading text-sm font-semibold whitespace-nowrap transition-all outline-none select-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-busy:cursor-progress aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-control border border-transparent text-body font-semibold whitespace-nowrap transition-colors duration-150 ease-out select-none disabled:cursor-not-allowed disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:cursor-not-allowed aria-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/85 active:bg-primary/75",
+        default:
+          "bg-teal text-on-teal not-disabled:hover:bg-teal-strong not-disabled:active:bg-teal-strong",
         outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+          "border-input-border bg-transparent text-ink not-disabled:hover:bg-surface-subtle not-disabled:active:bg-surface-subtle aria-expanded:bg-surface-subtle",
         ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+          "bg-transparent text-ink not-disabled:hover:bg-surface-subtle not-disabled:active:bg-surface-subtle aria-expanded:bg-surface-subtle",
         destructive:
-          "bg-destructive text-destructive-foreground hover:bg-destructive/85 active:bg-destructive/75",
-        link: "text-brand underline-offset-4 hover:underline",
+          "bg-rust text-on-rust not-disabled:hover:bg-rust-strong not-disabled:active:bg-rust-strong",
+        link: "h-auto! border-0 px-0! text-teal underline underline-offset-3 decoration-1 not-disabled:hover:decoration-2 not-disabled:active:decoration-2",
       },
       size: {
-        default:
-          "h-9 gap-1.5 px-4 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-sm px-2 text-xs has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-8 gap-1 px-3 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-10 gap-2 px-5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        icon: "size-9",
-        "icon-xs": "size-6 rounded-sm [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm": "size-8",
-        "icon-lg": "size-10",
+        default: "h-11 px-4 md:h-10",
+        // The documented height applies to every size; the smaller ones
+        // only tighten the horizontal padding.
+        xs: "h-11 px-2 md:h-10",
+        sm: "h-11 px-3 md:h-10",
+        lg: "h-11 px-5 md:h-10",
+        icon: "size-11 md:size-10",
+        "icon-xs": "size-11 md:size-10",
+        "icon-sm": "size-11 md:size-10",
+        "icon-lg": "size-11 md:size-10",
       },
     },
     defaultVariants: {
@@ -44,10 +49,15 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  loading = false,
+  disabled,
+  children,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
+    /** Request in flight: spinner before the label, busy and disabled. */
+    loading?: boolean
   }) {
   const Comp = asChild ? Slot.Root : "button"
 
@@ -57,8 +67,19 @@ function Button({
       data-variant={variant}
       data-size={size}
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
       {...props}
-    />
+    >
+      {loading && !asChild ? (
+        <>
+          <LoaderCircle aria-hidden="true" data-slot="button-spinner" />
+          {children}
+        </>
+      ) : (
+        children
+      )}
+    </Comp>
   )
 }
 

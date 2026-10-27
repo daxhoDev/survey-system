@@ -193,7 +193,7 @@ export default function SurveyDetailsPage() {
 
   if (isSurveyLoading) {
     return (
-      <div className="p-6 space-y-6">
+      <div className="space-y-6 py-8">
         <div className="flex gap-2 items-center">
           <Skeleton className="h-8 w-8" />
           <Skeleton className="h-8 w-48" />
@@ -206,9 +206,9 @@ export default function SurveyDetailsPage() {
 
   if (isSurveyError || !survey) {
     return (
-      <div className="p-6">
+      <div className="py-8">
         <Card className="border-destructive/20 bg-destructive/5 text-center p-8">
-          <CardTitle className="text-destructive-text">
+          <CardTitle className="text-rust">
             Error al cargar detalles
           </CardTitle>
           <CardDescription className="mt-2">
@@ -228,7 +228,7 @@ export default function SurveyDetailsPage() {
   const publicUrl = `${window.location.origin}/surveys/${survey.slug}`;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 py-8">
       {/* Header */}
       <Dialog>
         <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
@@ -311,7 +311,7 @@ export default function SurveyDetailsPage() {
 
         {/* OVERVIEW TAB */}
         <TabsContent value="overview" className="space-y-6 mt-4">
-          <Card className="border-border/60 bg-card/60 backdrop-blur shadow-sm">
+          <Card className="border-border/60 bg-card/60 shadow-sm">
             <CardHeader>
               <CardTitle>Compartir Encuesta</CardTitle>
               <CardDescription>
@@ -332,7 +332,7 @@ export default function SurveyDetailsPage() {
                   aria-label="Copiar enlace"
                 >
                   {copied ? (
-                    <Check className="size-4 text-success-text" />
+                    <Check className="size-4 text-teal" />
                   ) : (
                     <Copy className="size-4" />
                   )}
@@ -351,7 +351,7 @@ export default function SurveyDetailsPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-border/60 bg-card/60 backdrop-blur shadow-sm">
+          <Card className="border-border/60 bg-card/60 shadow-sm">
             <CardHeader>
               <CardTitle>
                 Preguntas de la Encuesta
@@ -375,7 +375,7 @@ export default function SurveyDetailsPage() {
                       {question.name}
                     </span>
                     {question.isRequired && (
-                      <span className="text-xs border border-destructive/20 text-destructive-text bg-destructive/5 px-2 py-0.5 rounded font-medium uppercase">
+                      <span className="text-xs border border-destructive/20 text-rust bg-destructive/5 px-2 py-0.5 rounded font-medium uppercase">
                         Requerido
                       </span>
                     )}
@@ -405,7 +405,7 @@ export default function SurveyDetailsPage() {
 
         {/* ANSWERS TAB */}
         <TabsContent value="answers" className="mt-4">
-          <Card className="border-border/60 bg-card/60 backdrop-blur shadow-sm">
+          <Card className="border-border/60 bg-card/60 shadow-sm">
             <CardHeader>
               <CardTitle>Respuestas Recibidas</CardTitle>
               <CardDescription>
@@ -481,7 +481,7 @@ export default function SurveyDetailsPage() {
             <>
               {/* Summary Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                <Card className="py-4 px-6 border-border/60 bg-card/60 backdrop-blur shadow-xs">
+                <Card className="py-4 px-6 border-border/60 bg-card/60 shadow-xs">
                   <CardHeader className="p-0 pb-2">
                     <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Total Respuestas
@@ -493,26 +493,26 @@ export default function SurveyDetailsPage() {
                     </span>
                   </CardContent>
                 </Card>
-                <Card className="py-4 px-6 border-border/60 bg-card/60 backdrop-blur shadow-xs">
+                <Card className="py-4 px-6 border-border/60 bg-card/60 shadow-xs">
                   <CardHeader className="p-0 pb-2">
                     <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Respuestas Completadas
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <span className="text-3xl font-bold tracking-tight text-success-text">
+                    <span className="text-3xl font-bold tracking-tight text-teal">
                       {stats.completedAnswers}
                     </span>
                   </CardContent>
                 </Card>
-                <Card className="py-4 px-6 border-border/60 bg-card/60 backdrop-blur shadow-xs">
+                <Card className="py-4 px-6 border-border/60 bg-card/60 shadow-xs">
                   <CardHeader className="p-0 pb-2">
                     <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                       Respuestas Incompletas
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0">
-                    <span className="text-3xl font-bold tracking-tight text-destructive-text">
+                    <span className="text-3xl font-bold tracking-tight text-rust">
                       {stats.incompleteAnswers}
                     </span>
                   </CardContent>
@@ -530,14 +530,14 @@ export default function SurveyDetailsPage() {
                   const chartConfig = {
                     respuestas: {
                       label: "Respuestas",
-                      color: "var(--chart-1)",
+                      color: "var(--teal)",
                     },
                   };
 
                   return (
                     <Card
                       key={optStat.questionId}
-                      className="border-border/60 bg-card/60 backdrop-blur shadow-sm"
+                      className="border-border/60 bg-card/60 shadow-sm"
                     >
                       <CardHeader>
                         <CardTitle className="text-sm font-semibold">

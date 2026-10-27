@@ -21,7 +21,7 @@ The full specification lives in [`docs/sdd/`](docs/sdd/MAIN.md); start at
 - Survey list with search by name, status filter, sortable columns and pagination.
 - Per-survey statistics (completed/incomplete answers, votes per option) with charts.
 - Interactive API documentation (Swagger UI).
-- Sondix brand identity: light and dark themes (Claro / Oscuro / Sistema), brand palette, Manrope and Inter typography.
+- Sondix visual identity: light and dark themes (Claro / Oscuro / Sistema), a sober palette with tabular figures in Work Sans, dense ruled tables and a top navigation bar.
 
 ### Tech stack
 

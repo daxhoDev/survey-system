@@ -15,7 +15,7 @@ import type {
   Survey,
 } from "@/lib/api/sondixAPI.schemas";
 import type { ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "./ui/data-table";
+import { DataTable, SortableHeader, type SortDirection } from "./ui/data-table";
 import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
@@ -26,11 +26,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  ArrowDown,
-  ArrowUp,
-  ArrowUpDown,
-  CheckCircle,
-  CircleX,
   Eye,
   Play,
   Pause,
@@ -45,6 +40,9 @@ import { Input } from "./ui/input";
 import ListPagination from "./ListPagination";
 import { toast } from "sonner";
 import LockedBadge from "@/components/LockedBadge";
+import StatusLabel from "@/components/StatusLabel";
+import StatusChip from "@/components/StatusChip";
+import { ErrorState } from "@/components/DataStates";
 
 const PAGE_SIZE = 10;
 
@@ -104,7 +102,7 @@ export default function Surveys() {
     ...(active !== "all" && { active }),
     ...(page > 1 && { page: String(page) }),
   };
-  const { data, isError, isPending, isFetching } = useGetAllSurveys(query, {
+  const { data, isError, isPending, isFetching, refetch } = useGetAllSurveys(query, {
     query: {
       queryKey: getGetAllSurveysQueryKey(query),
       placeholderData: keepPreviousData,
@@ -135,29 +133,16 @@ export default function Surveys() {
   const total = data?.meta.total ?? 0;
   const filtered = search !== "" || active !== "all";
 
+  const sortOf = (field: "name" | "creation"): SortDirection =>
+    sort === field ? "ascending" : sort === `-${field}` ? "descending" : "none";
   const sortHeader = (label: string, field: "name" | "creation") => {
-    const current =
-      sort === field ? "asc" : sort === `-${field}` ? "desc" : null;
-    const Icon =
-      current === "asc" ? ArrowUp : current === "desc" ? ArrowDown : ArrowUpDown;
-    const next = current === "asc" ? `-${field}` : field;
+    const next = sortOf(field) === "ascending" ? `-${field}` : field;
     return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-3"
-        onClick={() => update({ sort: next === "-creation" ? null : next })}
-      >
-        {label}
-        <Icon className="text-muted-foreground" />
-        <span className="sr-only">
-          {current === "asc"
-            ? ", orden ascendente"
-            : current === "desc"
-              ? ", orden descendente"
-              : ", ordenar"}
-        </span>
-      </Button>
+      <SortableHeader
+        label={label}
+        sort={sortOf(field)}
+        onSort={() => update({ sort: next === "-creation" ? null : next })}
+      />
     );
   };
 
@@ -165,10 +150,12 @@ export default function Surveys() {
     {
       accessorKey: "name",
       header: () => sortHeader("Nombre", "name"),
+      meta: { label: "Nombre", sort: sortOf("name") },
     },
     {
       accessorKey: "createdAt",
       header: () => sortHeader("Fecha de creación", "creation"),
+      meta: { label: "Fecha de creación", sort: sortOf("creation"), numeric: true },
       cell: ({ row }) => {
         const createdAt = row.getValue("createdAt") as string;
         return new Date(createdAt).toLocaleDateString("es-CU");
@@ -180,27 +167,8 @@ export default function Surveys() {
       cell: ({ row }) => {
         const isActive = row.getValue("isActive") as boolean;
         return (
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "px-3 py-0.5 border rounded-full flex items-center justify-center w-fit gap-1.5 text-xs font-semibold tracking-wide uppercase",
-                isActive
-                  ? "bg-success/10 text-success-text border-success/30"
-                  : "bg-destructive/10 text-destructive-text border-destructive/30",
-              )}
-            >
-              {isActive ? (
-                <>
-                  <CheckCircle className="size-3.5" />
-                  <span>Activa</span>
-                </>
-              ) : (
-                <>
-                  <CircleX className="size-3.5" />
-                  <span>Inactiva</span>
-                </>
-              )}
-            </span>
+          <div className="flex items-center gap-3">
+            <StatusLabel status={isActive ? "Activa" : "Inactiva"} />
             {row.original.isLocked && <LockedBadge />}
           </div>
         );
@@ -209,17 +177,14 @@ export default function Surveys() {
     {
       id: "actions",
       header: "Acciones",
+      meta: { actions: true },
       cell: ({ row }) => {
         const survey = row.original;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="cursor-pointer h-8 w-8"
-              >
-                <MoreHorizontal className="size-4" />
+              <Button variant="ghost" size="icon">
+                <MoreHorizontal />
                 <span className="sr-only">Abrir menú de acciones</span>
               </Button>
             </DropdownMenuTrigger>
@@ -263,19 +228,19 @@ export default function Surveys() {
   ];
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 py-8">
       <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
         <div>
           <h1 className="text-h1">Encuestas</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-body text-ink-muted">
             Administra y monitorea tus encuestas creadas.
           </p>
         </div>
         <Button
           onClick={() => navigate("/dashboard/surveys/create")}
-          className="cursor-pointer self-start sm:self-auto gap-2"
+          className="self-start sm:self-auto"
         >
-          <Plus className="size-4" />
+          <Plus />
           <span>Crear encuesta</span>
         </Button>
       </div>
@@ -283,21 +248,21 @@ export default function Surveys() {
       <div className="flex gap-6">
         <Card className="w-full max-w-60 py-6">
           <CardHeader className="py-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-small font-semibold text-ink-muted">
               Total de encuestas
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold tabular-nums">
+          <CardContent className="figures text-figure">
             {summary.data?.data.all ?? "–"}
           </CardContent>
         </Card>
         <Card className="w-full max-w-60 py-6">
           <CardHeader className="py-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardTitle className="text-small font-semibold text-ink-muted">
               Encuestas activas
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold text-primary tabular-nums">
+          <CardContent className="figures text-figure text-teal">
             {summary.data?.data.active ?? "–"}
           </CardContent>
         </Card>
@@ -308,7 +273,7 @@ export default function Surveys() {
           <div className="relative w-full sm:max-w-xs">
             <Search
               aria-hidden="true"
-              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+              className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-ink-muted"
             />
             <Input
               type="search"
@@ -325,25 +290,25 @@ export default function Surveys() {
             className="flex flex-wrap gap-2"
           >
             {statusFilters.map(({ value, label }) => (
-              <Button
+              <StatusChip
                 key={value}
-                size="sm"
-                variant={active === value ? "default" : "outline"}
-                aria-pressed={active === value}
+                pressed={active === value}
                 onClick={() => update({ active: value === "all" ? null : value })}
               >
                 {label}
-              </Button>
+              </StatusChip>
             ))}
           </div>
         </div>
 
         {isError && (
-          <p className="text-destructive-text">Error al cargar las encuestas</p>
+          <ErrorState onRetry={() => refetch()} retrying={isFetching}>
+            Error al cargar las encuestas
+          </ErrorState>
         )}
         {!isPending && !isError && (
           <div
-            className={cn("space-y-4 transition-opacity", isFetching && "opacity-60")}
+            className={cn("space-y-4 transition-opacity duration-150 ease-out", isFetching && "opacity-60")}
             aria-busy={isFetching}
           >
             <DataTable

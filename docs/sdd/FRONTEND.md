@@ -852,7 +852,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
   - **When** it renders
   - **Then** the logo is shown once, in the footer
 
-## Implementation phases## Implementation phases
+## Implementation phases
 
 | Phase | Title | Status | REQ-IDs covered |
 |---|---|---|---|

@@ -20,7 +20,7 @@ import type { UserLogin } from "@/lib/api/sondixAPI.schemas";
 import { useLoginUser, getGetCurrentUserQueryKey } from "@/lib/api/users/users";
 import { loginFormSchema } from "@/lib/schemas";
 import { zodResolver } from "@hookform/resolvers/zod";
-import isotype from "@/assets/brand/isotype-gradient.svg";
+import Logo from "@/components/Logo";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
@@ -49,7 +49,7 @@ export function LoginForm({
         navigate("/dashboard");
       },
       onError(error) {
-        toast.error(<p className="text-destructive-text">{error.detail}</p>);
+        toast.error(error.detail);
       },
     },
   });
@@ -58,7 +58,7 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center flex flex-col items-center">
-          <img src={isotype} alt="Sondix" className="w-15 mb-5 lg:hidden" />
+          <Logo className="mb-5" />
           <CardTitle className="text-h3">Inicia sesión</CardTitle>
           {/* <CardDescription>
             Login with your Apple or Google account

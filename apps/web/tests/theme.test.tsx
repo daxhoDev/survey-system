@@ -1,5 +1,4 @@
-import { screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { mockFetch, renderWithProviders } from "./helpers";
 
@@ -31,8 +30,8 @@ afterEach(() => {
   document.documentElement.classList.remove("dark");
 });
 
-describe("theme (BRAND-11)", () => {
-  it("defaults to Sistema and follows system changes", async () => {
+describe("theme (REQ-BRAND-011)", () => {
+  it("AC-BRAND-011-1: defaults to Sistema and follows system changes", async () => {
     const { initTheme, getTheme, changeSystem } = await loadTheme(true);
     initTheme();
 
@@ -42,7 +41,7 @@ describe("theme (BRAND-11)", () => {
     expect(isDark()).toBe(false);
   });
 
-  it("stores an explicit choice and ignores the system while it is set", async () => {
+  it("AC-BRAND-011-2 / AC-BRAND-011-3: stores an explicit choice and ignores the system while it is set", async () => {
     const { initTheme, setTheme, changeSystem } = await loadTheme(false);
     initTheme();
 
@@ -57,7 +56,7 @@ describe("theme (BRAND-11)", () => {
     expect(isDark()).toBe(false);
   });
 
-  it("applies the stored choice on load", async () => {
+  it("AC-BRAND-011-4 (runtime): applies the stored choice on load", async () => {
     const { initTheme, getTheme } = await loadTheme(true, "light");
     initTheme();
 
@@ -65,34 +64,44 @@ describe("theme (BRAND-11)", () => {
     expect(isDark()).toBe(false);
   });
 
-  it("the header selector offers Claro, Oscuro and Sistema", async () => {
-    await loadTheme(false);
-    const { default: DashboardHeader } = await import(
-      "@/components/DashboardHeader"
-    );
-    const { SidebarProvider } = await import("@/components/ui/sidebar");
-    mockFetch({
-      "GET /api/v1/users/me": {
-        status: 200,
-        body: { data: { id: "u1", username: "owner", email: "owner@example.com" } },
-      },
-    });
-    renderWithProviders(
-      <SidebarProvider>
-        <DashboardHeader />
-      </SidebarProvider>,
-      { path: "/dashboard", route: "/dashboard" },
-    );
-    const user = userEvent.setup();
-
-    await user.click(screen.getByRole("button", { name: "Tema: Sistema" }));
-    expect(screen.getByRole("menuitemradio", { name: "Claro" })).toBeInTheDocument();
-    expect(screen.getByRole("menuitemradio", { name: "Sistema" })).toBeChecked();
-    await user.click(screen.getByRole("menuitemradio", { name: "Oscuro" }));
+  it("AC-BRAND-011-5: the login page applies the stored theme and shows no theme selector", async () => {
+    const { initTheme } = await loadTheme(false, "dark");
+    initTheme();
+    const { default: LoginPage } = await import("@/pages/LoginPage");
+    renderWithProviders(<LoginPage />);
 
     expect(isDark()).toBe(true);
-    expect(screen.getByRole("button", { name: "Tema: Oscuro" })).toBeInTheDocument();
-    // Re-importing the header and its dependencies after resetModules can
-    // exceed the default 5 s when the whole suite runs in parallel.
+    expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Tema" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("radiogroup", { name: "Tema" })).not.toBeInTheDocument();
+  }, 15_000);
+
+  it("AC-FE-002-2 / AC-BRAND-008-2: the app's Toaster follows the active theme", async () => {
+    const { initTheme, setTheme } = await loadTheme(false);
+    initTheme();
+    const { default: App } = await import("@/App");
+    const { toast } = await import("sonner");
+    const { act, render } = await import("@testing-library/react");
+    mockFetch({});
+    render(<App />);
+
+    act(() => setTheme("dark"));
+    act(() => {
+      toast("Aviso");
+    });
+    const toaster = await waitFor(() => {
+      const el = document.querySelector("[data-sonner-toaster]");
+      expect(el).not.toBeNull();
+      return el!;
+    });
+    expect(toaster).toHaveAttribute("data-sonner-theme", "dark");
+    expect(document.querySelector("[data-sonner-toaster]")).toHaveAttribute(
+      "data-y-position",
+      "top",
+    );
+    expect(document.querySelector("[data-sonner-toaster]")).toHaveAttribute(
+      "data-x-position",
+      "center",
+    );
   }, 15_000);
 });
