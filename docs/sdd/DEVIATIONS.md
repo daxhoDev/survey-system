@@ -1,36 +1,19 @@
-# Deviations Registry
+← Back to [MAIN](MAIN.md)
 
-[← Back to index](MAIN.md) · Process: [00-sdd-process.md](00-sdd-process.md)
+# Deviations
 
-A **deviation** is any case where the code knowingly differs from the specs and
-the owner has accepted it (workaround, technical limitation, partial
-implementation, temporary shortcut). Planned-but-not-done work belongs in
-[BACKLOG.md](BACKLOG.md), not here.
+This is the historical record of every user decision that contradicts an **already approved** spec. Edits to specs that are not yet approved are plain edits and are not recorded here. Every deviation is also propagated to all affected docs. Rules: [AGENTS.md](../../AGENTS.md) §6.6.
 
-Rules:
+<!--
+Entry template:
 
-1. Every deviation gets an entry here **and** a reference (`see DEV-xx`) in the
-   affected spec section.
-2. A deviation must never be introduced without the owner's explicit approval.
-3. When the deviation is resolved, move its entry to *Resolved* with the date
-   and the change that resolved it, and remove the references from the specs.
-
-## Entry template
-
-```md
-### DEV-xx — <short title>
+### DEV-NNN — <title>
 - **Date:** YYYY-MM-DD
-- **Spec(s):** <requirement IDs and links>
-- **Deviation:** what the code does instead of what the spec says
-- **Reason:** why it was accepted
-- **Approved by:** owner
-- **Exit condition:** what must happen to remove it
-```
+- **Spec said:** <what the approved spec said: spec file (relative to `docs/sdd/`), REQ-IDs and previous version, e.g. AUTH.md, REQ-AUTH-002, v1.1>
+- **User decided:** <the decision>
+- **Reason:** <reason>
+- **Affected files:** <list>
+- **CHANGELOG ref:** <entry reference>
+-->
 
-## Active deviations
-
-_None._
-
-## Resolved deviations
-
-_None._
+No deviations recorded yet.
