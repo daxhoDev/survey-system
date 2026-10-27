@@ -4,7 +4,7 @@
 
 - **Module:** Configuration
 - **Module code:** CFG
-- **Version:** v1.0
+- **Version:** v1.1
 - **Status:** Approved
 - **Last updated:** 2026-10-27
 
@@ -30,7 +30,7 @@ Loaded with `dotenv/config`. `.env` files are git-ignored; `.env.example` is all
 | `LOG_LEVEL` | no | `info` | pino level (`fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`) | Logger level |
 | `TRUST_PROXY` | no | `0` | integer ≥ 0 | Number of reverse proxies in front of the API whose `X-Forwarded-For` is trusted (REQ-ANS-007) |
 
-`TEST_DATABASE_URL` is read only by the API tests (not by the runtime schema): the database the `db` test project rebuilds and uses (REQ-DEVWF-002; test locations in [CONVENTIONS.md](CONVENTIONS.md) §Testing). It must be a dedicated database whose name contains `test`.
+`TEST_DATABASE_URL` is read only by the API tests (not by the runtime schema): the database the `db` test project migrates, uses and leaves empty (REQ-DEVWF-002; test locations in [CONVENTIONS.md](CONVENTIONS.md) §Testing). It must be a dedicated database whose name contains `test`.
 
 ### 2. Web configuration
 

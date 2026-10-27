@@ -2,7 +2,7 @@
 
 # Conventions
 
-**Version:** v0.1
+**Version:** v0.2
 
 Project-wide conventions, filled in as the user decides them.
 
@@ -43,22 +43,35 @@ apps/web            Web app
   tests/            web tests (see Testing)
 packages/schemas    shared Zod schemas (src/, compiled to dist/)
 docker/             local PostgreSQL init script
+scripts/            developer scripts (environment preflight: preflight.sh)
+  tests/            script tests (see Testing)
 docs/sdd/           specification (this folder)
 docs/brand/         brand reference artwork
 ```
 
 ## Testing
 
-- **Runner:** Vitest in both apps; `pnpm test` at the root runs every workspace ([DEV_WORKFLOW.md](DEV_WORKFLOW.md), REQ-DEVWF-002).
+- **Runner:** Vitest in both apps; `pnpm test` at the root runs every workspace ([DEV_WORKFLOW.md](DEV_WORKFLOW.md), REQ-DEVWF-002). Developer scripts in `scripts/` are tested with plain Bash test scripts, with no test framework or new dependency (see Scripts below).
 - **Locations:** test files live outside `src`:
   - API: `apps/api/tests/unit` (Vitest project `unit`, no database), `apps/api/tests/db` (Vitest project `db`, real PostgreSQL through `TEST_DATABASE_URL`) and shared helpers in `apps/api/tests/helpers`.
   - Web: `apps/web/tests` (jsdom + Testing Library), shared helpers in `apps/web/tests/helpers.tsx` and `apps/web/tests/setup.ts`.
-- **Naming:** `<Subject>.test.ts` or `<Subject>.test.tsx`, named after the unit, component or page under test (e.g. `authService.test.ts`, `LoginPage.test.tsx`).
+  - Scripts: `scripts/tests`. Each test script runs the script under test with stub executables (e.g. fake `node` and `pnpm`) placed first on a temporary `PATH`, and checks its output (e.g. the summary lines) and exit code. Run from the repository root, e.g. `bash scripts/tests/preflight.test.sh`; it exits `0` only if every case passed. These tests are not part of `pnpm test`, so the preflight (whose check 3 runs `pnpm test`) never runs its own tests.
+- **Naming:** `<Subject>.test.ts` or `<Subject>.test.tsx`, named after the unit, component or page under test (e.g. `authService.test.ts`, `LoginPage.test.tsx`). Script tests: `<script>.test.sh`, named after the script under test (e.g. `preflight.test.sh` for `scripts/preflight.sh`).
+- **Test database:** the API `db` project leaves the test database (`TEST_DATABASE_URL`) empty when it finishes, whether its tests passed or failed. It applies migrations with `prisma migrate deploy` and never uses `prisma migrate reset` ([DEV_WORKFLOW.md](DEV_WORKFLOW.md), REQ-DEVWF-002).
 - **Requirement references:** each test names the requirement IDs it covers. Existing tests use the legacy IDs (e.g. `AUTH-30`), which resolve through the "Legacy ID" line of each requirement; new tests use `REQ-<CODE>-NNN` / `AC-<CODE>-NNN-k`.
 
 ## Environment preflight
 
-TBD — decided by the user once the Stack is decided (see [AGENTS.md](../../AGENTS.md) §4.6): script path and name, variant(s), runtime(s), minimum version(s), test command.
+Parameters of the environment preflight script. Its behaviour is specified in [ENV.md](ENV.md); how it is used is defined in [AGENTS.md](../../AGENTS.md) §4.6.
+
+| Parameter | Value |
+|-----------|-------|
+| Script | `scripts/preflight.sh`, run from the repository root as `bash scripts/preflight.sh` |
+| Variant(s) | Bash only (`preflight.sh`); no PowerShell variant |
+| Runtime 1 | Node.js: at least `24.22.1`, below `25.0.0` (`node --version`) |
+| Runtime 2 | pnpm: exactly `11.5.3` (`pnpm --version` run from the repository root; pinned by the root `devEngines`) |
+| Test command | `TEST_DATABASE_URL= pnpm test` from the repository root: every workspace's tests, with the API `db` project disabled for that run whatever `apps/api/.env` says |
+| Preconditions of check 3 | root `node_modules` and `apps/api/src/generated/prisma` exist; the script installs and generates nothing |
 
 ## Dependencies
 

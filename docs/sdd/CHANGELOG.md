@@ -22,9 +22,12 @@ All notable changes to this project are recorded here, following the [Keep a Cha
 - 2026-10-27 · BRAND.md → v1.0 · task chore/sdd-bootstrap / PH-BRAND-1
 - 2026-10-27 · DEV_WORKFLOW.md → v1.0 · task chore/sdd-bootstrap / PH-DEVWF-1
 - 2026-10-27 · CONVENTIONS.md → v0.1 (Stack, Code style, Project structure, Testing, Dependencies, Other) · task chore/sdd-bootstrap
+- 2026-10-27 · ENV.md → v1.0 · task chore/sdd-bootstrap / PH-ENV-1
+- 2026-10-27 · CONVENTIONS.md → v0.2 (Environment preflight, script tests) · task chore/sdd-bootstrap / PH-ENV-1
 
 ### Changed
 
+- 2026-10-27 · DEV_WORKFLOW.md → v2.0 · task chore/sdd-bootstrap / PH-ENV-1 · DEV-001
 - 2026-10-27 · SDD harness updated (sdd-harness v1.0.0 → v1.1.0) · AGENTS.md
 - 2026-10-27 · SDD harness updated (sdd-harness v1.1.0 → v1.3.0) · AGENTS.md, .claude/agents/implementer.md, .claude/agents/researcher.md, .claude/agents/reviewer.md, .claude/agents/specifier.md
 - 2026-10-27 · SDD harness updated (sdd-harness v1.3.0 → v1.4.0) · AGENTS.md, .claude/agents/implementer.md, .claude/agents/reviewer.md, .claude/agents/specifier.md

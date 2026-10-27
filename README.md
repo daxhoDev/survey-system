@@ -35,7 +35,7 @@ pnpm workspaces monorepo.
 
 ## Requirements
 
-- Node.js 24
+- Node.js 24 (24.22.1 or later)
 - [pnpm](https://pnpm.io) (the root `package.json` pins version 11.5.3, downloaded automatically)
 - Docker (or your own PostgreSQL)
 
@@ -91,6 +91,18 @@ pnpm test   # API and web (Vitest)
 
 API tests that need a database use `TEST_DATABASE_URL` (see `apps/api/.env.example`);
 without it they are skipped. See [`docs/sdd/DEV_WORKFLOW.md`](docs/sdd/DEV_WORKFLOW.md).
+
+### Environment check
+
+```bash
+bash scripts/preflight.sh
+```
+
+Checks that Node.js (24.22.1 or later, below 25) and pnpm 11.5.3 are installed, then
+runs the tests without the database tests, and prints a summary. It exits `0` only if
+everything passed. It installs nothing: run `pnpm install` and
+`pnpm exec prisma generate` (in `apps/api`) first. Its own tests:
+`bash scripts/tests/preflight.test.sh`.
 
 ### API client
 

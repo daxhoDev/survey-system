@@ -4,7 +4,7 @@
 
 - **Module:** Development workflow
 - **Module code:** DEVWF
-- **Version:** v1.0
+- **Version:** v2.0
 - **Status:** Approved
 - **Last updated:** 2026-10-27
 
@@ -14,11 +14,11 @@ Tooling, commands, demo data, code generation, migrations, the test setup and de
 
 Requirement numbers keep the legacy IDs: legacy `DEV-WF-03` is `REQ-DEVWF-003`. REQ-DEVWF-005 and REQ-DEVWF-006 are not used: their legacy requirements (branches, pull requests and merges to `master`; tests added with every change and `pnpm test` passing before a merge) were process rules, replaced by [AGENTS.md](../../AGENTS.md) (§4 Workflow, §5 Git). The same applies to the legacy Git section (default branch `master`, integration branch `development`, Conventional Commits), now defined in AGENTS.md §5. REQ-DEVWF-010 is new (no legacy ID).
 
-Related: [CONFIGURATION.md](CONFIGURATION.md), [CONVENTIONS.md](CONVENTIONS.md).
+Related: [CONFIGURATION.md](CONFIGURATION.md), [CONVENTIONS.md](CONVENTIONS.md), [ENV.md](ENV.md) (environment preflight).
 
 ### Prerequisites
 
-- Node.js 24 (`engines` in `apps/api/package.json`; the Docker image pins `24.19.0`), pnpm `11.5.3` (root `devEngines`, auto-downloaded).
+- Node.js 24 (`engines` in `apps/api/package.json`; the Docker image pins `24.22.1`, which is also the minimum the environment preflight accepts, [CONVENTIONS.md](CONVENTIONS.md) §Environment preflight), pnpm `11.5.3` (root `devEngines`, auto-downloaded).
 - PostgreSQL reachable through `DATABASE_URL`. For local work, `docker compose up -d` (root `docker-compose.yml`) starts `postgres:18-alpine` on `localhost:5432` (user and password `postgres`) with two databases: `survey_system` (development) and `survey_system_test` (tests), created by `docker/postgres/init.sql` the first time the volume is created. This compose file is for local use only, not for deployment (see Deployment).
 
 ### Commands
@@ -31,6 +31,7 @@ Related: [CONFIGURATION.md](CONFIGURATION.md), [CONVENTIONS.md](CONVENTIONS.md).
 | root | `docker compose -f docker-compose.prod.yml up --build` | Build the API image and run it locally in `production` mode against its own PostgreSQL (REQ-DEVWF-003) |
 | root | `docker build -f apps/api/Dockerfile -t sondix-api .` | Build the API image only |
 | root | `pnpm test` | Run the tests of every workspace (`pnpm -r test`) |
+| root | `bash scripts/preflight.sh` | Environment preflight: checks the runtimes and their versions, runs the tests without the API `db` project, prints a summary; exit `0` only if everything passed ([ENV.md](ENV.md)) |
 | root | `pnpm generate:api` | Run Orval: regenerate `apps/web/src/lib/api` from `http://localhost:3000/api/v1/docs-raw` (API must be running) |
 | `apps/api` | `pnpm exec prisma migrate dev` | Create/apply migrations |
 | `apps/api` | `pnpm seed` | Load the demo data into the development database (REQ-DEVWF-001) |
@@ -90,7 +91,7 @@ Legacy ID: DEV-WF-02.
 Tests use **Vitest** in both apps. Test file locations and naming are defined in [CONVENTIONS.md](CONVENTIONS.md) §Testing.
 
 - **API, `unit` project** (no database): services with fake repositories; middlewares and the error handler on a small Express app with Supertest; `config/env.ts`; HTTP tests of the real `app` with the repository modules replaced by in-memory fakes (`vi.mock`, `tests/helpers/fakeRepositories.ts`). Rate limiters are mocked out except in `rateLimit.test.ts`.
-- **API, `db` project** (real PostgreSQL): repositories, full HTTP flows and the command-line scripts (seed, `create-user`) against `TEST_DATABASE_URL`. A global setup rebuilds that database with `prisma migrate reset --force` once per run and refuses to run unless the database name contains `test` and differs from `DATABASE_URL`; every test starts from truncated tables. Without `TEST_DATABASE_URL` the `db` project is skipped with a warning. Files run one at a time because they share the database.
+- **API, `db` project** (real PostgreSQL): repositories, full HTTP flows and the command-line scripts (seed, `create-user`) against `TEST_DATABASE_URL`. A global setup refuses to run unless the database name contains `test` and differs from `DATABASE_URL`. It then applies pending migrations with `prisma migrate deploy` and empties every application table (every table except Prisma's `_prisma_migrations`) before the first test. When the run ends, whether the tests passed or failed, a global teardown empties every application table again, so the test database is left empty. The database is never dropped or reset: `prisma migrate reset` is not used ([DEVIATIONS.md](DEVIATIONS.md) DEV-002). Every test starts from truncated tables. Without `TEST_DATABASE_URL` the `db` project is skipped with a warning. Files run one at a time because they share the database.
 - **Web** (jsdom + Testing Library): components and pages rendered with a fresh `QueryClient` and `MemoryRouter`; `fetch` is replaced by a route table (`tests/helpers.tsx`). Covered today: `AcceptInvitationPage`, `AppSidebar`, `ConfirmationDialog`, `customInstance`, `DashboardHeader`, the web configuration (`env`), `InvitationsPage`, `LockedBadge`, the login form (`LoginForm`), `LoginPage`, `SurveyAnsweringPage`, `Surveys` and the theme (`theme`).
 - Tests set their own configuration (`NODE_ENV=development`, `LOG_LEVEL=silent`, test secrets); `.env` is only read for `TEST_DATABASE_URL`.
 - Coverage is reported (`pnpm test:coverage` in `apps/api`) without a minimum threshold. There is no CI: tests run locally.
@@ -104,11 +105,11 @@ Tests use **Vitest** in both apps. Test file locations and naming are defined in
 - **AC-DEVWF-002-2**
   - **Given** a `TEST_DATABASE_URL` whose database name does not contain `test`, or that equals `DATABASE_URL`
   - **When** the `db` project starts
-  - **Then** the global setup refuses to run and no database is reset
+  - **Then** the global setup refuses to run and no database is changed
 - **AC-DEVWF-002-3**
   - **Given** a valid `TEST_DATABASE_URL`
   - **When** the `db` project runs
-  - **Then** the database is rebuilt with `prisma migrate reset --force` once per run, every test starts from truncated tables, and the files run one at a time
+  - **Then** pending migrations are applied with `prisma migrate deploy` (never `prisma migrate reset`), every application table is empty before the first test, every test starts from truncated tables, and the files run one at a time
 - **AC-DEVWF-002-4**
   - **Given** the API `unit` project
   - **When** HTTP tests of the real `app` run
@@ -117,19 +118,23 @@ Tests use **Vitest** in both apps. Test file locations and naming are defined in
   - **Given** `pnpm test:coverage` in `apps/api`
   - **When** it runs
   - **Then** a v8 coverage report is written to `coverage/` and no minimum threshold fails the run
+- **AC-DEVWF-002-6**
+  - **Given** a valid `TEST_DATABASE_URL` and a test database that still holds rows from an earlier run
+  - **When** the `db` project runs to the end, with all tests passing or with some failing
+  - **Then** the rows present before the run are gone before the first test, every application table is empty after the run, and `_prisma_migrations` keeps its rows
 
 ### REQ-DEVWF-003 — API Docker image
 
 Legacy ID: DEV-WF-03.
 
-`apps/api/Dockerfile` builds the API image with the repository root as context (root `.dockerignore`): `node:24.19.0-alpine`, pnpm `11.5.3`, the workspace manifests and lockfile (`--frozen-lockfile`, filtered to the API and `packages/schemas`). A build stage compiles `packages/schemas`, generates the Prisma client and compiles the API; the final stage holds only production dependencies, `dist/` of both packages, `prisma/` and `prisma.config.ts`, and runs as the `node` user with `NODE_ENV=production`. No `.env` is copied: configuration comes from the environment (REQ-CFG-010). `docker-compose.prod.yml` runs the image locally against its own PostgreSQL to try it before deploying.
+`apps/api/Dockerfile` builds the API image with the repository root as context (root `.dockerignore`): `node:24.22.1-alpine` ([DEVIATIONS.md](DEVIATIONS.md) DEV-001), pnpm `11.5.3`, the workspace manifests and lockfile (`--frozen-lockfile`, filtered to the API and `packages/schemas`). A build stage compiles `packages/schemas`, generates the Prisma client and compiles the API; the final stage holds only production dependencies, `dist/` of both packages, `prisma/` and `prisma.config.ts`, and runs as the `node` user with `NODE_ENV=production`. No `.env` is copied: configuration comes from the environment (REQ-CFG-010). `docker-compose.prod.yml` runs the image locally against its own PostgreSQL to try it before deploying.
 
 **Acceptance criteria**
 
 - **AC-DEVWF-003-1**
   - **Given** the repository root
   - **When** `docker build -f apps/api/Dockerfile -t sondix-api .` runs
-  - **Then** the image builds from `node:24.19.0-alpine` with pnpm `11.5.3` and `--frozen-lockfile`
+  - **Then** the image builds from `node:24.22.1-alpine` with pnpm `11.5.3` and `--frozen-lockfile`
 - **AC-DEVWF-003-2**
   - **Given** the built image
   - **When** its final stage is inspected
@@ -222,6 +227,7 @@ A code comment that cites the documentation names an existing spec file in `docs
 |---|---|---|---|
 | PH-DEVWF-1 | Existing implementation (migrated) | Done | REQ-DEVWF-001, REQ-DEVWF-002, REQ-DEVWF-003, REQ-DEVWF-004, REQ-DEVWF-007, REQ-DEVWF-008, REQ-DEVWF-009 |
 | PH-DEVWF-2 | Code comments cite existing docs | Planned | REQ-DEVWF-010 |
+| PH-DEVWF-3 | Test database left empty (migrate deploy and truncate) | Planned | REQ-DEVWF-002 |
 
 PH-DEVWF-2 fixes the five comments that break REQ-DEVWF-010 once the legacy docs are removed:
 
@@ -229,3 +235,7 @@ PH-DEVWF-2 fixes the five comments that break REQ-DEVWF-010 once the legacy docs
 - `apps/api/Dockerfile:4` points to `docs/sdd/05-configuration.md` → [CONFIGURATION.md](CONFIGURATION.md).
 - `apps/api/vitest.config.ts:5` points to `docs/sdd/30-dev-workflow.md` → [DEV_WORKFLOW.md](DEV_WORKFLOW.md) and [CONVENTIONS.md](CONVENTIONS.md) §Testing.
 - `packages/schemas/src/userSchema.ts:58` says `userAccountSchema` is "Returned by signup and login (AUTH-12, AUTH-15)": signup no longer exists; it is returned by login and invitation acceptance (REQ-AUTH-015, REQ-AUTH-029).
+
+PH-DEVWF-3 replaces `prisma migrate reset --force` in the `db` project's global setup (`apps/api/tests/db/globalSetup.ts`) with `prisma migrate deploy` plus emptying every application table before the run, and adds a global teardown that empties them again when the run ends (REQ-DEVWF-002, AC-DEVWF-002-3, AC-DEVWF-002-6; [DEVIATIONS.md](DEVIATIONS.md) DEV-002). The safety checks of AC-DEVWF-002-2 are kept. The comment on `TEST_DATABASE_URL` in `apps/api/.env.example`, which says the database is "rebuilt from the migrations on every run", is updated to the new behaviour.
+
+The change of the API image to Node.js `24.22.1` (REQ-DEVWF-003, DEV-001) is implemented in [ENV.md](ENV.md) PH-ENV-1.
