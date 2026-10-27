@@ -6,19 +6,15 @@ const isDevelopment = env.NODE_ENV === "development";
 export default pino({
   level: env.LOG_LEVEL,
   timestamp: stdTimeFunctions.isoTime,
-  transport: {
-    ...(isDevelopment
-      ? {
-          target: "pino-pretty",
-          options: {
-            colorize: true,
-          },
-        }
-      : {
-          target: "pino/file",
-          options: { destination: "logs/app.log", mkdir: true },
-        }),
-  },
+  // Production writes JSON lines to stdout, collected by the platform (API-26).
+  ...(isDevelopment && {
+    transport: {
+      target: "pino-pretty",
+      options: {
+        colorize: true,
+      },
+    },
+  }),
   redact: {
     paths: ["*.password"],
     censor: "[REDACTED]",

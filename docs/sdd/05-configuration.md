@@ -19,6 +19,7 @@ allowed by `.gitignore`.
 | `REFRESH_TOKEN_TTL_DAYS` | yes | — | positive integer (days) | Lifetime of the refresh token (`expires_at`) **and** `maxAge` of the `refresh` cookie |
 | `CORS_ORIGIN` | in `production` | `http://localhost:5173` in `development` | single URL | Allowed CORS origin (one origin only) |
 | `LOG_LEVEL` | no | `info` | pino level (`fatal`, `error`, `warn`, `info`, `debug`, `trace`, `silent`) | Logger level |
+| `TRUST_PROXY` | no | `0` | integer ≥ 0 | Number of reverse proxies in front of the API whose `X-Forwarded-For` is trusted (ANS-07) |
 
 `TEST_DATABASE_URL` is read only by the API tests (not by the runtime schema): the database the `db` test project rebuilds and uses (DEV-WF-02). It must be a dedicated database whose name contains `test`.
 
@@ -31,6 +32,7 @@ allowed by `.gitignore`.
 - **CFG-05** `[implemented]` `apps/api/.env.example` documents every variable with safe example values and is kept in sync with the schema.
 - **CFG-06** `[implemented]` The CORS origin comes from `CORS_ORIGIN` (API-24); in `production` it is required, in `development` it defaults to `http://localhost:5173`.
 - **CFG-08** `[implemented]` `apps/api/prisma.config.ts` is executed by the Prisma CLI and keeps reading `DATABASE_URL` from `process.env`; it is outside the runtime schema.
+- **CFG-10** `[implemented]` In the deployment the API variables are set in the Render service (the image contains no `.env`, DEV-WF-03). `DATABASE_URL` is the **direct** (non-pooled) Neon connection string, used both by the API and by the migrations: the API is a long-lived process with its own `pg` pool, so the Neon pooler is not needed. `CORS_ORIGIN` is the Vercel URL of the web app.
 
 ## 2. Web configuration
 
@@ -39,9 +41,10 @@ allowed by `.gitignore`.
 | `VITE_API_URL` | Base URL of the API used by the generated client | `[implemented]` |
 
 - **CFG-07** `[implemented]` The API base URL used by the web app is configurable (`VITE_API_URL`, template in `apps/web/.env.example`); nothing in the web hardcodes the API host.
+- **CFG-11** `[implemented]` In the deployment `VITE_API_URL` (set in the Vercel project, read at build time) is the web app's own Vercel URL, never the Render URL: the web reaches the API through the Vercel rewrite, so the session cookies stay first-party (DEV-WF-08).
 - **CFG-09** `[implemented]` Orval generates paths without a host (`/api/v1/...`) and `customInstance` prefixes them with `VITE_API_URL`. The web validates `import.meta.env` with Zod when it starts (`apps/web/src/config/env.ts`): `VITE_API_URL` must be a URL; it defaults to `http://localhost:3000` in development and is required in a production build.
 
 ## 3. Code generation configuration
 
 - `orval.config.ts` (root): input `http://localhost:3000/api/v1/docs-raw`, output `apps/web/src/lib/api`, mode `tags-split`, client `react-query`, http client `fetch`, mutator `customInstance`. See [30-dev-workflow.md](30-dev-workflow.md).
-- `apps/api/prisma.config.ts`: schema `prisma/schema.prisma`, migrations `prisma/migrations`, seed command `tsx prisma/seed.ts` (DEV-WF-01).
+- `apps/api/prisma.config.ts`: schema `prisma/schema.prisma`, migrations `prisma/migrations`, seed command `tsx --conditions=source prisma/seed.ts` (DEV-WF-01, ARCH-12).

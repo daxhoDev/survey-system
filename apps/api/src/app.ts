@@ -16,6 +16,9 @@ import requestContextMiddleware from "./middlewares/requestContextMiddleware.js"
 import { env } from "./config/env.js";
 
 const app: Express = express();
+// Number of reverse proxies in front of the API: req.ip (answers, rate
+// limiters) comes from X-Forwarded-For only through them (ANS-07).
+app.set("trust proxy", env.TRUST_PROXY);
 const errorMiddleware = new ErrorMiddleware();
 
 app.use(loggingMiddleware);

@@ -11,10 +11,11 @@ pnpm workspace (`pnpm-workspace.yaml`: `apps/*`, `packages/*`). Root
 |---------|------|------|
 | `@survey-system/api` | `apps/api` | REST API — Express 5 + TypeScript, Prisma 7 (PostgreSQL) |
 | `@survey-system/web` | `apps/web` | Web app — Vite + React 19 + Tailwind 4 + shadcn/ui |
-| `@survey-system/schemas` | `packages/schemas` | Shared Zod 4 schemas (validation + OpenAPI metadata), consumed as TypeScript source |
+| `@survey-system/schemas` | `packages/schemas` | Shared Zod 4 schemas (validation + OpenAPI metadata), TypeScript source in development, compiled to `dist/` for production (ARCH-12) |
 
 - **ARCH-01** `[implemented]` All dependencies are managed with `pnpm`, from the root or the relevant workspace.
 - **ARCH-02** `[implemented]` Request/response shapes shared by API and web are defined once, in `packages/schemas`, and imported as `@survey-system/schemas`. Validation limits (`packages/schemas/src/limits.ts`: username, password, survey and question name lengths) are exported constants used by the API schemas and by the web's Spanish form schemas (FE-04).
+- **ARCH-12** `[implemented]` `packages/schemas` declares its own dependencies (`zod`, `@asteasolutions/zod-to-openapi`) and compiles with `pnpm build` (`tsc` → `dist/`). Its `exports` map has a custom `source` condition pointing to `src/index.ts`, followed by `types`/`default` pointing to `dist/`. Every development tool resolves the `source` condition, so no build of the package is needed while developing: the API and web TypeScript configs (`customConditions`), `tsx` (`--conditions=source` in the API `dev` and `create-user` scripts and the Prisma seed command), the API Vitest config (`ssr.resolve.conditions`) and the web Vite config (`resolve.conditions`). Plain Node (`node dist/server.js`, the Docker image) loads `dist/`.
 - **ARCH-03** `[implemented]` Zod schemas are the single source for validation **and** OpenAPI documentation (via `@asteasolutions/zod-to-openapi`). `extendZodWithOpenApi(z)` runs in `packages/schemas/src/zod-setup.ts` and `apps/api/src/lib/zod-setup.ts` (imported first in `server.ts`).
 
 ## 2. Backend layers (`apps/api/src`)

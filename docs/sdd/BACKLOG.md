@@ -13,7 +13,6 @@
 
 | ID | Item | Specs |
 |----|------|-------|
-| BL-02 | **Dockerfile / containerized deployment** (design agreed 2026-09-23, specified with the change): not built yet. Must install pnpm, handle the workspace (`packages/schemas`), not bake `.env` into the image, fix `CMD`, pin Node version. Design to be agreed. | DEV-WF-03, ANS-07 |
 
 ## Open questions
 

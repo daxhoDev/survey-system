@@ -42,7 +42,7 @@ Processing order (target):
      - `SINGLE_SELECT`: `content` is an array whose **first** element is a valid option id. (Extra elements are not rejected.)
      - `MULTI_SELECT`: `content` is an array and every element is a valid option id.
      - `TEXT_ANSWER`: `content` is a string.
-- **ANS-07** `[implemented]` The origin IP is `req.ip` (empty string if unavailable). `[pending: BL-02]` Behind a reverse proxy, `app.set('trust proxy', TRUST_PROXY)` makes `req.ip` the client IP from `X-Forwarded-For`; `TRUST_PROXY` is the number of trusted proxy hops (default `0`, never trust the header), `1` in the production compose file. This also keys the rate limiters (API-20, API-21) per real client.
+- **ANS-07** `[implemented]` The origin IP is `req.ip` (empty string if unavailable). Behind reverse proxies, `app.set('trust proxy', TRUST_PROXY)` (`apps/api/src/app.ts`) makes `req.ip` the client IP from `X-Forwarded-For`; `TRUST_PROXY` is the number of trusted proxy hops (default `0`, never trust the header; `0` in `docker-compose.prod.yml`, which has no proxy). In the deployment (Vercel rewrite → Render) it must equal the number of proxies actually in front of the API, measured from `X-Forwarded-For` on the first deployment (DEV-WF-08). This also keys the rate limiters (API-20, API-21) per real client: a value that is too low makes every user share the proxies' IP and limits.
 - **ANS-12** `[implemented]` Response `201 { data: Answer }`.
 
 ### GET `/api/v1/surveys/:slug/answers` — authenticated
