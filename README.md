@@ -20,7 +20,7 @@ The full specification lives in [`docs/sdd/`](docs/sdd/MAIN.md); start at
 - Public answering page; answers validated against the survey's questions.
 - Dashboard with survey counters (total, active, inactive) and the most recently activated active surveys side by side: answer totals with completed/incomplete bars on a common scale.
 - Survey list with each survey's answer and completed counts, search by name, status filter, sortable columns and pagination.
-- Per-survey statistics (completed/incomplete answers, votes per option) with charts.
+- Per-survey statistics: a summary line (answers, completed, incomplete, questions), a completed/incomplete bar with percentages, and one small chart per choice question with each option's votes and share of respondents, all on a common scale.
 - Interactive API documentation (Swagger UI).
 - Sondix visual identity: light and dark themes (Claro / Oscuro / Sistema), a sober palette with tabular figures in Work Sans, dense ruled tables and a top navigation bar.
 

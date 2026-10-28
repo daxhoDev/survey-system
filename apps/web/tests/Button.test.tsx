@@ -25,7 +25,7 @@ describe("Button (REQ-BRAND-018)", () => {
     }
   });
 
-  it("AC-BRAND-018-2: disabled is 50 % opacity, not-allowed and does not react to hover", () => {
+  it("AC-BRAND-018-2: disabled is 50% opacity, not-allowed and does not react to hover", () => {
     render(<Button disabled>Guardar</Button>);
     const button = screen.getByRole("button", { name: "Guardar" });
     expect(button).toBeDisabled();

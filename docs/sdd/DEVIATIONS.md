@@ -39,3 +39,19 @@ Entry template:
 - **Reason:** the user wants the web UI to look professional and serious yet distinctive for a university presentation, a portfolio and daily use by a team, and not to resemble a generic SaaS template, a generic form builder or the previous version (OVERVIEW.md, Quality bar for the web UI).
 - **Affected files:** BRAND.md, FRONTEND.md, STATS.md, SURVEYS.md, API.md, OVERVIEW.md, MAIN.md, docs/brand/sondix-identity-guide.png (deleted)
 - **CHANGELOG ref:** 2026-10-27 · docs/brand/sondix-identity-guide.png · task feat/web-redesign · DEV-003 (Removed); 2026-10-27 · BRAND.md → v2.0 · task feat/web-redesign / PH-BRAND-3 · DEV-003; 2026-10-27 · FRONTEND.md → v2.0 · task feat/web-redesign / PH-BRAND-3 · DEV-003
+
+### DEV-004 — Percentages written with no space before "%"
+- **Date:** 2026-10-28
+- **Spec said:** FRONTEND.md, REQ-FE-033 (AC-FE-033-1, AC-FE-033-2, AC-FE-033-3), v2.1: the statistics tab's percentages are formatted with `Intl.NumberFormat("es-CU", { style: "percent" })` (which gives "86%"), while its acceptance criteria and captions expect a space before "%" ("86 %", "50 · 60 %", "(100 %)", "más de 100 %").
+- **User decided:** every percentage in the app is written with no space before "%" ("86%"), everywhere: the statistics tab and the `Bar` component (REQ-BRAND-028), dashboard included.
+- **Reason:** remove the contradiction inside REQ-FE-033 with one format used across the whole app.
+- **Affected files:** FRONTEND.md, BRAND.md, MAIN.md
+- **CHANGELOG ref:** 2026-10-28 · FRONTEND.md → v3.0 · task feat/web-redesign / PH-FE-4 · DEV-004, DEV-005; 2026-10-28 · BRAND.md → v2.1 · task feat/web-redesign / PH-FE-4 · DEV-004, DEV-005
+
+### DEV-005 — `ui/card.tsx` removed in PH-FE-6
+- **Date:** 2026-10-28
+- **Spec said:** BRAND.md, Implementation phases (PH-BRAND-3 note), v2.0: the v1.0 `card` and `chart` primitives and `recharts` stay until PH-FE-4; FRONTEND.md, REQ-FE-002 (AC-FE-002-3), v2.1, with the removal implied in PH-FE-4.
+- **User decided:** `ui/chart.tsx` and `recharts` are removed in PH-FE-4; `ui/card.tsx` is removed in PH-FE-6, after PH-FE-5 and PH-FE-6 stop using it in the pages they redesign (`login-form.tsx`, `InvitationsPage.tsx`, `AcceptInvitationPage.tsx`, `SurveyAnsweringPage.tsx`). The `card.tsx` part of AC-FE-002-3 is covered by PH-FE-6.
+- **Reason:** `ui/card.tsx` is still used by pages that are redesigned only in PH-FE-5 and PH-FE-6.
+- **Affected files:** BRAND.md, FRONTEND.md, MAIN.md
+- **CHANGELOG ref:** 2026-10-28 · FRONTEND.md → v3.0 · task feat/web-redesign / PH-FE-4 · DEV-004, DEV-005; 2026-10-28 · BRAND.md → v2.1 · task feat/web-redesign / PH-FE-4 · DEV-004, DEV-005

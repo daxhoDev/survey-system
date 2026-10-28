@@ -96,17 +96,9 @@ describe("Spanish UI document (REQ-FE-006)", () => {
 });
 
 describe("semantic tokens only (REQ-BRAND-008, 009)", () => {
-  // ui/chart.tsx (recharts) is removed in PH-FE-4 (AC-FE-002-3); its
-  // attribute selectors match recharts' own default strokes.
   const raw = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|\boklch\(/;
 
-  it("AC-BRAND-008-1 (all but ui/chart.tsx): components and pages use no raw color values", () => {
-    const scope = componentsAndPages.filter((p) => !p.endsWith("ui/chart.tsx"));
-    expect(matches(scope, raw)).toEqual([]);
-  });
-
-  // Passes once ui/chart.tsx is removed (PH-FE-4).
-  it.skip("AC-BRAND-008-1 (full, PH-FE-4): no raw color values at all", () => {
+  it("AC-BRAND-008-1: components and pages use no raw color values", () => {
     expect(matches(componentsAndPages, raw)).toEqual([]);
   });
 
@@ -185,16 +177,29 @@ describe("shared components (REQ-FE-002, REQ-BRAND-027)", () => {
     expect(users).toEqual([]);
   });
 
-  // Pass once the details page drops recharts and cards (PH-FE-4).
-  it.skip("AC-FE-002-3 (PH-FE-4): sidebar, card and chart primitives and recharts are gone", () => {
-    for (const f of ["sidebar.tsx", "card.tsx", "chart.tsx"]) {
+  it("AC-FE-002-3 (sidebar, chart, recharts): the sidebar and chart primitives and recharts are gone", () => {
+    for (const f of ["sidebar.tsx", "chart.tsx"]) {
       expect(existsSync(join(root, "src/components/ui", f)), f).toBe(false);
     }
     expect(deps.recharts).toBeUndefined();
   });
 
-  it.skip("AC-BRAND-028-3 (PH-FE-4): no recharts and no ui/chart", () => {
-    expect(deps.recharts).toBeUndefined();
+  // ui/card.tsx is still used by pages redesigned in PH-FE-5 and PH-FE-6
+  // (login form, invitations, accept invitation, answering page); removed
+  // in PH-FE-6 (DEV-005).
+  it.skip("AC-FE-002-3 (card): the card primitive is gone", () => {
+    expect(existsSync(join(root, "src/components/ui/card.tsx"))).toBe(false);
+  });
+
+  it("AC-FE-025-2: only ConfirmationDialog builds a DialogContent outside components/ui", () => {
+    const users = matches(componentsAndPages, /\bDialogContent\b/).filter(
+      (p) => !p.includes("components/ui/") && !p.endsWith("ConfirmationDialog.tsx"),
+    );
+    expect(users).toEqual([]);
+  });
+
+  it("AC-BRAND-028-3: no recharts and no ui/chart", () => {
+    expect(read("package.json")).not.toMatch(/recharts|ui\/chart/);
     expect(matches(src, /recharts|ui\/chart/)).toEqual([]);
   });
 });

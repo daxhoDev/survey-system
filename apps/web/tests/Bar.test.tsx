@@ -6,7 +6,7 @@ const track = (container: HTMLElement) =>
   container.querySelector('[data-slot="bar"] > [aria-hidden="true"]') as HTMLElement;
 
 describe("Bar (REQ-BRAND-010, REQ-BRAND-028)", () => {
-  it("AC-BRAND-028-1: value 25 on a scale of 100 fills 25 % of the track; label and value are text", () => {
+  it("AC-BRAND-028-1: value 25 on a scale of 100 fills 25% of the track; label and value are text", () => {
     const { container } = render(<Bar label="Completas" value={25} scaleMax={100} />);
 
     const fill = track(container).firstElementChild as HTMLElement;
@@ -33,7 +33,7 @@ describe("Bar (REQ-BRAND-010, REQ-BRAND-028)", () => {
       .filter((el) => el.getAttribute("aria-hidden") !== "true")
       .map((el) => el.textContent)
       .join(" ");
-    expect(exposed.replace(/\s+/g, " ")).toBe("Sí 3 (30 %)");
+    expect(exposed.replace(/\s+/g, " ")).toBe("Sí 3 (30%)");
   });
 
   it("AC-BRAND-010-1: teal fill (rust for incomplete answers) on a rule track, 8 px tall, square ends", () => {
@@ -61,5 +61,14 @@ describe("Bar (REQ-BRAND-010, REQ-BRAND-028)", () => {
     over.unmount();
     const empty = render(<Bar label="B" value={5} scaleMax={0} />);
     expect(track(empty.container).childElementCount).toBe(0);
+  });
+
+  it("AC-BRAND-028-5: value 25 with percentage 40 reads \"25 (40%)\", no space before %", () => {
+    const { container } = render(<Bar label="Completas" value={25} scaleMax={100} percent={40} />);
+
+    const bar = container.querySelector('[data-slot="bar"]') as HTMLElement;
+    const value = bar.lastElementChild as HTMLElement;
+    expect(value.textContent).toBe("25 (40%)");
+    expect(value.textContent).not.toMatch(/[ \u00a0]%/);
   });
 });

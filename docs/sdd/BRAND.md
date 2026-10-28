@@ -4,9 +4,9 @@
 
 - **Module:** Brand identity
 - **Module code:** BRAND
-- **Version:** v2.0
+- **Version:** v2.1
 - **Status:** Approved
-- **Last updated:** 2026-10-27
+- **Last updated:** 2026-10-28
 
 ## Description
 
@@ -340,7 +340,7 @@ Spacing uses multiples of 4 px (Tailwind's default `--spacing: 0.25rem`): tight 
 
 ### REQ-BRAND-016 — Elevation
 
-Page content is flat: structure comes from hairline rules (`--rule`) and strong rules (`--rule-strong`), never from cards, shadows or tinted panels. Only overlays are elevated — menus, popovers, select lists, tooltips, dialogs, sheets and toasts — on `--surface-raised` with a 1 px `--rule-strong` border (tooltips: `--ink` ground, `--paper` text, no border) and one soft shadow with offset and blur: light `0 8px 24px rgb(20 20 20 / 0.12)`, dark `0 8px 24px rgb(0 0 0 / 0.5)`. Dialogs and sheets dim the page behind with a scrim of `--ink` at 40 % (light) or `--paper` at 70 % (dark). No glass, blur or backdrop-filter is used.
+Page content is flat: structure comes from hairline rules (`--rule`) and strong rules (`--rule-strong`), never from cards, shadows or tinted panels. Only overlays are elevated — menus, popovers, select lists, tooltips, dialogs, sheets and toasts — on `--surface-raised` with a 1 px `--rule-strong` border (tooltips: `--ink` ground, `--paper` text, no border) and one soft shadow with offset and blur: light `0 8px 24px rgb(20 20 20 / 0.12)`, dark `0 8px 24px rgb(0 0 0 / 0.5)`. Dialogs and sheets dim the page behind with a scrim of `--ink` at 40% (light) or `--paper` at 70% (dark). No glass, blur or backdrop-filter is used.
 
 **Acceptance criteria**
 
@@ -384,7 +384,7 @@ Button variants (`components/ui/button.tsx`), all with the 3 px radius, `text-bo
 | `link` | `--teal` text, underline offset 3 px | underline thickness 2 px |
 | `destructive` | `--rust` fill, `--on-rust` text | `--rust-strong` fill |
 
-Every button also has a focus state (REQ-BRAND-020), a disabled state (50 % opacity, `not-allowed` cursor, no hover change) and, where it starts a request, a loading state (spinner icon before the label, `aria-busy="true"`, the label kept, the button disabled). Each page has at most one primary button in view. Irreversible actions keep the confirmation dialog (REQ-FE-025).
+Every button also has a focus state (REQ-BRAND-020), a disabled state (50% opacity, `not-allowed` cursor, no hover change) and, where it starts a request, a loading state (spinner icon before the label, `aria-busy="true"`, the label kept, the button disabled). Each page has at most one primary button in view. Irreversible actions keep the confirmation dialog (REQ-FE-025).
 
 **Acceptance criteria**
 
@@ -574,14 +574,14 @@ The signature move of the visual system is a **ruled row of small multiples**: a
 
 ### REQ-BRAND-028 — Bar component
 
-Every data bar of the app is one small custom component, `components/Bar.tsx`, in HTML and CSS (no chart library; `recharts` and `ui/chart.tsx` are removed, REQ-FE-002). A bar row is a three-column grid: label (`text-caption`, `--ink-muted`, left), track (8 px tall, `--rule`, square ends) with its fill (`--teal`, or `--rust` for incomplete answers) whose width is `value / scaleMax` of the track, and value text (`text-caption`, tabular figures, right-aligned, optionally followed by a percentage). A value of 0 draws no fill but keeps its track and its "0". When the label does not fit (below `md`, or longer than the label column), the label goes on its own line above the track and value. The track and fill are `aria-hidden`; the label and value are real text, so the chart reads without color and without the graphic.
+Every data bar of the app is one small custom component, `components/Bar.tsx`, in HTML and CSS (no chart library; `recharts` and `ui/chart.tsx` are removed, REQ-FE-002). A bar row is a three-column grid: label (`text-caption`, `--ink-muted`, left), track (8 px tall, `--rule`, square ends) with its fill (`--teal`, or `--rust` for incomplete answers) whose width is `value / scaleMax` of the track, and value text (`text-caption`, tabular figures, right-aligned, optionally followed by a percentage in parentheses, e.g. "25 (40%)"). Every percentage in the app, in `Bar` and elsewhere (dashboard, statistics tab), is written with no space before "%" ("86%"). A value of 0 draws no fill but keeps its track and its "0". When the label does not fit (below `md`, or longer than the label column), the label goes on its own line above the track and value. The track and fill are `aria-hidden`; the label and value are real text, so the chart reads without color and without the graphic.
 
 **Acceptance criteria**
 
 - **AC-BRAND-028-1**
   - **Given** a bar with value 25 on a scale of 100
   - **When** it renders
-  - **Then** its fill is 25 % of the track width, and the label and "25" are visible text
+  - **Then** its fill is 25% of the track width, and the label and "25" are visible text
 - **AC-BRAND-028-2**
   - **Given** a bar with value 0
   - **When** it renders
@@ -594,6 +594,10 @@ Every data bar of the app is one small custom component, `components/Bar.tsx`, i
   - **Given** a bar
   - **When** the accessibility tree is read
   - **Then** the track is hidden and the label and value are exposed as text
+- **AC-BRAND-028-5**
+  - **Given** a bar with value 25 and percentage 40
+  - **When** it renders
+  - **Then** its value text reads "25 (40%)", with no space before "%"
 
 ### REQ-BRAND-029 — Dense tables
 
@@ -692,6 +696,6 @@ Every data view has explicit states in the world's terms: **loading** shows skel
 
 The redesign task (`feat/web-redesign`) runs seven phases in this order: PH-STAT-2 ([STATS.md](STATS.md)), PH-BRAND-3, PH-FE-3, PH-FE-4, PH-FE-5, PH-FE-6 ([FRONTEND.md](FRONTEND.md)) and PH-BRAND-4.
 
-- **PH-BRAND-3** also delivers the Spanish loading texts formerly planned as PH-FE-2 ("Cargando panel...", "Redirigiendo...") and builds the shared components every later phase uses (`SmallMultiples`, `Bar`, tables, chips, status labels, states), exercised there with the pages that already exist. Pages not yet redesigned keep working on the new tokens. It removed the v1.0 `LoginBrandPanel` ahead of PH-FE-5, because it could not render without the removed v1.0 tokens; the rest of REQ-BRAND-023 and the auth page frame (REQ-FE-030) are still delivered by PH-FE-5. The v1.0 `card` and `chart` primitives and `recharts` stay until PH-FE-4, and the v1.0 logo SVGs until PH-FE-5 (REQ-BRAND-025), where the pages that still use them are redesigned.
+- **PH-BRAND-3** also delivers the Spanish loading texts formerly planned as PH-FE-2 ("Cargando panel...", "Redirigiendo...") and builds the shared components every later phase uses (`SmallMultiples`, `Bar`, tables, chips, status labels, states), exercised there with the pages that already exist. Pages not yet redesigned keep working on the new tokens. It removed the v1.0 `LoginBrandPanel` ahead of PH-FE-5, because it could not render without the removed v1.0 tokens; the rest of REQ-BRAND-023 and the auth page frame (REQ-FE-030) are still delivered by PH-FE-5. The v1.0 `chart` primitive and `recharts` stay until PH-FE-4, the v1.0 `card` primitive until PH-FE-6 (its last users are redesigned in PH-FE-5 and PH-FE-6, DEV-005; [FRONTEND.md](FRONTEND.md), Implementation phases), and the v1.0 logo SVGs until PH-FE-5 (REQ-BRAND-025), where the pages that still use them are redesigned.
 - **PH-BRAND-4** starts with a logo decision round run by the Manager (two or three SVG concepts). After the user's pick, REQ-BRAND-021, REQ-BRAND-025 and REQ-BRAND-026 are rewritten with the chosen logo's construction (geometry, colors in both themes, sizes, variants, app icon and favicon) and approved before the Implementer draws the final SVGs, app icons and favicons. Until then the interim wordmark of REQ-BRAND-021 is used.
-- REQ-BRAND-019 is covered by PH-FE-4 and REQ-BRAND-023 and REQ-BRAND-025 by PH-FE-5 (in [FRONTEND.md](FRONTEND.md)), where the pages they concern are redesigned.
+- REQ-BRAND-019 and the percentage format of REQ-BRAND-028 (DEV-004) are covered by PH-FE-4, and REQ-BRAND-023 and REQ-BRAND-025 by PH-FE-5 (in [FRONTEND.md](FRONTEND.md)), where the pages they concern are redesigned.
