@@ -54,4 +54,12 @@ Entry template:
 - **User decided:** `ui/chart.tsx` and `recharts` are removed in PH-FE-4; `ui/card.tsx` is removed in PH-FE-6, after PH-FE-5 and PH-FE-6 stop using it in the pages they redesign (`login-form.tsx`, `InvitationsPage.tsx`, `AcceptInvitationPage.tsx`, `SurveyAnsweringPage.tsx`). The `card.tsx` part of AC-FE-002-3 is covered by PH-FE-6.
 - **Reason:** `ui/card.tsx` is still used by pages that are redesigned only in PH-FE-5 and PH-FE-6.
 - **Affected files:** BRAND.md, FRONTEND.md, MAIN.md
-- **CHANGELOG ref:** 2026-10-28 · FRONTEND.md → v3.0 · task feat/web-redesign / PH-FE-4 · DEV-004, DEV-005; 2026-10-28 · BRAND.md → v2.1 · task feat/web-redesign / PH-FE-4 · DEV-004, DEV-005
+- **CHANGELOG ref:** 2026-10-28 · FRONTEND.md → v3.0 · task feat/web-redesign / PH-FE-4 · DEV-004, DEV-005; 2026-10-28 · BRAND.md → v2.1 · task feat/web-redesign / PH-FE-4 · DEV-004, DEV-005; 2026-10-28 · FRONTEND.md v3.0, BRAND.md v2.1 · task feat/web-redesign / PH-FE-5 · DEV-005; 2026-10-28 · FRONTEND.md → v3.1 · task feat/web-redesign / PH-FE-6 · DEV-005, DEV-006
+
+### DEV-006 — Smaller, muted logo in the answering page footer
+- **Date:** 2026-10-28
+- **Spec said:** BRAND.md, REQ-BRAND-021 (AC-BRAND-021-1), v2.1: every place showing the logo, the answering page footer included, renders "Sondix" through `components/Logo.tsx` in Work Sans 700 at 20 px in `--ink`; FRONTEND.md, REQ-FE-034, v3.0, asked for the footer logo in `--ink-muted`, small, contradicting it.
+- **User decided:** `components/Logo.tsx` gets a footer variant (`variant="footer"`) that renders the wordmark at 16 px in `--ink-muted`, used only in the public answering page footer; everywhere else the logo stays 20 px in `--ink`.
+- **Reason:** remove the contradiction between REQ-FE-034 and REQ-BRAND-021 found by the Implementer in PH-FE-6, keeping the footer quiet below the questionnaire.
+- **Affected files:** BRAND.md, FRONTEND.md, MAIN.md
+- **CHANGELOG ref:** 2026-10-28 · BRAND.md → v3.0 · task feat/web-redesign / PH-FE-6 · DEV-006; 2026-10-28 · FRONTEND.md → v3.1 · task feat/web-redesign / PH-FE-6 · DEV-006

@@ -4,7 +4,7 @@
 
 - **Module:** Frontend
 - **Module code:** FE
-- **Version:** v3.0
+- **Version:** v3.1
 - **Status:** Approved
 - **Last updated:** 2026-10-28
 
@@ -618,7 +618,7 @@ A locked survey (`isLocked`) shows a "Bloqueada" label (lock icon and text, REQ-
 
 Legacy ID: FE-27.
 
-`pages/InvitationsPage.tsx` (`/dashboard/invitations`) is reached from "Invitaciones" in the side navigation (REQ-FE-031). A form with the email creates an invitation; on success it shows the link `${window.location.origin}/auth/invite/${token}` with a copy button and the note that it is shown only once and expires in 48 hours; `409` shows the API detail in a toast. Below, a table of invitations (email, status badge — Pendiente / Aceptada / Revocada / Caducada —, invited by, created and expiry dates) with a "Revocar" action on pending ones, confirmed with `ConfirmationDialog` (REQ-FE-025). The link of the last created invitation stays visible until another one is created or the page is left. Above the table, a status filter (Todas / Pendiente / Aceptada / Revocada / Caducada, default Todas, as status chips, REQ-BRAND-030) filters on the client: the API returns every invitation (REQ-AUTH-025).
+`pages/InvitationsPage.tsx` (`/dashboard/invitations`) is reached from "Invitaciones" in the section navigation (REQ-FE-031). A form with the email creates an invitation; on success it shows the link `${window.location.origin}/auth/invite/${token}` with a copy button and the note that it is shown only once and expires in 48 hours; `409` shows the API detail in a toast. Below, a table of invitations (email, status badge — Pendiente / Aceptada / Revocada / Caducada —, invited by, created and expiry dates) with a "Revocar" action on pending ones, confirmed with `ConfirmationDialog` (REQ-FE-025). The link of the last created invitation stays visible until another one is created or the page is left. Above the table, a status filter (Todas / Pendiente / Aceptada / Revocada / Caducada, default Todas, as status chips, REQ-BRAND-030) filters on the client: the API returns every invitation (REQ-AUTH-025).
 
 Layout: title "Invitaciones" (`text-h1`); the form as one line (the email field taking the free width and the primary button; stacked below `md`); the created link, when shown, as a ruled block (1 px `--rule-strong` rules above and below) holding the link in a read-only field, the icon-only "Copiar enlace" button and the note; then the chips and the table (REQ-BRAND-029; stacked rows below `md`), with status labels per REQ-BRAND-030 and "Revocar" as a `ghost` button in `--rust`.
 
@@ -690,7 +690,7 @@ Legacy ID: FE-28.
 
 Legacy ID: FE-29.
 
-The top bar offers the theme selector (REQ-BRAND-011): the "Tema" button from `md`, and the "Tema" radio group in the menu sheet below `md` (REQ-FE-016). The logo (REQ-BRAND-021) is shown in the top bar, the menu sheet, the auth page frame (REQ-FE-030) and the answering page footer (REQ-FE-034); no separate "Sondix" text is rendered next to it.
+The top bar offers the theme selector (REQ-BRAND-011): the "Tema" button from `md`, and the "Tema" radio group in the menu sheet below `md` (REQ-FE-016). The logo (REQ-BRAND-021) is shown in the top bar, the menu sheet, the auth page frame (REQ-FE-030) and, with its footer variant (16 px, `--ink-muted`), the answering page footer (REQ-FE-034); no separate "Sondix" text is rendered next to it.
 
 **Acceptance criteria**
 
@@ -823,7 +823,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 - **Thank-you state:** the form is replaced by the survey name, a 2 px `--rule-strong` rule, "¡Muchas gracias!" (`text-h2`) and "Tus respuestas a la encuesta {name} han sido enviadas correctamente."; focus moves to the heading.
 - **Not found:** the same frame with "Encuesta no encontrada" (`text-h1`) and "La encuesta que estás intentando acceder no existe o no está disponible." (REQ-FE-024).
 - **Loading:** the frame with skeleton rules in the shape of the header and two questions (REQ-BRAND-033).
-- **Footer:** the logo (REQ-BRAND-021) at the bottom of the column, `--ink-muted`, small.
+- **Footer:** the logo at the bottom of the column, as `components/Logo.tsx` with `variant="footer"`: "Sondix" in Work Sans 700 at 16 px in `--ink-muted` (REQ-BRAND-021, DEV-006). This is the only place that uses the footer variant.
 
 **Acceptance criteria**
 
@@ -850,7 +850,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 - **AC-FE-034-6**
   - **Given** the page
   - **When** it renders
-  - **Then** the logo is shown once, in the footer
+  - **Then** the logo is shown once, in the footer, as `components/Logo.tsx` with `variant="footer"`: "Sondix" in Work Sans 700 at 16 px in `--ink-muted`
 
 ## Implementation phases
 
@@ -860,7 +860,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 | PH-FE-3 | Redesign: dashboard (summary line, active-survey small multiples, survey list) | Done | REQ-FE-017, REQ-FE-018, REQ-FE-026, REQ-FE-032 |
 | PH-FE-4 | Redesign: create survey and survey details (header, tabs, answers, statistics) | Done | REQ-FE-002, REQ-FE-019, REQ-FE-021, REQ-FE-022, REQ-FE-033, REQ-BRAND-019, REQ-BRAND-028 |
 | PH-FE-5 | Redesign: invitations, login and accept invitation | Done | REQ-FE-015, REQ-FE-027, REQ-FE-028, REQ-FE-030, REQ-BRAND-023, REQ-BRAND-025 |
-| PH-FE-6 | Redesign: public answering page | Planned | REQ-FE-002, REQ-FE-023, REQ-FE-024, REQ-FE-034 |
+| PH-FE-6 | Redesign: public answering page | Done | REQ-FE-002, REQ-FE-023, REQ-FE-024, REQ-FE-029, REQ-FE-034, REQ-BRAND-021 |
 
 The former PH-FE-2 (Spanish loading texts "Cargando panel..." and "Redirigiendo...") is delivered by PH-BRAND-3, which rewrites the files involved; REQ-FE-001, REQ-FE-002, REQ-FE-006, REQ-FE-013, REQ-FE-016, REQ-FE-029 and REQ-FE-031 are covered there ([BRAND.md](BRAND.md)). The redesign task's phase order is in [BRAND.md](BRAND.md), Implementation phases.
 

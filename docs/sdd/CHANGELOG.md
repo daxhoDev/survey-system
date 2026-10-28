@@ -37,6 +37,8 @@ All notable changes to this project are recorded here, following the [Keep a Cha
 - 2026-10-28 · FRONTEND.md → v3.0 · task feat/web-redesign / PH-FE-4 · DEV-004, DEV-005
 - 2026-10-28 · BRAND.md → v2.1 · task feat/web-redesign / PH-FE-4 · DEV-004, DEV-005
 - 2026-10-28 · FRONTEND.md v3.0, BRAND.md v2.1 · task feat/web-redesign / PH-FE-5 · DEV-005
+- 2026-10-28 · BRAND.md → v3.0 · task feat/web-redesign / PH-FE-6 · DEV-006
+- 2026-10-28 · FRONTEND.md → v3.1 · task feat/web-redesign / PH-FE-6 · DEV-005, DEV-006
 - 2026-10-27 · DEV_WORKFLOW.md → v2.0 · task chore/sdd-bootstrap / PH-ENV-1 · DEV-001
 - 2026-10-27 · DEV_WORKFLOW.md v2.0 · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002
 - 2026-10-27 · CONFIGURATION.md → v1.1 · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002

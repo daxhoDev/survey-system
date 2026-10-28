@@ -17,7 +17,7 @@ The full specification lives in [`docs/sdd/`](docs/sdd/MAIN.md); start at
 - No public signup: accounts are created from single-use invitation links (48 h) or with the `create-user` command.
 - Surveys with free-text, single-choice and multiple-choice questions, required or optional.
 - Survey lifecycle: draft → active ⇄ inactive; a survey is locked for editing once activated.
-- Public answering page; answers validated against the survey's questions.
+- Public answering page, designed mobile-first as a single-column questionnaire sheet: numbered questions, large tap targets for options, a running "answered" count with a progress bar (kept at the top of the screen on mobile), required questions checked before sending, and a thank-you confirmation. Answers are validated against the survey's questions.
 - Dashboard with survey counters (total, active, inactive) and the most recently activated active surveys side by side: answer totals with completed/incomplete bars on a common scale.
 - Survey list with each survey's answer and completed counts, search by name, status filter, sortable columns and pagination.
 - Per-survey statistics: a summary line (answers, completed, incomplete, questions), a completed/incomplete bar with percentages, and one small chart per choice question with each option's votes and share of respondents, all on a common scale.

@@ -233,10 +233,26 @@ describe("shared components (REQ-FE-002, REQ-BRAND-027)", () => {
     expect(deps.recharts).toBeUndefined();
   });
 
-  // ui/card.tsx is still used by the answering page, redesigned in PH-FE-6,
-  // which removes it (DEV-005).
-  it.skip("AC-FE-002-3 (card): the card primitive is gone", () => {
+  // PH-FE-6 removes ui/card.tsx once no page uses it (DEV-005).
+  it("AC-FE-002-3 (card): the card primitive is gone and nothing imports it", () => {
     expect(existsSync(join(root, "src/components/ui/card.tsx"))).toBe(false);
+    expect(matches(src, /ui\/card|\bCard(Header|Title|Content|Footer|Description|Action)?\b/)).toEqual([]);
+  });
+
+  it("AC-BRAND-021-2: Logo variant=\"footer\" is used only by the public answering page", () => {
+    const users = matches(src, /<Logo\b[^>]*variant=/).filter(
+      (p) => !p.endsWith("components/Logo.tsx"),
+    );
+    expect(users).toEqual(["src/pages/SurveyAnsweringPage.tsx"]);
+    expect(read("src/pages/SurveyAnsweringPage.tsx")).toMatch(/<Logo variant="footer" \/>/);
+  });
+
+  it("REQ-BRAND-019: checkboxes and radios fill with teal on Radix's checked state", () => {
+    for (const f of ["checkbox.tsx", "radio-group.tsx"]) {
+      const code = read(`src/components/ui/${f}`);
+      expect(code, f).toMatch(/data-\[state=checked\]:bg-teal/);
+      expect(code, f).not.toMatch(/\bdata-checked:/);
+    }
   });
 
   it("AC-FE-025-2: only ConfirmationDialog builds a DialogContent outside components/ui", () => {

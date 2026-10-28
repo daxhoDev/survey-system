@@ -4,7 +4,7 @@
 
 - **Module:** Brand identity
 - **Module code:** BRAND
-- **Version:** v2.1
+- **Version:** v3.0
 - **Status:** Approved
 - **Last updated:** 2026-10-28
 
@@ -469,14 +469,18 @@ Target WCAG 2.2 level AA in both themes: text contrast ≥ 4.5:1 (≥ 3:1 for la
 
 ### REQ-BRAND-021 — Logo (interim wordmark)
 
-Until the new logo is decided and specified (PH-BRAND-4), the logo slot shows an interim wordmark: the text "Sondix" in Work Sans 700, 20 px, `--ink`, as a component `components/Logo.tsx` that every place showing the logo uses (top bar, menu sheet, auth pages, answering page footer). Replacing it with the final logo only changes that component.
+Until the new logo is decided and specified (PH-BRAND-4), the logo slot shows an interim wordmark: the text "Sondix" in Work Sans 700, 20 px, `--ink`, as a component `components/Logo.tsx` that every place showing the logo uses (top bar, menu sheet, auth pages, answering page footer). `Logo.tsx` has one variant, `variant="footer"`, which renders the same wordmark at 16 px in `--ink-muted` (DEV-006); it is used only by the public answering page footer (REQ-FE-034). Everywhere else the logo is the default 20 px `--ink` wordmark. Replacing it with the final logo only changes that component.
 
 **Acceptance criteria**
 
 - **AC-BRAND-021-1**
   - **Given** the top bar, the menu sheet, the login and accept-invitation pages and the answering page footer
   - **When** they render the logo
-  - **Then** they use `components/Logo.tsx`, which renders "Sondix" in Work Sans 700 at 20 px in `--ink`
+  - **Then** they use `components/Logo.tsx`, which renders "Sondix" in Work Sans 700: at 20 px in `--ink` in the top bar, the menu sheet and the login and accept-invitation pages, and with `variant="footer"` at 16 px in `--ink-muted` in the answering page footer
+- **AC-BRAND-021-2**
+  - **Given** the code of `apps/web/src`
+  - **When** the uses of `components/Logo.tsx` are listed
+  - **Then** `variant="footer"` is used only in the public answering page (`pages/SurveyAnsweringPage.tsx`)
 
 ### REQ-BRAND-022 — Top bar navigation pattern
 
