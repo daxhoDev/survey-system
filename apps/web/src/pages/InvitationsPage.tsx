@@ -18,21 +18,17 @@ import {
   type Invitation,
 } from "@/lib/api/sondixAPI.schemas";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { DataTable } from "@/components/ui/data-table";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
-import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import StatusChip from "@/components/StatusChip";
 import StatusLabel, { type Status } from "@/components/StatusLabel";
-import { ErrorState } from "@/components/DataStates";
+import RequiredMark from "@/components/RequiredMark";
+import { EmptyState, ErrorState, SkeletonRules } from "@/components/DataStates";
+import { invalidProps } from "@/lib/form";
 
 const statusLabels: Record<InvitationStatus, Status> = {
   pending: "Pendiente",
@@ -77,7 +73,7 @@ function RevokeButton({ invitation }: { invitation: Invitation }) {
           loading={revoke.isPending}
           className="text-rust"
         >
-          <XCircle />
+          <XCircle aria-hidden="true" />
           <span>Revocar</span>
         </Button>
       </DialogTrigger>
@@ -94,7 +90,7 @@ function RevokeButton({ invitation }: { invitation: Invitation }) {
 }
 
 const columns: ColumnDef<Invitation>[] = [
-  { accessorKey: "email", header: "Email" },
+  { accessorKey: "email", header: "Correo electrónico" },
   {
     accessorKey: "status",
     header: "Estado",
@@ -129,7 +125,8 @@ const columns: ColumnDef<Invitation>[] = [
 ];
 
 export default function InvitationsPage() {
-  const { data, isError, isSuccess, refetch, isFetching } = useGetAllInvitations();
+  const { data, isPending, isError, isSuccess, refetch, isFetching } =
+    useGetAllInvitations();
   const queryClient = useQueryClient();
   const [link, setLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -138,9 +135,10 @@ export default function InvitationsPage() {
   const {
     register,
     handleSubmit,
-    reset,
+    resetField,
     formState: { errors },
   } = useForm<CreateInvitation>({
+    defaultValues: { email: "" },
     reValidateMode: "onChange",
     resolver: zodResolver(createInvitationFormSchema),
   });
@@ -150,7 +148,9 @@ export default function InvitationsPage() {
       onSuccess(response) {
         setLink(`${window.location.origin}/auth/invite/${response.data.token}`);
         setCopied(false);
-        reset();
+        // resetField keeps the field registered (reset() drops the registry and
+        // relies on the ref callback re-running, which memoised JSX skips).
+        resetField("email");
         queryClient.invalidateQueries({ queryKey: getGetAllInvitationsQueryKey() });
       },
       onError(error) {
@@ -168,9 +168,13 @@ export default function InvitationsPage() {
 
   const handleCopy = () => {
     if (!link) return;
-    navigator.clipboard.writeText(link);
-    setCopied(true);
-    toast.success("¡Enlace copiado al portapapeles!");
+    navigator.clipboard.writeText(link).then(
+      () => {
+        setCopied(true);
+        toast.success("Enlace copiado al portapapeles");
+      },
+      () => toast.error("No se pudo copiar el enlace. Cópialo manualmente."),
+    );
   };
 
   const invitations = data?.data ?? [];
@@ -178,94 +182,108 @@ export default function InvitationsPage() {
     filter === "all" ? invitations : invitations.filter((i) => i.status === filter);
 
   return (
-    <div className="space-y-6 py-8">
-      <div>
+    <div className="flex flex-col gap-8 py-8">
+      <div className="flex flex-col gap-1">
         <h1 className="text-h1">Invitaciones</h1>
         <p className="text-body text-ink-muted">
-          Invita a otras personas a crear su cuenta en el sistema.
+          Cada invitación genera un enlace de un solo uso que caduca en 48
+          horas. Envíalo tú mismo a la persona invitada.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Nueva invitación</CardTitle>
-          <CardDescription>
-            Se genera un enlace de un solo uso que caduca en 48 horas. Envíalo tú
-            mismo a la persona invitada.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <form
-            className="flex flex-col sm:flex-row gap-3 sm:items-start"
-            onSubmit={handleSubmit((values) => create.mutate({ data: values }))}
-          >
-            <Field className="flex-1">
-              <FieldLabel htmlFor="invitation-email">
-                Correo electrónico
-              </FieldLabel>
-              <Input
-                id="invitation-email"
-                type="email"
-                placeholder="persona@ejemplo.com"
-                {...register("email")}
-              />
-              {errors.email && <FieldError>{errors.email.message}</FieldError>}
-            </Field>
+      <form
+        noValidate
+        aria-label="Nueva invitación"
+        className="flex flex-col gap-2"
+        onSubmit={handleSubmit((values) => create.mutate({ data: values }))}
+      >
+        <Label htmlFor="invitation-email">
+          Correo electrónico <RequiredMark />
+        </Label>
+        <div className="flex flex-col gap-3 md:flex-row">
+          <Input
+            id="invitation-email"
+            type="email"
+            autoComplete="off"
+            aria-required="true"
+            placeholder="persona@ejemplo.com"
+            className="md:flex-1"
+            {...invalidProps(errors.email, "invitation-email-error")}
+            {...register("email")}
+          />
+          <Button type="submit" loading={create.isPending}>
+            <Send aria-hidden="true" />
+            <span>Invitar</span>
+          </Button>
+        </div>
+        {errors.email && (
+          <FieldError id="invitation-email-error">
+            {errors.email.message}
+          </FieldError>
+        )}
+      </form>
+
+      {link && (
+        <div className="flex flex-col gap-2 border-y border-rule-strong py-4">
+          <Label htmlFor="invitation-link">Enlace de invitación</Label>
+          <div className="flex gap-2">
+            <Input
+              id="invitation-link"
+              readOnly
+              value={link}
+              onFocus={(e) => e.currentTarget.select()}
+            />
             <Button
-              type="submit"
-              loading={create.isPending}
-              className="sm:mt-6.75"
+              variant="outline"
+              size="icon"
+              onClick={handleCopy}
+              title="Copiar enlace"
+              aria-label="Copiar enlace"
             >
-              <Send />
-              <span>Invitar</span>
+              {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
             </Button>
-          </form>
-
-          {link && (
-            <div className="space-y-2 border-t border-rule pt-4">
-              <p className="text-body font-semibold">Enlace de invitación</p>
-              <div className="flex gap-2">
-                <Input readOnly value={link} aria-label="Enlace de invitación" />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleCopy}
-                  title="Copiar enlace"
-                  aria-label="Copiar enlace"
-                  className="shrink-0"
-                >
-                  {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-                </Button>
-              </div>
-              <p className="text-caption text-ink-muted">
-                Este enlace solo se muestra ahora y caduca en 48 horas.
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {isError && (
-        <ErrorState onRetry={() => refetch()} retrying={isFetching}>
-          Error al cargar las invitaciones
-        </ErrorState>
-      )}
-      {isSuccess && (
-        <div className="space-y-4">
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por estado">
-            {filters.map(({ value, label }) => (
-              <StatusChip
-                key={value}
-                pressed={filter === value}
-                onClick={() => setFilter(value)}
-              >
-                {label}
-              </StatusChip>
-            ))}
           </div>
-          <DataTable columns={columns} data={shown} />
+          <p className="text-small text-ink-muted">
+            Este enlace solo se muestra ahora y caduca en 48 horas.
+          </p>
         </div>
       )}
+
+      <section aria-label="Lista de invitaciones" className="flex flex-col gap-4">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por estado">
+          {filters.map(({ value, label }) => (
+            <StatusChip
+              key={value}
+              pressed={filter === value}
+              onClick={() => setFilter(value)}
+            >
+              {label}
+            </StatusChip>
+          ))}
+        </div>
+
+        {isPending && (
+          <SkeletonRules
+            label="Cargando invitaciones..."
+            widths={Array(4).fill("100%")}
+          />
+        )}
+        {isError && (
+          <ErrorState onRetry={() => refetch()} retrying={isFetching}>
+            Error al cargar las invitaciones
+          </ErrorState>
+        )}
+        {isSuccess && shown.length === 0 && (
+          <EmptyState className="border-y border-rule-strong py-3">
+            {filter === "all"
+              ? "Todavía no hay invitaciones."
+              : "Ninguna invitación tiene este estado."}
+          </EmptyState>
+        )}
+        {isSuccess && shown.length > 0 && (
+          <DataTable columns={columns} data={shown} />
+        )}
+      </section>
     </div>
   );
 }

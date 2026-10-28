@@ -859,7 +859,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 | PH-FE-1 | Existing implementation (migrated) | Done | REQ-FE-001, REQ-FE-002, REQ-FE-003, REQ-FE-004, REQ-FE-005, REQ-FE-007, REQ-FE-008, REQ-FE-009, REQ-FE-010, REQ-FE-011, REQ-FE-012, REQ-FE-014, REQ-FE-015, REQ-FE-017, REQ-FE-018, REQ-FE-019, REQ-FE-020, REQ-FE-021, REQ-FE-022, REQ-FE-023, REQ-FE-024, REQ-FE-025, REQ-FE-026, REQ-FE-027, REQ-FE-028, REQ-FE-029, REQ-FE-030, REQ-FE-031 |
 | PH-FE-3 | Redesign: dashboard (summary line, active-survey small multiples, survey list) | Done | REQ-FE-017, REQ-FE-018, REQ-FE-026, REQ-FE-032 |
 | PH-FE-4 | Redesign: create survey and survey details (header, tabs, answers, statistics) | Done | REQ-FE-002, REQ-FE-019, REQ-FE-021, REQ-FE-022, REQ-FE-033, REQ-BRAND-019, REQ-BRAND-028 |
-| PH-FE-5 | Redesign: invitations, login and accept invitation | Planned | REQ-FE-015, REQ-FE-027, REQ-FE-028, REQ-FE-030, REQ-BRAND-023, REQ-BRAND-025 |
+| PH-FE-5 | Redesign: invitations, login and accept invitation | Done | REQ-FE-015, REQ-FE-027, REQ-FE-028, REQ-FE-030, REQ-BRAND-023, REQ-BRAND-025 |
 | PH-FE-6 | Redesign: public answering page | Planned | REQ-FE-002, REQ-FE-023, REQ-FE-024, REQ-FE-034 |
 
 The former PH-FE-2 (Spanish loading texts "Cargando panel..." and "Redirigiendo...") is delivered by PH-BRAND-3, which rewrites the files involved; REQ-FE-001, REQ-FE-002, REQ-FE-006, REQ-FE-013, REQ-FE-016, REQ-FE-029 and REQ-FE-031 are covered there ([BRAND.md](BRAND.md)). The redesign task's phase order is in [BRAND.md](BRAND.md), Implementation phases.

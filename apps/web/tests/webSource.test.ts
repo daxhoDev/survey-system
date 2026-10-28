@@ -135,6 +135,55 @@ describe("icons (REQ-BRAND-017)", () => {
   });
 });
 
+describe("former logo assets (REQ-BRAND-025)", () => {
+  const formerAssets = [
+    "isotype-gradient.svg",
+    "isotype-midnight.svg",
+    "isotype-white.svg",
+    "logo-light.svg",
+    "logo-dark.svg",
+    "logo-mono-midnight.svg",
+    "logo-mono-white.svg",
+  ];
+
+  it("AC-BRAND-025-1: the seven v1.0 logo files are gone and nothing references them", () => {
+    for (const name of formerAssets) {
+      expect(existsSync(join(root, "src/assets/brand", name)), name).toBe(false);
+    }
+    const names = new RegExp(formerAssets.map((n) => n.replace(/\./g, "\\.")).join("|"));
+    expect(matches(src, names)).toEqual([]);
+  });
+
+  it("AC-BRAND-025-1: the v1.0 gradient colors appear only in the interim app icons", () => {
+    const all = (function walk(dir: string): string[] {
+      const abs = join(root, dir);
+      return readdirSync(abs).flatMap((name) => {
+        const path = join(dir, name);
+        return statSync(join(root, path)).isDirectory() ? walk(path) : [path];
+      });
+    })("src");
+    const interim = ["src/assets/brand/app-icon-light.svg", "src/assets/brand/app-icon-dark.svg"];
+    const users = all
+      .filter((p) => !interim.includes(p))
+      .filter((p) => /#(4AEEC8|12B2D6|2FDDB8|17C9AB)\b/i.test(read(p)));
+    expect(users).toEqual([]);
+  });
+});
+
+describe("pages redesigned in PH-FE-5 (DEV-005)", () => {
+  it("AC-FE-002-3 (card, PH-FE-5 part): the login form, invitations and accept-invitation pages no longer use ui/card", () => {
+    for (const path of [
+      "src/components/login-form.tsx",
+      "src/pages/InvitationsPage.tsx",
+      "src/pages/AcceptInvitationPage.tsx",
+      "src/pages/LoginPage.tsx",
+      "src/pages/AuthPage.tsx",
+    ]) {
+      expect(read(path), path).not.toMatch(/ui\/card|\bCard\w*\b/);
+    }
+  });
+});
+
 describe("app icon and favicon (REQ-BRAND-026)", () => {
   it("AC-BRAND-026-1: index.html links /favicon.svg and the 32 px /favicon.png", () => {
     expect(indexHtml).toMatch(/<link rel="icon" type="image\/svg\+xml" href="\/favicon\.svg" \/>/);
@@ -184,9 +233,8 @@ describe("shared components (REQ-FE-002, REQ-BRAND-027)", () => {
     expect(deps.recharts).toBeUndefined();
   });
 
-  // ui/card.tsx is still used by pages redesigned in PH-FE-5 and PH-FE-6
-  // (login form, invitations, accept invitation, answering page); removed
-  // in PH-FE-6 (DEV-005).
+  // ui/card.tsx is still used by the answering page, redesigned in PH-FE-6,
+  // which removes it (DEV-005).
   it.skip("AC-FE-002-3 (card): the card primitive is gone", () => {
     expect(existsSync(join(root, "src/components/ui/card.tsx"))).toBe(false);
   });

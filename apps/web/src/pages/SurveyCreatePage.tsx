@@ -22,6 +22,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { FieldError } from "@/components/ui/field";
+import RequiredMark from "@/components/RequiredMark";
+import { invalidProps } from "@/lib/form";
 import { EmptyState } from "@/components/DataStates";
 
 interface OptionValue {
@@ -42,20 +44,6 @@ interface CreateSurveyFormValues {
 
 const isSelect = (type: QuestionValue["type"]) =>
   type === "SINGLE_SELECT" || type === "MULTI_SELECT";
-
-// ARIA wiring of a field and its client-side error (REQ-BRAND-019).
-const invalidProps = (error: FormFieldError | undefined, errorId: string) =>
-  error
-    ? { "aria-invalid": true as const, "aria-describedby": errorId }
-    : {};
-
-function RequiredMark() {
-  return (
-    <span aria-hidden="true" className="text-rust">
-      *
-    </span>
-  );
-}
 
 interface QuestionOptionsProps {
   control: Control<CreateSurveyFormValues>;
