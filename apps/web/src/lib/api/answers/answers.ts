@@ -24,6 +24,7 @@ import type {
   CreateSurveyAnswerBody,
   GetAllSurveyAnswers200,
   GetSurveyAnswerById200,
+  GetSurveyAnsweredStatus200,
   Problem
 } from '../sondixAPI.schemas';
 
@@ -337,3 +338,80 @@ export const useDeleteSurveyAnswerById = <TError = Problem,
       > => {
       return useMutation(getDeleteSurveyAnswerByIdMutationOptions(options));
     }
+    export const getGetSurveyAnsweredStatusUrl = (slug: string,) => {
+
+
+
+
+  return `/api/v1/surveys/${slug}/answered`
+}
+
+/**
+ * Public, no session. Unknown, deleted and inactive surveys return the same 404 (REQ-ANS-013).
+ * @summary Check whether the requester's IP already answered a survey
+ */
+export const getSurveyAnsweredStatus = async (slug: string, options?: RequestInit): Promise<GetSurveyAnsweredStatus200> => {
+
+  return customInstance<GetSurveyAnsweredStatus200>(getGetSurveyAnsweredStatusUrl(slug),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSurveyAnsweredStatusQueryKey = (slug: string,) => {
+    return [
+    `/api/v1/surveys/${slug}/answered`
+    ] as const;
+    }
+
+
+export const getGetSurveyAnsweredStatusQueryOptions = <TData = Awaited<ReturnType<typeof getSurveyAnsweredStatus>>, TError = Problem>(slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyAnsweredStatus>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSurveyAnsweredStatusQueryKey(slug);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSurveyAnsweredStatus>>> = ({ signal }) => getSurveyAnsweredStatus(slug, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: slug !== null && slug !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSurveyAnsweredStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSurveyAnsweredStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getSurveyAnsweredStatus>>>
+export type GetSurveyAnsweredStatusQueryError = Problem
+
+
+/**
+ * @summary Check whether the requester's IP already answered a survey
+ */
+
+export function useGetSurveyAnsweredStatus<TData = Awaited<ReturnType<typeof getSurveyAnsweredStatus>>, TError = Problem>(
+ slug: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSurveyAnsweredStatus>>, TError, TData>, request?: SecondParameter<typeof customInstance>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSurveyAnsweredStatusQueryOptions(slug,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+

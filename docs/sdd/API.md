@@ -4,9 +4,9 @@
 
 - **Module:** API conventions
 - **Module code:** API
-- **Version:** v1.1
+- **Version:** v1.2
 - **Status:** Approved
-- **Last updated:** 2026-10-27
+- **Last updated:** 2026-10-28
 
 ## Description
 
@@ -41,6 +41,7 @@ All endpoints live under `/api/v1` (REQ-API-001).
 | GET | `/api/v1/surveys/:slug/answers` | required | [ANS](ANSWERS.md) |
 | GET | `/api/v1/surveys/:slug/answers/:id` | required | [ANS](ANSWERS.md) |
 | DELETE | `/api/v1/surveys/:slug/answers/:id` | required | [ANS](ANSWERS.md) |
+| GET | `/api/v1/surveys/:slug/answered` | public | [ANS](ANSWERS.md) |
 | GET | `/api/v1/docs` | public | Swagger UI |
 | GET | `/api/v1/docs-raw` | public | OpenAPI 3.0 JSON |
 

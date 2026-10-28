@@ -4,6 +4,7 @@ import AppError from "../utils/appError.js";
 import UniqueViolationError from "../utils/uniqueViolationError.js";
 import {
   type Answer,
+  type AnsweredStatus,
   type CreateAnswerData,
   type IAnswerRepository,
   type IAnswerService,
@@ -82,6 +83,21 @@ export default class AnswerService implements IAnswerService {
     }
   }
 
+  // REQ-ANS-013: unknown, deleted and inactive surveys get the same 404.
+  async getAnsweredStatus(
+    slug: string,
+    originIp: string,
+  ): Promise<AnsweredStatus> {
+    const survey = await this.surveyRepo.getBySlug(slug);
+    if (!survey || !survey.isActive) throw this.surveyNotFoundError();
+
+    const existingIp = await this.answerRepo.getIpBySurveyIdAndIp(
+      survey.id,
+      originIp,
+    );
+    return { answered: existingIp !== null };
+  }
+
   private alreadyAnsweredError() {
     return new AppError(
       "You already submitted an answer",
@@ -97,14 +113,17 @@ export default class AnswerService implements IAnswerService {
 
   private async getSurveyBySlug(slug: string): Promise<Survey> {
     const survey = await this.surveyRepo.getBySlug(slug);
-    if (!survey)
-      throw new AppError(
-        "Not found",
-        "The requested survey doesn't exist",
-        404,
-      );
+    if (!survey) throw this.surveyNotFoundError();
 
     return survey;
+  }
+
+  private surveyNotFoundError() {
+    return new AppError(
+      "Not found",
+      "The requested survey doesn't exist",
+      404,
+    );
   }
 
   validateAnswerCreation(

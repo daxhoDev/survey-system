@@ -11,7 +11,11 @@ import {
   getGetSurveyBySlugQueryKey,
   useGetSurveyBySlug,
 } from "@/lib/api/surveys/surveys";
-import { useCreateSurveyAnswer } from "@/lib/api/answers/answers";
+import {
+  getGetSurveyAnsweredStatusQueryKey,
+  useCreateSurveyAnswer,
+  useGetSurveyAnsweredStatus,
+} from "@/lib/api/answers/answers";
 import type {
   CreateSurveyAnswerBodyResponsesItem,
   SurveyQuestionsItem,
@@ -24,11 +28,13 @@ import { FieldError } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { ErrorState } from "@/components/DataStates";
 import Logo from "@/components/Logo";
 import RequiredMark from "@/components/RequiredMark";
 
 // Public answering page `/surveys/:slug` (REQ-FE-023, REQ-FE-024): a
-// questionnaire sheet in one reading column (REQ-FE-034).
+// questionnaire sheet in one reading column (REQ-FE-034), guarded by the
+// answered status of the visitor's IP (REQ-FE-035).
 
 const REQUIRED_MESSAGE = "Esta pregunta es obligatoria";
 
@@ -122,12 +128,25 @@ function SheetSkeleton() {
 
 export default function SurveyAnsweringPage() {
   const { slug = "" } = useParams<{ slug: string }>();
-  const thanksHeading = useRef<HTMLHeadingElement>(null);
+  // The heading of the thank-you or answered screen, focused when shown.
+  const screenHeading = useRef<HTMLHeadingElement>(null);
 
   const { data, isLoading, isError } = useGetSurveyBySlug(slug, {
     query: { enabled: !!slug, queryKey: getGetSurveyBySlugQueryKey(slug) },
   });
   const survey = data?.data;
+
+  // Sent in parallel with the survey request, once per page load: only
+  // "Reintentar" runs it again (REQ-FE-035). Retries follow the app's rule.
+  const answeredCheck = useGetSurveyAnsweredStatus(slug, {
+    query: {
+      enabled: !!slug,
+      queryKey: getGetSurveyAnsweredStatusQueryKey(slug),
+      staleTime: Infinity,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  });
 
   const {
     control,
@@ -143,17 +162,44 @@ export default function SurveyAnsweringPage() {
   const submitAnswer = useCreateSurveyAnswer({
     mutation: {
       onError(error) {
-        toast.error(error.detail);
+        // A 403 means the IP already answered: the answered screen replaces
+        // the form instead of a toast (REQ-FE-023, DEV-007).
+        if (error.status !== 403) toast.error(error.detail);
       },
     },
   });
 
-  // The thank-you heading takes the focus once the answers are sent.
-  useEffect(() => {
-    if (submitAnswer.isSuccess) thanksHeading.current?.focus();
-  }, [submitAnswer.isSuccess]);
+  // What the page shows, in the precedence order of REQ-FE-035.
+  const checkFailedWith404 = answeredCheck.error?.status === 404;
+  // A re-run after a failed check: the query drops back to "pending" while it
+  // has no data, but the page keeps the check-error state with "Reintentar"
+  // in its loading state until the re-run settles.
+  const checkRetrying =
+    answeredCheck.errorUpdateCount > 0 &&
+    answeredCheck.isFetching &&
+    answeredCheck.data === undefined;
+  const view =
+    isError || !slug
+      ? "notFound"
+      : isLoading || (answeredCheck.isPending && !checkRetrying)
+        ? "loading"
+        : submitAnswer.isSuccess
+          ? "thanks"
+          : submitAnswer.error?.status === 403 ||
+              answeredCheck.data?.data.answered === true
+            ? "answered"
+            : checkRetrying || (answeredCheck.isError && !checkFailedWith404)
+              ? "checkError"
+              : "form";
 
-  if (isLoading) {
+  // The thank-you and answered headings take the focus when shown.
+  useEffect(() => {
+    if (view === "thanks" || view === "answered") {
+      screenHeading.current?.focus();
+    }
+  }, [view]);
+
+  if (view === "loading") {
     return (
       <Sheet>
         <SheetSkeleton />
@@ -162,7 +208,7 @@ export default function SurveyAnsweringPage() {
   }
 
   // Missing and inactive surveys look the same (REQ-FE-024).
-  if (isError || !survey) {
+  if (view === "notFound" || !survey) {
     return (
       <Sheet>
         <h1 className="text-h1">Encuesta no encontrada</h1>
@@ -174,18 +220,45 @@ export default function SurveyAnsweringPage() {
     );
   }
 
-  if (submitAnswer.isSuccess) {
+  if (view === "thanks") {
     return (
       <Sheet>
         <p className="text-h1 text-balance">{survey.name}</p>
         <StrongRule className="mt-6 mb-8" />
-        <h1 ref={thanksHeading} tabIndex={-1} className="text-h2">
+        <h1 ref={screenHeading} tabIndex={-1} className="text-h2">
           ¡Muchas gracias!
         </h1>
         <p className="mt-3 text-body-lg text-ink">
           Tus respuestas a la encuesta {survey.name} han sido enviadas
           correctamente.
         </p>
+      </Sheet>
+    );
+  }
+
+  if (view === "answered") {
+    return (
+      <Sheet>
+        <p className="text-h1 text-balance">{survey.name}</p>
+        <StrongRule className="mt-6 mb-8" />
+        <h1 ref={screenHeading} tabIndex={-1} className="text-h2">
+          Tu IP ya ha respondido a esta encuesta
+        </h1>
+      </Sheet>
+    );
+  }
+
+  if (view === "checkError") {
+    return (
+      <Sheet>
+        <p className="text-h1 text-balance">{survey.name}</p>
+        <StrongRule className="mt-6 mb-8" />
+        <ErrorState
+          onRetry={() => void answeredCheck.refetch()}
+          retrying={answeredCheck.isFetching}
+        >
+          No se pudo comprobar si tu IP ya ha respondido a esta encuesta.
+        </ErrorState>
       </Sheet>
     );
   }

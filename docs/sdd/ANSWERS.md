@@ -4,19 +4,19 @@
 
 - **Module:** Answers
 - **Module code:** ANS
-- **Version:** v1.0
+- **Version:** v1.1
 - **Status:** Approved
-- **Last updated:** 2026-10-27
+- **Last updated:** 2026-10-28
 
 ## Description
 
-Submitting and managing survey answers: validation rules, IP uniqueness and survey scoping.
+Submitting and managing survey answers: validation rules, IP uniqueness and survey scoping, and the public answered-status check the answering page uses before showing a survey.
 
 Requirement numbers keep the legacy IDs: legacy `ANS-07` is `REQ-ANS-007`.
 
 Related: [DATA_MODEL.md](DATA_MODEL.md), [API.md](API.md), [SURVEYS.md](SURVEYS.md), [STATS.md](STATS.md), [FRONTEND.md](FRONTEND.md).
 
-Code: `apps/api/src/routes/answerRouter.ts` (mounted at `/api/v1/surveys/:slug/answers`, `mergeParams: true`), `controllers/answerController.ts`, `services/answerService.ts`, `repositories/answerRepository.ts`. Schema: `packages/schemas/src/answerSchema.ts`.
+Code: `apps/api/src/routes/answerRouter.ts` (mounted at `/api/v1/surveys/:slug/answers`, `mergeParams: true`), `controllers/answerController.ts`, `services/answerService.ts`, `repositories/answerRepository.ts`. The answered-status route `/api/v1/surveys/:slug/answered` is declared in `apps/api/src/routes/surveyRouter.ts` and handled by the same answer controller, service and repository. Schema: `packages/schemas/src/answerSchema.ts`.
 
 ### Answer resource
 
@@ -39,6 +39,7 @@ Code: `apps/api/src/routes/answerRouter.ts` (mounted at `/api/v1/surveys/:slug/a
 | GET | `/api/v1/surveys/:slug/answers` | required | REQ-ANS-009 |
 | GET | `/api/v1/surveys/:slug/answers/:id` | required | REQ-ANS-010 |
 | DELETE | `/api/v1/surveys/:slug/answers/:id` | required | REQ-ANS-011 |
+| GET | `/api/v1/surveys/:slug/answered` | public | REQ-ANS-013 |
 
 `POST` body (`createAnswerSchema`, strict): `{ responses: Response[] }` where each response is `{ id: int, content: string (min 2) | number[] (non-empty) }` ([DATA_MODEL.md](DATA_MODEL.md), JSON documents). Processing order: body shape (REQ-ANS-001), survey resolution (REQ-ANS-002, REQ-ANS-005), IP uniqueness (REQ-ANS-003, REQ-ANS-004), semantic validation (REQ-ANS-006), insert, response (REQ-ANS-012).
 
@@ -261,8 +262,50 @@ A successful submission responds `201 { data: Answer }`.
   - **When** it is posted
   - **Then** the response is `201` with `{ data: Answer }` holding `id` (UUID v7), `surveyId`, `responses`, `originIp`, `createdAt` and `deletedAt: null`
 
+### REQ-ANS-013 — Answered status of the requester's IP
+
+`GET /api/v1/surveys/:slug/answered` (public, no session: a `jwt` cookie, if sent, is ignored) tells the requester whether its IP has already answered the survey. It is a read-only convenience for the answering page (REQ-FE-035); the real guarantee stays the submit check of REQ-ANS-003.
+
+- **Survey resolution:** the survey is resolved by `:slug` exactly as for a submission (REQ-ANS-002, REQ-ANS-005): an unknown, soft-deleted or inactive survey → `404 Not found` with detail "The requested survey doesn't exist", the same response in all three cases.
+- **Rule:** `answered` is `true` if and only if a non-deleted answer of that survey has `originIp` equal to the requester's IP, the same lookup and the same IP as REQ-ANS-003 and REQ-ANS-004: `req.ip` (empty string if unavailable) under `TRUST_PROXY` (REQ-ANS-007).
+- **Response:** `200 { data: { answered: boolean } }` (envelope, REQ-API-005). The response shape is `answeredStatusSchema` in `packages/schemas/src/answerSchema.ts`, used for the response and for its OpenAPI registration (REQ-ARCH-003).
+- **Rate limit:** only the global limiter applies (REQ-API-020); there is no dedicated limiter.
+- **Contract:** registered in `apps/api/src/lib/openapi.ts` with the tag `Answers`, `operationId` `getSurveyAnsweredStatus`, no security, the `404` problem and the always-added `429` and `500` (REQ-API-029); the web client is regenerated (REQ-API-032), giving the hook `useGetSurveyAnsweredStatus`.
+
+**Acceptance criteria**
+
+- **AC-ANS-013-1**
+  - **Given** a non-deleted answer from IP X for active survey S
+  - **When** IP X calls `GET /api/v1/surveys/:slug/answered` for S
+  - **Then** the response is `200 { data: { answered: true } }`
+- **AC-ANS-013-2**
+  - **Given** an active survey S with no answer from IP X (it has answers from other IPs, and X answered another survey T)
+  - **When** IP X calls the endpoint for S
+  - **Then** the response is `200 { data: { answered: false } }`
+- **AC-ANS-013-3**
+  - **Given** IP X's only answer to active survey S was soft-deleted
+  - **When** IP X calls the endpoint for S
+  - **Then** the response is `200 { data: { answered: false } }`
+- **AC-ANS-013-4**
+  - **Given** a slug that does not exist, belongs to a soft-deleted survey, or belongs to an inactive survey
+  - **When** the endpoint is called, with or without a valid `jwt` cookie
+  - **Then** the response is `404 Not found` with detail "The requested survey doesn't exist", identical in the three cases
+- **AC-ANS-013-5**
+  - **Given** `TRUST_PROXY=1` and an answer to active survey S stored with `originIp` `<client>`
+  - **When** the endpoint is called for S through one proxy with `X-Forwarded-For: <client>`
+  - **Then** the response is `200 { data: { answered: true } }`; with `TRUST_PROXY=0` the same request is evaluated for the socket address, not the header value
+- **AC-ANS-013-6**
+  - **Given** any call to the endpoint
+  - **When** it completes
+  - **Then** no answer or survey row is created or changed
+- **AC-ANS-013-7**
+  - **Given** the OpenAPI document
+  - **When** `GET /surveys/{slug}/answered` is read
+  - **Then** it has the tag `Answers`, the `operationId` `getSurveyAnsweredStatus`, no `security`, a `200` response `{ data: { answered: boolean } }`, and the problems `404`, `429` and `500`
+
 ## Implementation phases
 
 | Phase | Title | Status | REQ-IDs covered |
 |---|---|---|---|
 | PH-ANS-1 | Existing implementation (migrated) | Done | REQ-ANS-001, REQ-ANS-002, REQ-ANS-003, REQ-ANS-004, REQ-ANS-005, REQ-ANS-006, REQ-ANS-007, REQ-ANS-008, REQ-ANS-009, REQ-ANS-010, REQ-ANS-011, REQ-ANS-012 |
+| PH-ANS-2 | Answered-status endpoint | Done | REQ-ANS-013, REQ-API-029, REQ-API-032 |

@@ -278,6 +278,10 @@ export type AnswerWithSurvey = Answer & ({
 } | null;
 });
 
+export interface AnsweredStatus {
+  answered: boolean;
+}
+
 export type LoginUser200 = {
   data: UserAccount;
 };
@@ -445,5 +449,9 @@ export type GetAllSurveyAnswers200 = {
 
 export type GetSurveyAnswerById200 = {
   data: AnswerWithSurvey;
+};
+
+export type GetSurveyAnsweredStatus200 = {
+  data: AnsweredStatus;
 };
 

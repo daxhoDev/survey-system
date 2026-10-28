@@ -255,3 +255,53 @@ describe("AnswerService answer routes (ANS-08)", () => {
     expect(answerRepo.deleteById).toHaveBeenCalledWith(buildAnswer().id);
   });
 });
+
+describe("AnswerService.getAnsweredStatus (REQ-ANS-013)", () => {
+  it("AC-ANS-013-1: answered is true when a non-deleted answer of the survey has the IP", async () => {
+    answerRepo.getIpBySurveyIdAndIp.mockResolvedValue({ originIp: "1.1.1.1" });
+
+    await expect(
+      service.getAnsweredStatus(active.slug, "1.1.1.1"),
+    ).resolves.toEqual({ answered: true });
+    expect(answerRepo.getIpBySurveyIdAndIp).toHaveBeenCalledWith(
+      active.id,
+      "1.1.1.1",
+    );
+  });
+
+  it("AC-ANS-013-2, AC-ANS-013-3: answered is false when the lookup finds no non-deleted answer", async () => {
+    await expect(
+      service.getAnsweredStatus(active.slug, "1.1.1.1"),
+    ).resolves.toEqual({ answered: false });
+  });
+
+  it("AC-ANS-013-4: unknown and inactive surveys get the same 404, before any IP lookup", async () => {
+    const missing = await service
+      .getAnsweredStatus("missing", "1.1.1.1")
+      .catch((e) => e);
+    const inactiveError = await service
+      .getAnsweredStatus(inactive.slug, "1.1.1.1")
+      .catch((e) => e);
+
+    expect(missing).toMatchObject({
+      status: 404,
+      title: "Not found",
+      detail: "The requested survey doesn't exist",
+    });
+    expect(inactiveError).toMatchObject({
+      status: missing.status,
+      title: missing.title,
+      detail: missing.detail,
+    });
+    expect(answerRepo.getIpBySurveyIdAndIp).not.toHaveBeenCalled();
+  });
+
+  it("AC-ANS-013-6: never writes", async () => {
+    answerRepo.getIpBySurveyIdAndIp.mockResolvedValue({ originIp: "1.1.1.1" });
+    await service.getAnsweredStatus(active.slug, "1.1.1.1");
+    await service.getAnsweredStatus("missing", "1.1.1.1").catch(() => undefined);
+
+    expect(answerRepo.createOne).not.toHaveBeenCalled();
+    expect(answerRepo.deleteById).not.toHaveBeenCalled();
+  });
+});

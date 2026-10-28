@@ -51,4 +51,11 @@ export const answerWithSurveySchema = answerSchema
   })
   .openapi("AnswerWithSurvey");
 
+// Whether the requester's IP already answered a survey (REQ-ANS-013).
+export const answeredStatusSchema = z
+  .strictObject({
+    answered: z.boolean().openapi({ example: false }),
+  })
+  .openapi("AnsweredStatus");
+
 export type CreateAnswerSchema = z.infer<typeof createAnswerSchema>;
