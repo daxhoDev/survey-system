@@ -1,1 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Sondix"><rect width="100" height="100" rx="22.5" fill="#101827"/><g transform="translate(20 21.9) scale(0.5623)"><g fill="none" stroke="#FFFFFF" stroke-width="12.4" stroke-linecap="round"><path d="M41.3 43.4 L61.3 21 C72.3 7.7 85.7 3.9 94.3 7.5 C100 9.9 101.4 14.3 99.9 17.5"/><path d="M65.3 56.6 L45.3 79 C34.4 92.3 21 96.1 12.4 92.5 C6.6 90.1 5.2 85.7 6.8 82.5"/></g><g fill="#FFFFFF"><circle cx="11.6" cy="55.6" r="11.4"/><circle cx="95.1" cy="44.4" r="11.4"/></g></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 112" role="img" aria-label="Sondix">
+  <rect x="0" y="0" width="112" height="112" rx="24" fill="#141414"/>
+  <g transform="translate(18 18) scale(1.5833333)">
+    <rect x="3" y="3" width="42" height="42" fill="none" stroke="#EDEFF1" stroke-width="3"/>
+    <rect x="10" y="12" width="14" height="5" fill="#EDEFF1"/>
+    <rect x="10" y="28" width="28" height="8" fill="#2E3236"/>
+    <rect x="10" y="28" width="19" height="8" fill="#5CBDBD"/>
+  </g>
+</svg>

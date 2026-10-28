@@ -2,7 +2,7 @@
 
 # Conventions
 
-**Version:** v0.2
+**Version:** v0.3
 
 Project-wide conventions, filled in as the user decides them.
 
@@ -47,7 +47,7 @@ apps/web            Web app
   tests/            web tests (see Testing)
 packages/schemas    shared Zod schemas (src/, compiled to dist/)
 docker/             local PostgreSQL init script
-scripts/            developer scripts (environment preflight: preflight.sh)
+scripts/            developer scripts (environment preflight: preflight.sh; PNG icon generator: brand-icons.ts)
   tests/            script tests (see Testing)
 docs/sdd/           specification (this folder)
 docs/brand/         brand reference artwork
@@ -55,12 +55,12 @@ docs/brand/         brand reference artwork
 
 ## Testing
 
-- **Runner:** Vitest in both apps; `pnpm test` at the root runs every workspace ([DEV_WORKFLOW.md](DEV_WORKFLOW.md), REQ-DEVWF-002). Developer scripts in `scripts/` are tested with plain Bash test scripts, with no test framework or new dependency (see Scripts below).
+- **Runner:** Vitest in both apps; `pnpm test` at the root runs every workspace ([DEV_WORKFLOW.md](DEV_WORKFLOW.md), REQ-DEVWF-002). Developer scripts in `scripts/` are tested with plain Bash test scripts, with no test framework or new dependency (see Scripts below). Developer scripts are Bash (`.sh`) or TypeScript run directly by Node.js (`node scripts/<name>.ts`, erasable syntax only, Node.js built-in modules only).
 - **Locations:** test files live outside `src`:
   - API: `apps/api/tests/unit` (Vitest project `unit`, no database), `apps/api/tests/db` (Vitest project `db`, real PostgreSQL through `TEST_DATABASE_URL`) and shared helpers in `apps/api/tests/helpers`.
   - Web: `apps/web/tests` (jsdom + Testing Library), shared helpers in `apps/web/tests/helpers.tsx` and `apps/web/tests/setup.ts`.
-  - Scripts: `scripts/tests`. Each test script runs the script under test with stub executables (e.g. fake `node` and `pnpm`) placed first on a temporary `PATH`, and checks its output (e.g. the summary lines) and exit code. Run from the repository root, e.g. `bash scripts/tests/preflight.test.sh`; it exits `0` only if every case passed. These tests are not part of `pnpm test`, so the preflight (whose check 3 runs `pnpm test`) never runs its own tests.
-- **Naming:** `<Subject>.test.ts` or `<Subject>.test.tsx`, named after the unit, component or page under test (e.g. `authService.test.ts`, `LoginPage.test.tsx`). Script tests: `<script>.test.sh`, named after the script under test (e.g. `preflight.test.sh` for `scripts/preflight.sh`).
+  - Scripts: `scripts/tests`. Each test script runs the script under test and checks its output and exit code: with stub executables (e.g. fake `node` and `pnpm`) placed first on a temporary `PATH` when the script calls other tools (e.g. the preflight's summary lines), or for real into a temporary directory when it only writes files (e.g. `brand-icons.test.sh` compares the generated icons byte-for-byte with the committed ones and checks the PNG sizes). Run from the repository root, e.g. `bash scripts/tests/preflight.test.sh`; it exits `0` only if every case passed. These tests are not part of `pnpm test`, so the preflight (whose check 3 runs `pnpm test`) never runs its own tests.
+- **Naming:** `<Subject>.test.ts` or `<Subject>.test.tsx`, named after the unit, component or page under test (e.g. `authService.test.ts`, `LoginPage.test.tsx`). Script tests: `<script>.test.sh`, named after the script under test without its extension (e.g. `preflight.test.sh` for `scripts/preflight.sh`, `brand-icons.test.sh` for `scripts/brand-icons.ts`).
 - **Test database:** the API `db` project leaves the test database (`TEST_DATABASE_URL`) empty when it finishes, whether its tests passed or failed. It applies migrations with `prisma migrate deploy` and never uses `prisma migrate reset` ([DEV_WORKFLOW.md](DEV_WORKFLOW.md), REQ-DEVWF-002).
 - **Requirement references:** each test names the requirement IDs it covers. Existing tests use the legacy IDs (e.g. `AUTH-30`), which resolve through the "Legacy ID" line of each requirement; new tests use `REQ-<CODE>-NNN` / `AC-<CODE>-NNN-k`.
 

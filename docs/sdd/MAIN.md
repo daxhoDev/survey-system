@@ -14,7 +14,7 @@ It is a pnpm monorepo with a REST API (`apps/api`: Express 5, Prisma 7, PostgreS
 
 | Document | Purpose | Version |
 |---|---|---|
-| [CONVENTIONS.md](CONVENTIONS.md) | Project-wide conventions (stack, style, structure, testing, environment preflight, dependencies) | v0.2 |
+| [CONVENTIONS.md](CONVENTIONS.md) | Project-wide conventions (stack, style, structure, testing, environment preflight, dependencies) | v0.3 |
 | [CHANGELOG.md](CHANGELOG.md) | Change history, references only | — |
 | [DEVIATIONS.md](DEVIATIONS.md) | Record of user decisions that contradict approved specs | — |
 | [_TEMPLATE.md](_TEMPLATE.md) | Spec module template (template, not a module) | — |
@@ -32,7 +32,7 @@ It is a pnpm monorepo with a REST API (`apps/api`: Express 5, Prisma 7, PostgreS
 | [SURVEYS.md](SURVEYS.md) | SURV | Survey resource, lifecycle (activation and locking), CRUD and listing | v1.1 | Approved |
 | [ANSWERS.md](ANSWERS.md) | ANS | Submitting and managing answers, validation rules, IP uniqueness | v1.0 | Approved |
 | [STATS.md](STATS.md) | STAT | Per-survey statistics and the survey summary counters | v1.1 | Approved |
-| [FRONTEND.md](FRONTEND.md) | FE | Web app stack, API client, routes, pages and UI conventions | v3.1 | Approved |
-| [BRAND.md](BRAND.md) | BRAND | Sondix name, identity and voice, and the web app's visual system: color tokens, light and dark themes, typography, shape, tables, small multiples, motion, accessibility targets and logo | v3.0 | Approved |
-| [DEV_WORKFLOW.md](DEV_WORKFLOW.md) | DEVWF | Prerequisites, commands, code generation, migrations, testing setup and deployment | v2.0 | Approved |
+| [FRONTEND.md](FRONTEND.md) | FE | Web app stack, API client, routes, pages and UI conventions | v4.0 | Approved |
+| [BRAND.md](BRAND.md) | BRAND | Sondix name, identity and voice, and the web app's visual system: color tokens, light and dark themes, typography, shape, tables, small multiples, motion, accessibility targets and logo | v4.0 | Approved |
+| [DEV_WORKFLOW.md](DEV_WORKFLOW.md) | DEVWF | Prerequisites, commands, code generation, migrations, testing setup and deployment | v2.1 | Approved |
 | [ENV.md](ENV.md) | ENV | Environment preflight script: runtime checks, test-suite check, status summary and exit-code contract | v1.0 | Approved |

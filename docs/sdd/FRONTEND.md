@@ -4,7 +4,7 @@
 
 - **Module:** Frontend
 - **Module code:** FE
-- **Version:** v3.1
+- **Version:** v4.0
 - **Status:** Approved
 - **Last updated:** 2026-10-28
 
@@ -690,7 +690,7 @@ Legacy ID: FE-28.
 
 Legacy ID: FE-29.
 
-The top bar offers the theme selector (REQ-BRAND-011): the "Tema" button from `md`, and the "Tema" radio group in the menu sheet below `md` (REQ-FE-016). The logo (REQ-BRAND-021) is shown in the top bar, the menu sheet, the auth page frame (REQ-FE-030) and, with its footer variant (16 px, `--ink-muted`), the answering page footer (REQ-FE-034); no separate "Sondix" text is rendered next to it.
+The top bar offers the theme selector (REQ-BRAND-011): the "Tema" button from `md`, and the "Tema" radio group in the menu sheet below `md` (REQ-FE-016). The logo (REQ-BRAND-021) is shown in the top bar, the menu sheet, the auth page frame (REQ-FE-030) and, with its footer variant (16 px, muted, no teal), the answering page footer (REQ-FE-034); no separate "Sondix" text is rendered next to it.
 
 **Acceptance criteria**
 
@@ -823,7 +823,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 - **Thank-you state:** the form is replaced by the survey name, a 2 px `--rule-strong` rule, "¡Muchas gracias!" (`text-h2`) and "Tus respuestas a la encuesta {name} han sido enviadas correctamente."; focus moves to the heading.
 - **Not found:** the same frame with "Encuesta no encontrada" (`text-h1`) and "La encuesta que estás intentando acceder no existe o no está disponible." (REQ-FE-024).
 - **Loading:** the frame with skeleton rules in the shape of the header and two questions (REQ-BRAND-033).
-- **Footer:** the logo at the bottom of the column, as `components/Logo.tsx` with `variant="footer"`: "Sondix" in Work Sans 700 at 16 px in `--ink-muted` (REQ-BRAND-021, DEV-006). This is the only place that uses the footer variant.
+- **Footer:** the logo at the bottom of the column, as `components/Logo.tsx` with `variant="footer"`: the 16 px isotype in `--ink-muted` on a `--rule` track, with no teal, and "Sondix" in Work Sans 700 at 16 px in `--ink-muted` (REQ-BRAND-021, DEV-006). This is the only place that uses the footer variant.
 
 **Acceptance criteria**
 
@@ -850,7 +850,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 - **AC-FE-034-6**
   - **Given** the page
   - **When** it renders
-  - **Then** the logo is shown once, in the footer, as `components/Logo.tsx` with `variant="footer"`: "Sondix" in Work Sans 700 at 16 px in `--ink-muted`
+  - **Then** the logo is shown once, in the footer, as `components/Logo.tsx` with `variant="footer"`: the 16 px muted isotype and "Sondix" in Work Sans 700 at 16 px in `--ink-muted` (as verified by AC-BRAND-021-3)
 
 ## Implementation phases
 

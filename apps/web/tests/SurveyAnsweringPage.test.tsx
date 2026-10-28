@@ -467,7 +467,7 @@ describe("SurveyAnsweringPage (REQ-FE-023, REQ-FE-024, REQ-FE-034)", () => {
     expect(container.querySelector("form")).toContainElement(mobile);
   });
 
-  it("AC-FE-034-6 / AC-FE-029-2 / AC-BRAND-021-1: the logo is shown once, in the footer, as the 16 px ink-muted footer variant, and no other Sondix text", async () => {
+  it("AC-FE-034-6 / AC-FE-029-2 / AC-BRAND-021-4: the logo is shown once, in the footer, as the footer variant (16 px muted isotype, 16 px ink-muted wordmark, no teal), and no other Sondix text", async () => {
     mockFetch({ [getSurvey]: { status: 200, body: { data: survey } } });
     const { container } = renderPage();
     await screen.findByText(survey.name);
@@ -477,7 +477,11 @@ describe("SurveyAnsweringPage (REQ-FE-023, REQ-FE-024, REQ-FE-034)", () => {
     const logo = logos[0]!;
     expect(logo.closest("footer")).not.toBeNull();
     expect(logo).toHaveAttribute("data-variant", "footer");
-    expect(logo).toHaveClass("font-sans", "font-bold", "text-[16px]", "text-ink-muted");
-    expect(screen.getAllByText(/Sondix/)).toEqual([logo]);
+    expect(logo.querySelector("svg")).toHaveClass("size-[16px]");
+    expect(logo.outerHTML).not.toMatch(/teal/);
+    const wordmarks = screen.getAllByText(/Sondix/);
+    expect(wordmarks).toHaveLength(1);
+    expect(wordmarks[0]!.closest('[data-slot="logo"]')).toBe(logo);
+    expect(wordmarks[0]).toHaveClass("font-sans", "font-bold", "text-[16px]", "text-ink-muted");
   });
 });

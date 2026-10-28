@@ -85,14 +85,18 @@ describe("AuthPage frame (REQ-FE-030, REQ-FE-029, REQ-BRAND-021, REQ-BRAND-023)"
       expect(container.querySelector('[class*="gradient"], [class*="bg-["], [class*="noise"]')).toBeNull();
     });
 
-    it(`AC-FE-029-2 / AC-BRAND-021-1: ${route} shows the Logo component once and no other Sondix text`, async () => {
+    it(`AC-FE-029-2 / AC-BRAND-021-4: ${route} shows the default Logo component once and no other Sondix text`, async () => {
       setup();
-      renderAuth(route);
+      const { container } = renderAuth(route);
       await screen.findByRole("heading", { level: 1, name: title });
 
+      const logos = container.querySelectorAll('[data-slot="logo"]');
+      expect(logos).toHaveLength(1);
+      expect(logos[0]).not.toHaveAttribute("data-variant");
+      expect(logos[0]!.querySelector('svg[viewBox="0 0 48 48"]')).not.toBeNull();
       const sondix = screen.getAllByText("Sondix");
       expect(sondix).toHaveLength(1);
-      expect(sondix[0]).toHaveAttribute("data-slot", "logo");
+      expect(sondix[0]!.closest('[data-slot="logo"]')).toBe(logos[0]);
       expect(screen.queryByRole("img", { name: "Sondix" })).not.toBeInTheDocument();
     });
   }

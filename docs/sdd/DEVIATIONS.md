@@ -62,4 +62,4 @@ Entry template:
 - **User decided:** `components/Logo.tsx` gets a footer variant (`variant="footer"`) that renders the wordmark at 16 px in `--ink-muted`, used only in the public answering page footer; everywhere else the logo stays 20 px in `--ink`.
 - **Reason:** remove the contradiction between REQ-FE-034 and REQ-BRAND-021 found by the Implementer in PH-FE-6, keeping the footer quiet below the questionnaire.
 - **Affected files:** BRAND.md, FRONTEND.md, MAIN.md
-- **CHANGELOG ref:** 2026-10-28 · BRAND.md → v3.0 · task feat/web-redesign / PH-FE-6 · DEV-006; 2026-10-28 · FRONTEND.md → v3.1 · task feat/web-redesign / PH-FE-6 · DEV-006
+- **CHANGELOG ref:** 2026-10-28 · BRAND.md → v3.0 · task feat/web-redesign / PH-FE-6 · DEV-006; 2026-10-28 · FRONTEND.md → v3.1 · task feat/web-redesign / PH-FE-6 · DEV-006; 2026-10-28 · BRAND.md → v4.0 · task feat/web-redesign / PH-BRAND-4 · DEV-006; 2026-10-28 · FRONTEND.md → v4.0 · task feat/web-redesign / PH-BRAND-4 · DEV-006
