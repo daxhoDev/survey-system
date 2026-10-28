@@ -30,6 +30,8 @@ All notable changes to this project are recorded here, following the [Keep a Cha
 - 2026-10-27 · API.md → v1.1 · task feat/web-redesign / PH-STAT-2
 - 2026-10-28 · CONVENTIONS.md → v0.3 (Project structure, Testing: developer scripts) · task feat/web-redesign / PH-BRAND-4
 - 2026-10-28 · DEV_WORKFLOW.md → v2.1 · task feat/web-redesign / PH-BRAND-4
+- 2026-10-28 · ANSWERS.md → v1.1 · task feat/answer-ip-guard / PH-ANS-2
+- 2026-10-28 · API.md → v1.2 · task feat/answer-ip-guard / PH-ANS-2
 
 ### Changed
 

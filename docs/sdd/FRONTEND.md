@@ -4,13 +4,13 @@
 
 - **Module:** Frontend
 - **Module code:** FE
-- **Version:** v4.0
+- **Version:** v5.0
 - **Status:** Approved
 - **Last updated:** 2026-10-28
 
 ## Description
 
-The web app (`apps/web`): stack and UI conventions, the generated API client, routes, and every page (login, dashboard layout, top bar and section navigation, survey list with the active-survey small multiples, survey creation and details with its statistics, invitations, invitation acceptance, public answering page). Brand identity and the visual system («Anuario estadístico»: color tokens, light/dark themes, typography, shape, tables, small multiples, bars, motion, logo) are specified in [BRAND.md](BRAND.md); this module specifies where and how each page uses them.
+The web app (`apps/web`): stack and UI conventions, the generated API client, routes, and every page (login, dashboard layout, top bar and section navigation, survey list with the active-survey small multiples, survey creation and details with its statistics, invitations, invitation acceptance, public answering page with its answered-IP guard). Brand identity and the visual system («Anuario estadístico»: color tokens, light/dark themes, typography, shape, tables, small multiples, bars, motion, logo) are specified in [BRAND.md](BRAND.md); this module specifies where and how each page uses them.
 
 Requirement numbers keep the legacy IDs: legacy `FE-13` is `REQ-FE-013`.
 
@@ -41,7 +41,7 @@ Related: [BRAND.md](BRAND.md), [ARCHITECTURE.md](ARCHITECTURE.md), [API.md](API.
 | Survey details | `pages/SurveyDetailsPage.tsx`, `components/SurveyStatistics.tsx`, `components/LockedBadge.tsx` | REQ-FE-021, REQ-FE-022, REQ-FE-026, REQ-FE-033 |
 | Invitations (`/dashboard/invitations`) | `pages/InvitationsPage.tsx` | REQ-FE-027 |
 | Accept invitation (`/auth/invite/:token`, public) | `pages/AuthPage.tsx`, `pages/AcceptInvitationPage.tsx` | REQ-FE-028, REQ-FE-030 |
-| Answering (`/surveys/:slug`, public) | `pages/SurveyAnsweringPage.tsx` | REQ-FE-023, REQ-FE-024, REQ-FE-034 |
+| Answering (`/surveys/:slug`, public) | `pages/SurveyAnsweringPage.tsx` | REQ-FE-023, REQ-FE-024, REQ-FE-034, REQ-FE-035 |
 | Destructive confirmations | `components/ConfirmationDialog.tsx` | REQ-FE-025 |
 | Shared visual components | `components/SmallMultiples.tsx`, `components/Bar.tsx` | REQ-BRAND-027, REQ-BRAND-028 |
 
@@ -538,7 +538,7 @@ The tabs are standard underline tabs: the active tab in `--ink` weight 600 with 
 
 Legacy ID: FE-23.
 
-`pages/SurveyAnsweringPage.tsx` loads the survey by slug; shows "Encuesta no encontrada" on error. Renders textarea (`TEXT_ANSWER`), radio group (`SINGLE_SELECT`, value sent as `[optionId]`) or checkboxes (`MULTI_SELECT`). Required questions are marked with `*` and validated client-side: each unanswered required question shows "Esta pregunta es obligatoria" under it and focus moves to the first of them; empty responses are omitted from the payload. On success shows the thank-you state; on error toasts `error.detail`. Layout and states: REQ-FE-034.
+`pages/SurveyAnsweringPage.tsx` loads the survey by slug, together with the answered status of the visitor's IP (REQ-FE-035); shows "Encuesta no encontrada" when the survey request fails. Renders textarea (`TEXT_ANSWER`), radio group (`SINGLE_SELECT`, value sent as `[optionId]`) or checkboxes (`MULTI_SELECT`). Required questions are marked with `*` and validated client-side: each unanswered required question shows "Esta pregunta es obligatoria" under it and focus moves to the first of them; empty responses are omitted from the payload. On success shows the thank-you state; a `403` (the IP already answered, REQ-ANS-003) replaces the form with the answered screen of REQ-FE-035 (DEV-007); any other error toasts `error.detail`. Layout and states: REQ-FE-034.
 
 **Acceptance criteria**
 
@@ -559,15 +559,19 @@ Legacy ID: FE-23.
   - **When** the form is submitted
   - **Then** the thank-you state of REQ-FE-034 replaces the form
 - **AC-FE-023-5**
-  - **Given** the API answers with an error
+  - **Given** the API answers with an error other than `403`
   - **When** the form is submitted
   - **Then** the error's `detail` is shown in a toast
+- **AC-FE-023-6**
+  - **Given** the API answers `403` (the IP already answered)
+  - **When** the form is submitted
+  - **Then** the answered screen of REQ-FE-035 replaces the form and no toast is shown
 
 ### REQ-FE-024 — Inactive survey looks missing
 
 Legacy ID: FE-24.
 
-An inactive survey is indistinguishable from a missing one for respondents: loading it shows the same "Encuesta no encontrada — no existe o no está disponible" view as REQ-FE-023, and a submission rejected with `404` (the survey was deactivated meanwhile) shows the API `detail` in a toast, like any other error.
+An inactive survey is indistinguishable from a missing one for respondents: loading it shows the same "Encuesta no encontrada — no existe o no está disponible" view as REQ-FE-023, and a submission rejected with `404` (the survey was deactivated meanwhile) shows the API `detail` in a toast, like every submit error except `403` (REQ-FE-023, DEV-007). Whether the survey is missing or inactive is decided only by the survey request: a `404` from the answered-status check is not an error (REQ-FE-035).
 
 **Acceptance criteria**
 
@@ -822,7 +826,8 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 - **Submit:** the primary button "Enviar respuestas" (loading "Enviando..."), full width below `md`.
 - **Thank-you state:** the form is replaced by the survey name, a 2 px `--rule-strong` rule, "¡Muchas gracias!" (`text-h2`) and "Tus respuestas a la encuesta {name} han sido enviadas correctamente."; focus moves to the heading.
 - **Not found:** the same frame with "Encuesta no encontrada" (`text-h1`) and "La encuesta que estás intentando acceder no existe o no está disponible." (REQ-FE-024).
-- **Loading:** the frame with skeleton rules in the shape of the header and two questions (REQ-BRAND-033).
+- **Answered and check error:** the screens of REQ-FE-035, in the same frame.
+- **Loading:** the frame with skeleton rules in the shape of the header and two questions (REQ-BRAND-033), shown until both the survey and the answered-status check have settled (REQ-FE-035).
 - **Footer:** the logo at the bottom of the column, as `components/Logo.tsx` with `variant="footer"`: the 16 px isotype in `--ink-muted` on a `--rule` track, with no teal, and "Sondix" in Work Sans 700 at 16 px in `--ink-muted` (REQ-BRAND-021, DEV-006). This is the only place that uses the footer variant.
 
 **Acceptance criteria**
@@ -852,6 +857,63 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
   - **When** it renders
   - **Then** the logo is shown once, in the footer, as `components/Logo.tsx` with `variant="footer"`: the 16 px muted isotype and "Sondix" in Work Sans 700 at 16 px in `--ink-muted` (as verified by AC-BRAND-021-3)
 
+### REQ-FE-035 — Answering page: answered-IP guard
+
+When the answering page opens, it checks whether the visitor's IP has already answered the survey and, if so, shows only an answered screen instead of the questionnaire. The guard is a client-side convenience: the server's one-answer-per-IP check on submit (REQ-ANS-003) stays the real guarantee.
+
+- **Requests:** on load the page sends, in parallel, the survey request (`GET /api/v1/surveys/:slug`) and the answered-status check (`GET /api/v1/surveys/:slug/answered`, REQ-ANS-013, through the generated hook `useGetSurveyAnsweredStatus` and its generated query key, REQ-FE-012).
+- **Retries and refetching:** the check uses the app's normal automatic retries (REQ-FE-010: up to 3, with growing delays). It runs once per page load: it is not refetched when the window regains focus, when the network reconnects or after a submission; only "Reintentar" runs it again. A reload of the page runs it again.
+- **What the page shows**, in this order of precedence:
+  1. The survey request failed → the not-found view (REQ-FE-024), as soon as it fails, whatever the state of the check.
+  2. The survey or the check is still pending → the loading skeleton (REQ-FE-034).
+  3. The answers were sent in this page load (`201`) → the thank-you state (REQ-FE-034); it stays.
+  4. The submission was rejected with `403` → the answered screen (REQ-FE-023).
+  5. The check returned `answered: true` → the answered screen.
+  6. The check failed with `404` (e.g. a manager with a session previewing an inactive survey, REQ-SURV-012, or a survey deactivated between the two requests) → treated as not answered: the form.
+  7. The check failed in any other way after its retries (network error, `5xx`, `429` or any other status) → the check-error state; the form is not shown.
+  8. Otherwise (`answered: false`) → the form (REQ-FE-023, REQ-FE-034).
+- **Answered screen:** the questionnaire-sheet frame with its footer logo (REQ-FE-034), holding, like the thank-you state, the survey name (`text-h1`, as a paragraph), a 2 px `--rule-strong` rule and the heading "Tu IP ya ha respondido a esta encuesta" (`text-h2`), which is the page's `h1` and takes the focus when the screen is shown. Nothing else: no second line, no questions, no progress and no submit button.
+- **Check-error state:** the same frame with the survey name (`text-h1`, as a paragraph), the 2 px `--rule-strong` rule and the error state of REQ-BRAND-033, rendered with `ErrorState` from `components/DataStates.tsx`: the `--rust` line with its icon "No se pudo comprobar si tu IP ya ha respondido a esta encuesta." and the "Reintentar" button, which runs only the check again (with its normal retries) and shows its loading state while it runs. When the check then succeeds, the page continues with rule 5 or 8; if it fails again, the check-error state stays.
+
+**Acceptance criteria**
+
+- **AC-FE-035-1**
+  - **Given** the answering page is opened
+  - **When** it loads
+  - **Then** `GET /surveys/:slug` and `GET /surveys/:slug/answered` are both sent without one waiting for the other, and the loading skeleton is shown until both have settled
+- **AC-FE-035-2**
+  - **Given** the survey loads and the check returns `{ data: { answered: true } }`
+  - **When** the page renders
+  - **Then** it shows only the survey name, a 2 px rule and the `h1` "Tu IP ya ha respondido a esta encuesta" with the focus on it, plus the footer logo; no question, progress line or submit button is rendered
+- **AC-FE-035-3**
+  - **Given** the survey loads and the check returns `{ data: { answered: false } }`
+  - **When** the page renders
+  - **Then** the form of REQ-FE-034 is shown
+- **AC-FE-035-4**
+  - **Given** the survey loads and every attempt of the check fails with a network error, a `5xx` or a `429`
+  - **When** its automatic retries (REQ-FE-010) are exhausted
+  - **Then** the page shows the survey name, the 2 px rule, the `--rust` line "No se pudo comprobar si tu IP ya ha respondido a esta encuesta." with its icon and a "Reintentar" button, and no form
+- **AC-FE-035-5**
+  - **Given** the check-error state
+  - **When** "Reintentar" is pressed and the check then returns `answered: false` (or `answered: true`)
+  - **Then** only the check is requested again, the button shows its loading state meanwhile, and the form (or the answered screen) is shown
+- **AC-FE-035-6**
+  - **Given** the survey request fails with `404`
+  - **When** the page renders
+  - **Then** it shows "Encuesta no encontrada" (REQ-FE-024), whatever the check returns and without waiting for it
+- **AC-FE-035-7**
+  - **Given** the survey loads and the check fails with `404`
+  - **When** the page renders
+  - **Then** the form is shown
+- **AC-FE-035-8**
+  - **Given** the form is shown after a successful check
+  - **When** the window loses and regains focus, the network reconnects, or the answers are submitted with `201`
+  - **Then** no new `GET /surveys/:slug/answered` request is sent, and after the `201` the thank-you state stays
+- **AC-FE-035-9**
+  - **Given** the form is shown (e.g. another person on the same IP answered meanwhile)
+  - **When** the submission is rejected with `403`
+  - **Then** the answered screen of AC-FE-035-2 replaces the form and no toast is shown
+
 ## Implementation phases
 
 | Phase | Title | Status | REQ-IDs covered |
@@ -861,6 +923,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 | PH-FE-4 | Redesign: create survey and survey details (header, tabs, answers, statistics) | Done | REQ-FE-002, REQ-FE-019, REQ-FE-021, REQ-FE-022, REQ-FE-033, REQ-BRAND-019, REQ-BRAND-028 |
 | PH-FE-5 | Redesign: invitations, login and accept invitation | Done | REQ-FE-015, REQ-FE-027, REQ-FE-028, REQ-FE-030, REQ-BRAND-023, REQ-BRAND-025 |
 | PH-FE-6 | Redesign: public answering page | Done | REQ-FE-002, REQ-FE-023, REQ-FE-024, REQ-FE-029, REQ-FE-034, REQ-BRAND-021 |
+| PH-FE-7 | Answering page: answered-IP guard | Planned | REQ-FE-023, REQ-FE-024, REQ-FE-034, REQ-FE-035 |
 
 The former PH-FE-2 (Spanish loading texts "Cargando panel..." and "Redirigiendo...") is delivered by PH-BRAND-3, which rewrites the files involved; REQ-FE-001, REQ-FE-002, REQ-FE-006, REQ-FE-013, REQ-FE-016, REQ-FE-029 and REQ-FE-031 are covered there ([BRAND.md](BRAND.md)). The redesign task's phase order is in [BRAND.md](BRAND.md), Implementation phases.
 

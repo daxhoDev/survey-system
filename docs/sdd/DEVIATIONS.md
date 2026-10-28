@@ -63,3 +63,11 @@ Entry template:
 - **Reason:** remove the contradiction between REQ-FE-034 and REQ-BRAND-021 found by the Implementer in PH-FE-6, keeping the footer quiet below the questionnaire.
 - **Affected files:** BRAND.md, FRONTEND.md, MAIN.md
 - **CHANGELOG ref:** 2026-10-28 · BRAND.md → v3.0 · task feat/web-redesign / PH-FE-6 · DEV-006; 2026-10-28 · FRONTEND.md → v3.1 · task feat/web-redesign / PH-FE-6 · DEV-006; 2026-10-28 · BRAND.md → v4.0 · task feat/web-redesign / PH-BRAND-4 · DEV-006; 2026-10-28 · FRONTEND.md → v4.0 · task feat/web-redesign / PH-BRAND-4 · DEV-006
+
+### DEV-007 — An already-answered submission shows the answered screen
+- **Date:** 2026-10-28
+- **Spec said:** FRONTEND.md, REQ-FE-023 (AC-FE-023-5) and REQ-FE-024, v4.0: on any submission error the answering page shows the API `detail` in a toast, a `404` "like any other error"; a `403` (the IP already answered, REQ-ANS-003) therefore showed the English detail "Your IP already submitted an answer for this survey" in a toast.
+- **User decided:** a submission rejected with `403` replaces the form with the answered screen ("Tu IP ya ha respondido a esta encuesta", REQ-FE-035); every other submission error keeps the toast with the API `detail`.
+- **Reason:** the same outcome whether the duplicate is detected by the answered-status check on load or by the server on submit, with no English message in the Spanish UI.
+- **Affected files:** FRONTEND.md, MAIN.md
+- **CHANGELOG ref:** 2026-10-28 · FRONTEND.md → v5.0 · task feat/answer-ip-guard / PH-FE-7 · DEV-007

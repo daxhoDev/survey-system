@@ -47,6 +47,21 @@ export default class AnswerController {
       .send(json({ data: createdAnswer }));
   }
 
+  async getAnsweredStatus(req: Request, res: Response) {
+    getLogger().info(
+      { slug: req.params.slug },
+      `Checking answered status...`,
+    );
+    const status = await this.service.getAnsweredStatus(
+      req.params.slug as string,
+      req.ip || "",
+    );
+    res
+      .status(200)
+      .type("json")
+      .send(json({ data: status }));
+  }
+
   async deleteById(req: Request, res: Response) {
     const id = req.params.id;
     getLogger().info({ id }, `Deleting answer...`);

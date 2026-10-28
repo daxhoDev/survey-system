@@ -22,7 +22,7 @@ describe("OpenAPI document (API-30, API-31)", () => {
     expect(doc.servers).toEqual([{ url: "/" }]);
   });
 
-  it("documents the 21 endpoints with the operationIds used by the web client", () => {
+  it("documents the 22 endpoints with the operationIds used by the web client (AC-API-029-1)", () => {
     expect(operations.map((o) => o.operationId).sort()).toEqual(
       [
         "acceptInvitation",
@@ -38,6 +38,7 @@ describe("OpenAPI document (API-30, API-31)", () => {
         "getCurrentUser",
         "getInvitationByToken",
         "getSurveyAnswerById",
+        "getSurveyAnsweredStatus",
         "getSurveyBySlug",
         "getSurveyStatsBySlug",
         "getSurveySummary",
@@ -91,10 +92,11 @@ describe("OpenAPI document (API-30, API-31)", () => {
     }
   });
 
-  it("GET /surveys/{slug}, POST answers and the invitation token routes are public; the rest need the cookie", () => {
+  it("GET /surveys/{slug}, POST answers, the answered status and the invitation token routes are public; the rest need the cookie", () => {
     const publicOps = [
       "loginUser",
       "createSurveyAnswer",
+      "getSurveyAnsweredStatus",
       "getInvitationByToken",
       "acceptInvitation",
     ];
@@ -165,5 +167,42 @@ describe("OpenAPI additions of PH-STAT-2", () => {
       const body = jsonSchemaOf(operationId, status);
       expect(body.properties!.data!.$ref, operationId).toBe("#/components/schemas/Survey");
     }
+  });
+});
+
+describe("OpenAPI additions of PH-ANS-2", () => {
+  const get = (doc.paths ?? {})["/api/v1/surveys/{slug}/answered"]?.get as
+    | {
+        operationId: string;
+        tags: string[];
+        security?: unknown[];
+        responses: Record<string, { content: Record<string, unknown> }>;
+      }
+    | undefined;
+
+  it("AC-ANS-013-7, REQ-API-029: GET /surveys/{slug}/answered is getSurveyAnsweredStatus, tagged Answers, with no security", () => {
+    expect(get).toBeDefined();
+    expect(get!.operationId).toBe("getSurveyAnsweredStatus");
+    expect(get!.tags).toEqual(["Answers"]);
+    expect(get!.security).toBeUndefined();
+  });
+
+  it("AC-ANS-013-7, AC-API-029-2: it declares 200 and the problems 404, 429 and 500", () => {
+    expect(Object.keys(get!.responses).sort()).toEqual(["200", "404", "429", "500"]);
+    for (const status of ["404", "429", "500"]) {
+      expect(Object.keys(get!.responses[status]!.content), status).toEqual([
+        "application/problem+json",
+      ]);
+    }
+  });
+
+  it("AC-ANS-013-7: its 200 body is { data: AnsweredStatus } with a required boolean answered", () => {
+    const body = jsonSchemaOf("getSurveyAnsweredStatus", "200");
+    expect(body.required).toContain("data");
+    expect(body.properties!.data!.$ref).toBe("#/components/schemas/AnsweredStatus");
+    const status = component("AnsweredStatus");
+    expect(Object.keys(status.properties!)).toEqual(["answered"]);
+    expect(status.properties!.answered!.type).toBe("boolean");
+    expect(status.required).toEqual(["answered"]);
   });
 });
