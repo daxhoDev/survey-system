@@ -1,4 +1,4 @@
-import { defineConfig } from "vite";
+import { defaultClientConditions, defineConfig } from "vite";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import babel from "@rolldown/plugin-babel";
 import tailwindcss from "@tailwindcss/vite";
@@ -15,6 +15,8 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
   ],
   resolve: {
+    // Resolve @survey-system/schemas to its TypeScript source.
+    conditions: ["source", ...defaultClientConditions],
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },

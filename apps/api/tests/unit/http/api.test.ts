@@ -92,6 +92,8 @@ describe("routing", () => {
     ["patch", "/api/v1/surveys/some-survey"],
     ["delete", "/api/v1/surveys/some-survey"],
     ["get", "/api/v1/surveys/some-survey/stats"],
+    // AC-STAT-009-6
+    ["get", "/api/v1/stats/surveys/active"],
     ["get", "/api/v1/surveys/some-survey/answers"],
     ["get", "/api/v1/surveys/some-survey/answers/some-id"],
     ["delete", "/api/v1/surveys/some-survey/answers/some-id"],

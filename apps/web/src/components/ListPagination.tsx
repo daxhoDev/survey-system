@@ -8,7 +8,8 @@ type ListPaginationProps = {
   onPageChange: (page: number) => void;
 };
 
-// "Mostrando 11–20 de 43" + previous/next, for server-paginated lists.
+// "Mostrando 11–20 de 43", "Página 2 de 5" and Anterior / Siguiente, for
+// server-paginated lists (REQ-FE-018).
 export default function ListPagination({
   page,
   pageSize,
@@ -22,9 +23,9 @@ export default function ListPagination({
   return (
     <nav
       aria-label="Paginación"
-      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"
     >
-      <p className="text-sm text-muted-foreground tabular-nums" aria-live="polite">
+      <p className="figures text-small text-ink-muted" aria-live="polite">
         Mostrando {from}–{to} de {total}
       </p>
       <div className="flex items-center gap-2">
@@ -37,7 +38,7 @@ export default function ListPagination({
           <ChevronLeft />
           Anterior
         </Button>
-        <span className="px-1 text-sm tabular-nums">
+        <span className="figures px-1 text-small text-ink">
           Página {Math.min(page, pages)} de {pages}
         </span>
         <Button

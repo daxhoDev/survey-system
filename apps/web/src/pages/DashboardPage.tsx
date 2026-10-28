@@ -1,11 +1,14 @@
 import { useEffect } from "react";
-import DashboardHeader from "@/components/DashboardHeader";
-import AppSidebar from "@/components/AppSidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { Outlet, useNavigate } from "react-router";
+import TopBar from "@/components/TopBar";
+import { LoadingLine } from "@/components/DataStates";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { useGetCurrentUser } from "@/lib/api/users/users";
-import { Outlet, useNavigate } from "react-router";
+import { GUTTERS } from "@/lib/layout";
+import { cn } from "@/lib/utils";
 
+// Session guard and dashboard layout (REQ-FE-013): top bar above a <main>
+// holding the child route, centered and at most 80 rem wide.
 export default function DashboardPage() {
   const { error, isLoading } = useGetCurrentUser();
   const navigate = useNavigate();
@@ -18,10 +21,8 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen w-screen items-center justify-center">
-        <p className="text-sm text-muted-foreground animate-pulse">
-          Loading dashboard...
-        </p>
+      <div className="flex min-h-dvh w-full items-center justify-center px-4">
+        <LoadingLine>Cargando panel...</LoadingLine>
       </div>
     );
   }
@@ -30,23 +31,16 @@ export default function DashboardPage() {
     return null;
   }
 
-  // The sidebar component saves its open state in this cookie; read it back
-  // so a collapsed sidebar stays collapsed after a reload.
-  const sidebarOpen = !document.cookie
-    .split("; ")
-    .includes("sidebar_state=false");
-
   return (
     <TooltipProvider delayDuration={0}>
-      <SidebarProvider defaultOpen={sidebarOpen}>
-        <AppSidebar />
-        <SidebarInset>
-          <DashboardHeader />
-          <div className="mx-auto w-full max-w-6xl">
+      <div className="flex min-h-dvh flex-col">
+        <TopBar />
+        <main className={cn("flex-1", GUTTERS)}>
+          <div className="mx-auto w-full max-w-7xl">
             <Outlet />
           </div>
-        </SidebarInset>
-      </SidebarProvider>
+        </main>
+      </div>
     </TooltipProvider>
   );
 }

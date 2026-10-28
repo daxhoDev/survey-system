@@ -1,16 +1,25 @@
 import { screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import LoginPage from "@/pages/LoginPage";
-import { renderWithProviders } from "./helpers";
+import { mockFetch, renderWithProviders } from "./helpers";
 
-describe("LoginPage (BRAND-23)", () => {
-  it("shows the login form beside a decorative brand panel", () => {
+// The logo, product line and rule belong to the shared auth frame
+// (AuthPage.test.tsx, REQ-FE-030); LoginPage renders only the login form.
+describe("LoginPage (REQ-FE-015, REQ-FE-030, REQ-BRAND-023)", () => {
+  it("AC-FE-030-1: renders only the login form, with no logo of its own", () => {
+    mockFetch({});
+    renderWithProviders(<LoginPage />);
+
+    expect(screen.getByRole("heading", { level: 1, name: "Inicia sesión" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeInTheDocument();
+    expect(screen.queryByText("Sondix")).not.toBeInTheDocument();
+  });
+
+  it("AC-FE-030-1 / REQ-BRAND-023: has no brand panel and no card", () => {
+    mockFetch({});
     const { container } = renderWithProviders(<LoginPage />);
 
-    expect(screen.getByRole("button", { name: "Iniciar sesión" })).toBeInTheDocument();
-    const panel = container.querySelector("aside");
-    expect(panel).toHaveAttribute("aria-hidden", "true");
-    expect(panel).toHaveClass("hidden", "lg:flex");
-    expect(panel).toHaveTextContent("Sondix");
+    expect(container.querySelector("aside")).toBeNull();
+    expect(container.querySelector('[data-slot^="card"]')).toBeNull();
   });
 });

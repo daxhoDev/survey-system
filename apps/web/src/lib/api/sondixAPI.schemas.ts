@@ -90,6 +90,65 @@ export interface SurveySummary {
   active: number;
 }
 
+export type SurveyListItemQuestionsItemType = typeof SurveyListItemQuestionsItemType[keyof typeof SurveyListItemQuestionsItemType];
+
+
+export const SurveyListItemQuestionsItemType = {
+  SINGLE_SELECT: 'SINGLE_SELECT',
+  MULTI_SELECT: 'MULTI_SELECT',
+  TEXT_ANSWER: 'TEXT_ANSWER',
+} as const;
+
+export type SurveyListItemQuestionsItemOptionsItem = {
+  /** @minimum 1 */
+  id: number;
+  /** @minLength 1 */
+  content: string;
+};
+
+export type SurveyListItemQuestionsItem = {
+  /** @minimum 1 */
+  id: number;
+  /** @minLength 5 */
+  name: string;
+  type: SurveyListItemQuestionsItemType;
+  /** @minItems 1 */
+  options?: SurveyListItemQuestionsItemOptionsItem[];
+  isRequired: boolean;
+};
+
+export interface SurveyListItem {
+  id: string;
+  /** @minLength 5 */
+  name: string;
+  /** @minItems 1 */
+  questions: SurveyListItemQuestionsItem[];
+  isActive: boolean;
+  /** Set on first activation; name and questions become immutable */
+  isLocked: boolean;
+  /** @nullable */
+  deletedAt: string | null;
+  createdAt: string;
+  /** @nullable */
+  updatedAt: string | null;
+  /** @minLength 1 */
+  slug: string;
+  /** @nullable */
+  activatedAt: string | null;
+  /** Non-deleted answers */
+  answerCount: number;
+  /** Non-deleted answers that answer every question */
+  completedCount: number;
+}
+
+export interface ActiveSurveyStats {
+  slug: string;
+  name: string;
+  totalAnswers: number;
+  completedAnswers: number;
+  incompleteAnswers: number;
+}
+
 export interface User {
   id: string;
   email: string;
@@ -257,6 +316,10 @@ export type GetSurveySummary200 = {
   data: SurveySummary;
 };
 
+export type GetActiveSurveyStats200 = {
+  data: ActiveSurveyStats[];
+};
+
 export type GetAllSurveysParams = {
 active?: GetAllSurveysActive;
 search?: string;
@@ -303,7 +366,7 @@ export type GetAllSurveys200Meta = {
 };
 
 export type GetAllSurveys200 = {
-  data: Survey[];
+  data: SurveyListItem[];
   meta: GetAllSurveys200Meta;
 };
 

@@ -1,4 +1,4 @@
-import { Lock } from "lucide-react";
+import StatusLabel from "@/components/StatusLabel";
 import {
   Tooltip,
   TooltipContent,
@@ -6,18 +6,15 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-// Shown next to the status of a locked survey (FE-26).
+// Shown next to the status of a locked survey (REQ-FE-026), as the
+// "Bloqueada" status label (REQ-BRAND-030).
 export default function LockedBadge() {
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span
-            tabIndex={0}
-            className="px-3 py-0.5 border rounded-full flex items-center justify-center w-fit gap-1.5 text-xs font-semibold tracking-wide uppercase bg-muted text-muted-foreground border-border"
-          >
-            <Lock className="size-3.5" />
-            <span>Bloqueada</span>
+          <span tabIndex={0} className="inline-flex w-fit">
+            <StatusLabel status="Bloqueada" />
           </span>
         </TooltipTrigger>
         <TooltipContent>

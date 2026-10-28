@@ -158,6 +158,47 @@ export const surveySchema = z
     },
   });
 
+// Item of GET /surveys: a Survey plus its answer counts (REQ-SURV-021).
+export const surveyListItemSchema = z
+  .strictObject({
+    ...surveySchema.shape,
+    answerCount: z
+      .number()
+      .int()
+      .openapi({ description: "Non-deleted answers", example: 12 }),
+    completedCount: z.number().int().openapi({
+      description: "Non-deleted answers that answer every question",
+      example: 9,
+    }),
+  })
+  .openapi("SurveyListItem", {
+    example: {
+      id: "123e4567-e89b-12d3-a456-426614174000",
+      name: "Employee Satisfaction Survey",
+      questions: [
+        {
+          id: 1,
+          name: "Are you happy at our company?",
+          type: "SINGLE_SELECT",
+          options: [
+            { id: 1, content: "Yes" },
+            { id: 2, content: "No" },
+          ],
+          isRequired: true,
+        },
+      ],
+      isActive: true,
+      isLocked: true,
+      slug: "employee-satisfaction-survey",
+      activatedAt: new Date("2024-01-02T00:00:00Z"),
+      deletedAt: null,
+      createdAt: new Date("2024-01-01T00:00:00Z"),
+      updatedAt: null,
+      answerCount: 12,
+      completedCount: 9,
+    },
+  });
+
 export const optionStatsSchema = z
   .strictObject({
     questionId: z.number().int().openapi({ example: 1 }),
@@ -215,3 +256,15 @@ export const surveySummarySchema = z
     active: z.number().int().openapi({ example: 4 }),
   })
   .openapi("SurveySummary");
+
+// Answer counts of one of the most recently activated active surveys
+// (REQ-STAT-009).
+export const activeSurveyStatsSchema = z
+  .strictObject({
+    slug: z.string().openapi({ example: "clima-laboral-2026" }),
+    name: z.string().openapi({ example: "Clima laboral 2026" }),
+    totalAnswers: z.number().int().openapi({ example: 83 }),
+    completedAnswers: z.number().int().openapi({ example: 71 }),
+    incompleteAnswers: z.number().int().openapi({ example: 12 }),
+  })
+  .openapi("ActiveSurveyStats");

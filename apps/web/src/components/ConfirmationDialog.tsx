@@ -13,12 +13,16 @@ interface Props {
   description: string;
   onConfirm: MouseEventHandler<HTMLButtonElement>;
   confirmText: string;
+  /** The confirmed request is in flight (REQ-BRAND-018 loading state). */
+  isPending?: boolean;
 }
 
+// The one confirmation of destructive actions (REQ-FE-025).
 export default function ConfirmationDialog({
   description,
   confirmText,
   onConfirm,
+  isPending = false,
 }: Props) {
   return (
     <DialogContent>
@@ -27,12 +31,12 @@ export default function ConfirmationDialog({
         <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
       <DialogFooter>
-        <Button onClick={onConfirm} variant="destructive">
+        <DialogClose asChild>
+          <Button variant="outline">Cancelar</Button>
+        </DialogClose>
+        <Button onClick={onConfirm} variant="destructive" loading={isPending}>
           {confirmText}
         </Button>
-        <DialogClose asChild>
-          <Button variant="secondary">Cancelar</Button>
-        </DialogClose>
       </DialogFooter>
     </DialogContent>
   );

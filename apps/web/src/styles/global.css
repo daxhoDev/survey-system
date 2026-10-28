@@ -1,266 +1,290 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/inter";
-@import "@fontsource-variable/manrope";
+@import "@fontsource-variable/work-sans";
 
 @custom-variant dark (&:is(.dark *));
 
-/* Brand palettes (BRAND-06). Components use the semantic tokens below, never
-   these steps (BRAND-08); palette utilities are reserved for brand graphics. */
+/* Visual system «Anuario estadístico» (BRAND.md v2.0). The world tokens
+   below (:root and .dark) are the only color values of the app; components
+   consume them through the Tailwind theme colors, never as raw values. */
+
 @theme {
-    --color-midnight-100: #e8edf5;
-    --color-midnight-200: #c9d3e3;
-    --color-midnight-300: #a0b1cc;
-    --color-midnight-400: #7188ae;
-    --color-midnight-500: #4a638d;
-    --color-midnight-600: #30496f;
-    --color-midnight-700: #213653;
-    --color-midnight-800: #17263d;
-    --color-midnight-900: #101827;
+    /* Only the world's colors exist: Tailwind's default palette is dropped. */
+    --color-*: initial;
 
-    --color-turquoise-100: #e5fbf7;
-    --color-turquoise-200: #c4f5eb;
-    --color-turquoise-300: #99ebdd;
-    --color-turquoise-400: #6ce2d1;
-    --color-turquoise-500: #43d9c2;
-    --color-turquoise-600: #22bba8;
-    --color-turquoise-700: #168e81;
-    --color-turquoise-800: #126d64;
-    --color-turquoise-900: #104f4a;
+    /* Shape (REQ-BRAND-014): controls get 3 px, everything else is square. */
+    --radius-*: initial;
+    --radius-control: 3px;
 
-    --color-slate-100: #f1f4f8;
-    --color-slate-200: #e2e8f0;
-    --color-slate-300: #cbd5e1;
-    --color-slate-400: #94a3b8;
-    --color-slate-500: #64748b;
-    --color-slate-600: #475569;
-    --color-slate-700: #334155;
-    --color-slate-800: #1e293b;
-    --color-slate-900: #0f172a;
+    /* Elevation (REQ-BRAND-016): only overlays have a shadow. */
+    --shadow-*: initial;
+    --inset-shadow-*: initial;
+    --drop-shadow-*: initial;
 
-    --color-neutral-100: #ffffff;
-    --color-neutral-200: #f8fafc;
-    --color-neutral-300: #f1f5f9;
-    --color-neutral-400: #e2e8f0;
-    --color-neutral-500: #cbd5e1;
-    --color-neutral-600: #94a3b8;
-    --color-neutral-700: #64748b;
-    --color-neutral-800: #334155;
-    --color-neutral-900: #0f172a;
+    /* Motion (REQ-BRAND-031): short, ease-out state changes only. */
+    --default-transition-duration: 150ms;
+    --default-transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
 
-    /* Typographic scale (BRAND-13). */
-    --text-display: 2.5rem;
-    --text-display--line-height: 1.2;
-    --text-display--font-weight: 800;
-    --text-h1: 2rem;
-    --text-h1--line-height: 1.25;
+    /* Typographic scale (REQ-BRAND-013), base 16 px. */
+    --text-h1: 1.875rem;
+    --text-h1--line-height: 1.2;
     --text-h1--font-weight: 700;
-    --text-h2: 1.5rem;
-    --text-h2--line-height: 1.3;
-    --text-h2--font-weight: 700;
-    --text-h3: 1.25rem;
-    --text-h3--line-height: 1.35;
+    --text-h1--letter-spacing: -0.01em;
+    --text-h2: 1.375rem;
+    --text-h2--line-height: 1.25;
+    --text-h2--font-weight: 600;
+    --text-h2--letter-spacing: -0.01em;
+    --text-h3: 1.125rem;
+    --text-h3--line-height: 1.3;
     --text-h3--font-weight: 600;
-    --text-h4: 1.125rem;
-    --text-h4--line-height: 1.35;
-    --text-h4--font-weight: 600;
+    --text-h3--letter-spacing: 0em;
+    --text-figure: 1.625rem;
+    --text-figure--line-height: 1.1;
+    --text-figure--font-weight: 700;
+    --text-figure--letter-spacing: 0em;
     --text-body-lg: 1rem;
     --text-body-lg--line-height: 1.5;
+    --text-body-lg--font-weight: 400;
+    --text-body-lg--letter-spacing: 0em;
     --text-body: 0.875rem;
     --text-body--line-height: 1.5;
-    --text-small: 0.75rem;
-    --text-small--line-height: 1.5;
-    --text-caption: 0.6875rem;
-    --text-caption--line-height: 1.5;
+    --text-body--font-weight: 400;
+    --text-body--letter-spacing: 0em;
+    --text-small: 0.8125rem;
+    --text-small--line-height: 1.45;
+    --text-small--font-weight: 400;
+    --text-small--letter-spacing: 0em;
+    --text-caption: 0.75rem;
+    --text-caption--line-height: 1.4;
     --text-caption--font-weight: 500;
+    --text-caption--letter-spacing: 0em;
 }
 
 @theme inline {
-    /* BRAND-12: Manrope for headings, navigation, buttons and brand elements;
-       Inter for body text, tables, figures and forms. */
-    --font-heading: "Manrope Variable", ui-sans-serif, system-ui, sans-serif;
-    --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+    /* REQ-BRAND-012: one family for every text. */
+    --font-sans: "Work Sans Variable", ui-sans-serif, system-ui, sans-serif;
 
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
-    --color-chart-5: var(--chart-5);
-    --color-chart-4: var(--chart-4);
-    --color-chart-3: var(--chart-3);
-    --color-chart-2: var(--chart-2);
-    --color-chart-1: var(--chart-1);
-    --color-ring: var(--ring);
-    --color-input: var(--input);
+    /* World tokens as Tailwind colors (REQ-BRAND-006, REQ-BRAND-008). */
+    --color-paper: var(--paper);
+    --color-ink: var(--ink);
+    --color-ink-muted: var(--ink-muted);
+    --color-rule: var(--rule);
+    --color-rule-strong: var(--rule-strong);
     --color-input-border: var(--input-border);
-    --color-border: var(--border);
-    --color-brand: var(--brand);
+    --color-surface-subtle: var(--surface-subtle);
+    --color-surface-raised: var(--surface-raised);
+    --color-teal: var(--teal);
+    --color-teal-strong: var(--teal-strong);
+    --color-teal-tint: var(--teal-tint);
+    --color-on-teal: var(--on-teal);
+    --color-rust: var(--rust);
+    --color-rust-strong: var(--rust-strong);
+    --color-on-rust: var(--on-rust);
+
+    /* shadcn/ui semantic colors (REQ-BRAND-009). */
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --color-card: var(--card);
+    --color-card-foreground: var(--card-foreground);
+    --color-popover: var(--popover);
+    --color-popover-foreground: var(--popover-foreground);
+    --color-primary: var(--primary);
+    --color-primary-foreground: var(--primary-foreground);
+    --color-secondary: var(--secondary);
+    --color-secondary-foreground: var(--secondary-foreground);
+    --color-muted: var(--muted);
+    --color-muted-foreground: var(--muted-foreground);
+    --color-accent: var(--accent);
+    --color-accent-foreground: var(--accent-foreground);
     --color-destructive: var(--destructive);
     --color-destructive-foreground: var(--destructive-foreground);
-    --color-destructive-text: var(--destructive-text);
-    --color-success: var(--success);
-    --color-success-foreground: var(--success-foreground);
-    --color-success-text: var(--success-text);
-    --color-warning: var(--warning);
-    --color-warning-foreground: var(--warning-foreground);
-    --color-warning-text: var(--warning-text);
-    --color-info: var(--info);
-    --color-info-foreground: var(--info-foreground);
-    --color-info-text: var(--info-text);
-    --color-accent-foreground: var(--accent-foreground);
-    --color-accent: var(--accent);
-    --color-muted-foreground: var(--muted-foreground);
-    --color-muted: var(--muted);
-    --color-secondary-foreground: var(--secondary-foreground);
-    --color-secondary: var(--secondary);
-    --color-primary-foreground: var(--primary-foreground);
-    --color-primary: var(--primary);
-    --color-popover-foreground: var(--popover-foreground);
-    --color-popover: var(--popover);
-    --color-card-foreground: var(--card-foreground);
-    --color-card: var(--card);
-    --color-foreground: var(--foreground);
-    --color-background: var(--background);
+    --color-border: var(--border);
+    --color-input: var(--input);
+    --color-ring: var(--ring);
 
-    /* Radii (BRAND-14). */
-    --radius-xs: 4px;
-    --radius-sm: 6px;
-    --radius-md: 10px;
-    --radius-lg: 14px;
-    --radius-xl: 20px;
-
-    /* Elevation (BRAND-16): subtle shadows tinted per theme. */
-    --shadow-xs: 0 1px 2px 0 var(--elevation);
-    --shadow-sm: 0 1px 3px 0 var(--elevation), 0 1px 2px -1px var(--elevation);
-    --shadow-md: 0 4px 8px -2px var(--elevation), 0 2px 4px -2px var(--elevation);
-    --shadow-lg: 0 12px 24px -6px var(--elevation), 0 4px 8px -4px var(--elevation);
-    --shadow-xl: 0 20px 32px -8px var(--elevation), 0 8px 12px -6px var(--elevation);
+    /* The one overlay shadow (REQ-BRAND-016), per theme. */
+    --shadow-overlay: var(--overlay-shadow);
 }
 
-/* Semantic tokens (BRAND-07, BRAND-09, BRAND-10): light theme. */
+/* Light theme. */
 :root {
-    --background: var(--color-midnight-100);
-    --foreground: var(--color-midnight-900);
-    --card: var(--color-neutral-100);
-    --card-foreground: var(--color-midnight-900);
-    --popover: var(--color-neutral-100);
-    --popover-foreground: var(--color-midnight-900);
-    --primary: var(--color-midnight-900);
-    --primary-foreground: var(--color-neutral-100);
-    --secondary: var(--color-slate-100);
-    --secondary-foreground: var(--color-midnight-900);
-    --muted: var(--color-slate-100);
-    --muted-foreground: var(--color-slate-600);
-    --accent: var(--color-turquoise-100);
-    --accent-foreground: var(--color-midnight-900);
-    --brand: var(--color-turquoise-800);
-    --border: var(--color-midnight-200);
-    --input: var(--color-midnight-200);
-    --input-border: var(--color-slate-500);
-    --ring: var(--color-turquoise-700);
+    --paper: #FFFFFF;
+    --ink: #141414;
+    --ink-muted: #565C63;
+    --rule: #E4E7EA;
+    --rule-strong: #141414;
+    --input-border: #767C83;
+    --surface-subtle: #F5F6F7;
+    --surface-raised: #FFFFFF;
+    --teal: #0E6E6E;
+    --teal-strong: #0A5656;
+    --teal-tint: #D5ECEC;
+    --on-teal: #FFFFFF;
+    --rust: #9A3412;
+    --rust-strong: #7C2A0E;
+    --on-rust: #FFFFFF;
 
-    --destructive: #dc2626;
-    --destructive-foreground: var(--color-neutral-100);
-    --destructive-text: #dc2626;
-    --success: #16a34a;
-    --success-foreground: var(--color-midnight-900);
-    --success-text: #15803d;
-    --warning: #d97706;
-    --warning-foreground: var(--color-midnight-900);
-    --warning-text: #b45309;
-    --info: #2563eb;
-    --info-foreground: var(--color-neutral-100);
-    --info-text: #2563eb;
+    --overlay-shadow: 0 8px 24px rgb(20 20 20 / 0.12);
+    --scrim: color-mix(in srgb, var(--ink) 40%, transparent);
 
-    --chart-1: var(--color-turquoise-700);
-    --chart-2: var(--color-midnight-500);
-    --chart-3: var(--color-turquoise-500);
-    --chart-4: var(--color-midnight-300);
-    --chart-5: var(--color-slate-500);
-
-    --sidebar: var(--color-neutral-100);
-    --sidebar-foreground: var(--color-midnight-900);
-    --sidebar-primary: var(--color-midnight-900);
-    --sidebar-primary-foreground: var(--color-neutral-100);
-    --sidebar-accent: var(--color-turquoise-100);
-    --sidebar-accent-foreground: var(--color-midnight-900);
-    --sidebar-border: var(--color-midnight-200);
-    --sidebar-ring: var(--color-turquoise-700);
-
-    --elevation: rgb(16 24 39 / 0.08);
+    /* shadcn/ui variables mapped to the world tokens (REQ-BRAND-009). */
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: var(--surface-raised);
+    --card-foreground: var(--ink);
+    --popover: var(--surface-raised);
+    --popover-foreground: var(--ink);
+    --primary: var(--teal);
+    --primary-foreground: var(--on-teal);
+    --secondary: var(--surface-subtle);
+    --secondary-foreground: var(--ink);
+    --muted: var(--surface-subtle);
+    --muted-foreground: var(--ink-muted);
+    --accent: var(--surface-subtle);
+    --accent-foreground: var(--ink);
+    --destructive: var(--rust);
+    --destructive-foreground: var(--on-rust);
+    --border: var(--rule);
+    --input: var(--input-border);
+    --ring: var(--teal);
 }
 
-/* Dark theme: `dark` class on <html> (BRAND-11). Pure black is never used. */
+/* Dark theme: `dark` class on <html> (REQ-BRAND-011). */
 .dark {
-    --background: var(--color-midnight-900);
-    --foreground: var(--color-neutral-200);
-    --card: var(--color-midnight-800);
-    --card-foreground: var(--color-neutral-200);
-    --popover: var(--color-midnight-800);
-    --popover-foreground: var(--color-neutral-200);
-    --primary: var(--color-turquoise-500);
-    --primary-foreground: var(--color-midnight-900);
-    --secondary: var(--color-midnight-700);
-    --secondary-foreground: var(--color-neutral-200);
-    --muted: var(--color-midnight-700);
-    --muted-foreground: var(--color-slate-400);
-    --accent: var(--color-midnight-700);
-    --accent-foreground: var(--color-neutral-200);
-    --brand: var(--color-turquoise-400);
-    --border: var(--color-midnight-700);
-    --input: var(--color-midnight-700);
-    --input-border: var(--color-midnight-400);
-    --ring: var(--color-turquoise-300);
+    --paper: #141414;
+    --ink: #EDEFF1;
+    --ink-muted: #A3A9B0;
+    --rule: #2E3236;
+    --rule-strong: #EDEFF1;
+    --input-border: #7D838A;
+    --surface-subtle: #1D2023;
+    --surface-raised: #1D2023;
+    --teal: #5CBDBD;
+    --teal-strong: #7ACCCC;
+    --teal-tint: #1F3B3B;
+    --on-teal: #141414;
+    --rust: #F0916A;
+    --rust-strong: #F4A887;
+    --on-rust: #141414;
 
-    --destructive-text: #f87171;
-    --success-text: #16a34a;
-    --warning-text: #d97706;
-    --info-text: #60a5fa;
+    --overlay-shadow: 0 8px 24px rgb(0 0 0 / 0.5);
+    --scrim: color-mix(in srgb, var(--paper) 70%, transparent);
 
-    --chart-1: var(--color-turquoise-400);
-    --chart-2: var(--color-midnight-300);
-    --chart-3: var(--color-turquoise-600);
-    --chart-4: var(--color-midnight-500);
-    --chart-5: var(--color-slate-400);
+    /* shadcn/ui variables mapped to the world tokens (REQ-BRAND-009). */
+    --background: var(--paper);
+    --foreground: var(--ink);
+    --card: var(--surface-raised);
+    --card-foreground: var(--ink);
+    --popover: var(--surface-raised);
+    --popover-foreground: var(--ink);
+    --primary: var(--teal);
+    --primary-foreground: var(--on-teal);
+    --secondary: var(--surface-subtle);
+    --secondary-foreground: var(--ink);
+    --muted: var(--surface-subtle);
+    --muted-foreground: var(--ink-muted);
+    --accent: var(--surface-subtle);
+    --accent-foreground: var(--ink);
+    --destructive: var(--rust);
+    --destructive-foreground: var(--on-rust);
+    --border: var(--rule);
+    --input: var(--input-border);
+    --ring: var(--teal);
+}
 
-    --sidebar: var(--color-midnight-800);
-    --sidebar-foreground: var(--color-neutral-200);
-    --sidebar-primary: var(--color-turquoise-500);
-    --sidebar-primary-foreground: var(--color-midnight-900);
-    --sidebar-accent: var(--color-midnight-700);
-    --sidebar-accent-foreground: var(--color-neutral-200);
-    --sidebar-border: var(--color-midnight-700);
-    --sidebar-ring: var(--color-turquoise-300);
+/* Browser surfaces (REQ-BRAND-032). */
+:root {
+    color-scheme: light;
+    caret-color: var(--teal);
+    accent-color: var(--teal);
+    scrollbar-color: var(--input-border) var(--paper);
+    scrollbar-width: thin;
+}
 
-    --elevation: rgb(4 8 16 / 0.45);
-
+.dark {
     color-scheme: dark;
 }
 
-/* Digital noise texture, only for the login brand panel (BRAND-23). */
-@utility brand-noise {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+::selection {
+    background-color: var(--teal-tint);
+    color: var(--ink);
+}
+
+/* Toasts (sonner) inject their own unlayered styles; these selectors are
+   more specific so toasts follow the overlay rules (REQ-BRAND-016) and the
+   two-hue semantics (REQ-BRAND-007). */
+[data-sonner-toaster] [data-sonner-toast][data-styled="true"] {
+    background: var(--surface-raised);
+    color: var(--ink);
+    border: 1px solid var(--rule-strong);
+    border-radius: 0;
+    box-shadow: var(--overlay-shadow);
+    font-family: inherit;
+    font-size: 0.875rem;
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] [data-icon],
+[data-sonner-toaster] [data-sonner-toast][data-type="success"] [data-title] {
+    color: var(--teal);
+}
+
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] [data-icon],
+[data-sonner-toaster] [data-sonner-toast][data-type="error"] [data-title] {
+    color: var(--rust);
+}
+
+[data-sonner-toaster] [data-sonner-toast] [data-description] {
+    color: var(--ink-muted);
 }
 
 @layer base {
     * {
-        @apply border-border outline-ring;
+        @apply border-border;
     }
     html {
         @apply font-sans;
     }
     body {
-        @apply bg-background text-foreground;
+        @apply bg-paper text-body text-ink;
     }
     h1,
     h2,
-    h3,
-    h4 {
-        @apply font-heading text-balance;
+    h3 {
+        text-wrap: balance;
+    }
+    h1 {
+        @apply text-h1;
+    }
+    h2 {
+        @apply text-h2;
+    }
+    h3 {
+        @apply text-h3;
+    }
+    a {
+        text-underline-offset: 3px;
+    }
+    /* Focus (REQ-BRAND-020): one visible ring for every element. */
+    :focus-visible {
+        outline: 2px solid var(--teal);
+        outline-offset: 2px;
+    }
+}
+
+/* Tabular lining figures for tables, statistics, counters and dates
+   (REQ-BRAND-012). */
+@utility figures {
+    font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Motion off when the user asks for it (REQ-BRAND-031). */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
     }
 }

@@ -3,9 +3,11 @@ import bcrypt from "bcrypt";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { prisma, resetDatabase } from "../helpers/database.js";
 
-// Answers are piped: email, username, password, password confirmation.
+// Runs the command as the create-user script does (tsx with the `source`
+// condition, REQ-ARCH-012). Answers are piped: email, username, password,
+// password confirmation.
 const runCreateUser = (...answers: string[]) =>
-  spawnSync("pnpm", ["exec", "tsx", "src/scripts/createUser.ts"], {
+  spawnSync("pnpm", ["exec", "tsx", "--conditions=source", "src/scripts/createUser.ts"], {
     env: process.env,
     input: answers.map((a) => `${a}\n`).join(""),
     encoding: "utf8",

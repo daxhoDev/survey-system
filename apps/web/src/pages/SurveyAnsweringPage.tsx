@@ -1,353 +1,384 @@
+import { useEffect, useRef, type ReactNode } from "react";
 import { useParams } from "react-router";
-import { useForm, Controller } from "react-hook-form";
 import {
-  useGetSurveyBySlug,
+  Controller,
+  useForm,
+  useWatch,
+  type FieldErrors,
+} from "react-hook-form";
+import { toast } from "sonner";
+import {
   getGetSurveyBySlugQueryKey,
+  useGetSurveyBySlug,
 } from "@/lib/api/surveys/surveys";
 import { useCreateSurveyAnswer } from "@/lib/api/answers/answers";
+import type {
+  CreateSurveyAnswerBodyResponsesItem,
+  SurveyQuestionsItem,
+} from "@/lib/api/sondixAPI.schemas";
+import { GUTTERS } from "@/lib/layout";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FieldError } from "@/components/ui/field";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CheckCircle2, AlertCircle } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import Logo from "@/components/Logo";
+import RequiredMark from "@/components/RequiredMark";
+
+// Public answering page `/surveys/:slug` (REQ-FE-023, REQ-FE-024): a
+// questionnaire sheet in one reading column (REQ-FE-034).
+
+const REQUIRED_MESSAGE = "Esta pregunta es obligatoria";
+
+type ResponseValue = CreateSurveyAnswerBodyResponsesItem["content"];
 
 interface SurveyFormValues {
-  answers: Record<string, string | number[]>;
+  answers: Record<string, ResponseValue>;
+}
+
+const answerKey = (questionId: number) => `Q${questionId}`;
+
+// An empty text ("") or an empty selection ([]) counts as unanswered.
+const isAnswered = (value: ResponseValue | undefined) =>
+  value !== undefined && value.length > 0;
+
+// Full-width option row (at least 44 px tall): the label wraps the control,
+// so the whole row toggles it.
+const OPTION_ROW =
+  "flex min-h-11 w-full cursor-pointer items-center gap-3 px-3 py-2.5 text-body-lg text-ink transition-colors duration-150 ease-out hover:bg-surface-subtle has-data-[state=checked]:bg-teal-tint has-data-[state=checked]:hover:bg-teal-tint";
+
+// The sheet: one centered column on paper, at most 42 rem wide, with the
+// logo at its foot. No top bar, card or tinted ground.
+function Sheet({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className={cn("flex min-h-dvh w-full justify-center bg-paper", GUTTERS)}
+    >
+      <div className="flex w-full max-w-168 flex-col pt-12 pb-10">
+        <main className="flex-1">{children}</main>
+        <footer className="mt-16">
+          <Logo variant="footer" />
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function StrongRule({ className }: { className?: string }) {
+  return (
+    <hr className={cn("border-0 border-t-2 border-rule-strong", className)} />
+  );
+}
+
+// "{answered} de {n} respondidas" with a slim teal bar on a rule track.
+function Progress({
+  answered,
+  total,
+  className,
+}: {
+  answered: number;
+  total: number;
+  className?: string;
+}) {
+  const percent = total > 0 ? (answered / total) * 100 : 0;
+  return (
+    <div className={cn("flex flex-col gap-1.5", className)}>
+      <p className="figures text-small text-ink">
+        {answered} de {total} respondidas
+      </p>
+      <div aria-hidden="true" className="h-0.5 w-full bg-rule">
+        <div className="h-full bg-teal" style={{ width: `${percent}%` }} />
+      </div>
+    </div>
+  );
+}
+
+// Skeleton rules in the shape of the header and two questions.
+function SheetSkeleton() {
+  return (
+    <div role="status" aria-label="Cargando encuesta...">
+      <Skeleton className="w-3/4" />
+      <Skeleton className="mt-5 w-1/2" />
+      <StrongRule className="mt-6" />
+      {[0, 1].map((i) => (
+        <div
+          key={i}
+          className={cn(
+            "flex flex-col gap-4 py-8",
+            i > 0 && "border-t border-rule",
+          )}
+        >
+          <Skeleton className="w-2/3" />
+          <Skeleton className="mt-2 w-full" />
+          <Skeleton className="w-full" />
+          <Skeleton className="w-5/6" />
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function SurveyAnsweringPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug = "" } = useParams<{ slug: string }>();
+  const thanksHeading = useRef<HTMLHeadingElement>(null);
 
-  const {
-    data: rawData,
-    isLoading,
-    isError,
-  } = useGetSurveyBySlug(slug || "", {
-    query: {
-      enabled: !!slug,
-      queryKey: getGetSurveyBySlugQueryKey(slug || ""),
-    },
+  const { data, isLoading, isError } = useGetSurveyBySlug(slug, {
+    query: { enabled: !!slug, queryKey: getGetSurveyBySlugQueryKey(slug) },
   });
-
-  const survey = rawData?.data;
+  const survey = data?.data;
 
   const {
     control,
-    handleSubmit,
     register,
+    handleSubmit,
     formState: { errors },
   } = useForm<SurveyFormValues>({
-    defaultValues: {
-      answers: {},
+    defaultValues: { answers: {} },
+    shouldFocusError: false,
+  });
+  const answers = useWatch({ control, name: "answers" });
+
+  const submitAnswer = useCreateSurveyAnswer({
+    mutation: {
+      onError(error) {
+        toast.error(error.detail);
+      },
     },
   });
 
-  const submitAnswer = useCreateSurveyAnswer();
-
-  const onSubmit = (data: SurveyFormValues) => {
-    if (!survey) return;
-
-    // Convert form answers object to the responses array required by backend
-    const responses = Object.entries(data.answers)
-      .filter(([_, content]) => {
-        // filter out empty/null responses
-        if (content === undefined || content === null || content === "")
-          return false;
-        if (Array.isArray(content) && content.length === 0) return false;
-        return true;
-      })
-      .map(([key, content]) => {
-        const questionId = parseInt(key.replace("Q", ""), 10);
-        return {
-          id: questionId,
-          content: content as any,
-        };
-      });
-
-    // Check if all required questions are answered
-    const requiredQuestionIds = survey.questions
-      .filter((q) => q.isRequired)
-      .map((q) => q.id);
-
-    const answeredQuestionIds = responses.map((r) => r.id);
-    const missingRequired = requiredQuestionIds.filter(
-      (id) => !answeredQuestionIds.includes(id),
-    );
-
-    if (missingRequired.length > 0) {
-      toast.error("Por favor, responde todas las preguntas obligatorias.");
-      return;
-    }
-
-    submitAnswer.mutate(
-      {
-        slug: survey.slug,
-        data: { responses },
-      },
-      {
-        onSuccess() {
-          toast.success("Respuestas enviadas correctamente");
-        },
-        onError(err) {
-          toast.error(err.detail || "Error al enviar las respuestas");
-        },
-      },
-    );
-  };
+  // The thank-you heading takes the focus once the answers are sent.
+  useEffect(() => {
+    if (submitAnswer.isSuccess) thanksHeading.current?.focus();
+  }, [submitAnswer.isSuccess]);
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-2xl mx-auto py-12 px-4 space-y-6">
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-8 w-2/3 mb-2" />
-            <Skeleton className="h-4 w-1/2" />
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <Skeleton className="h-32 w-full" />
-            <Skeleton className="h-24 w-full" />
-            <Skeleton className="h-10 w-28" />
-          </CardContent>
-        </Card>
-      </div>
+      <Sheet>
+        <SheetSkeleton />
+      </Sheet>
     );
   }
 
+  // Missing and inactive surveys look the same (REQ-FE-024).
   if (isError || !survey) {
     return (
-      <div className="w-full max-w-2xl mx-auto py-12 px-4">
-        <Card className="border-destructive/20 bg-destructive/5">
-          <CardHeader className="text-center flex flex-col items-center">
-            <AlertCircle className="size-12 text-destructive-text mb-4" />
-            <CardTitle className="text-h3 text-destructive-text">
-              Encuesta no encontrada
-            </CardTitle>
-            <CardDescription>
-              La encuesta que estás intentando acceder no existe o no está
-              disponible.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <Sheet>
+        <h1 className="text-h1">Encuesta no encontrada</h1>
+        <p className="mt-3 text-body-lg text-ink-muted">
+          La encuesta que estás intentando acceder no existe o no está
+          disponible.
+        </p>
+      </Sheet>
     );
   }
 
   if (submitAnswer.isSuccess) {
     return (
-      <div className="w-full max-w-2xl mx-auto py-12 px-4">
-        <Card className="border-success/30 bg-success/5">
-          <CardHeader className="text-center flex flex-col items-center">
-            <CheckCircle2 className="size-12 text-success mb-4" aria-hidden="true" />
-            <CardTitle className="text-h2 text-success-text">
-              ¡Muchas gracias!
-            </CardTitle>
-            <CardDescription>
-              Tus respuestas a la encuesta <strong>{survey.name}</strong> han
-              sido enviadas correctamente.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      </div>
+      <Sheet>
+        <p className="text-h1 text-balance">{survey.name}</p>
+        <StrongRule className="mt-6 mb-8" />
+        <h1 ref={thanksHeading} tabIndex={-1} className="text-h2">
+          ¡Muchas gracias!
+        </h1>
+        <p className="mt-3 text-body-lg text-ink">
+          Tus respuestas a la encuesta {survey.name} han sido enviadas
+          correctamente.
+        </p>
+      </Sheet>
     );
   }
 
+  const { questions } = survey;
+  const total = questions.length;
+  const answered = questions.filter((q) =>
+    isAnswered(answers?.[answerKey(q.id)]),
+  ).length;
+
+  const onValid = (values: SurveyFormValues) => {
+    const responses = questions
+      .map((q) => ({ id: q.id, content: values.answers[answerKey(q.id)] }))
+      .filter((r): r is CreateSurveyAnswerBodyResponsesItem =>
+        isAnswered(r.content),
+      );
+    submitAnswer.mutate({ slug: survey.slug, data: { responses } });
+  };
+
+  // Focus the first control of the first unanswered required question.
+  const onInvalid = (formErrors: FieldErrors<SurveyFormValues>) => {
+    const first = questions.find((q) => formErrors.answers?.[answerKey(q.id)]);
+    if (!first) return;
+    document
+      .getElementById(`${answerKey(first.id)}-fieldset`)
+      ?.querySelector<HTMLElement>("textarea, [role=radio], [role=checkbox]")
+      ?.focus();
+  };
+
+  const requiredRule = (question: SurveyQuestionsItem) => ({
+    validate: (value: ResponseValue | undefined) =>
+      !question.isRequired || isAnswered(value) || REQUIRED_MESSAGE,
+  });
+
   return (
-    <div className="w-full max-w-2xl mx-auto py-12 px-4">
-      <Card className="border-border/60 bg-card/60 backdrop-blur shadow-xl">
-        <CardHeader className="border-b border-border/40 pb-6">
-          <CardTitle className="text-h1">
-            {survey.name}
-          </CardTitle>
-          <CardDescription>
-            Por favor, responde las siguientes preguntas. Los campos marcados
-            con * son obligatorios.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-            {survey.questions.map((question) => {
-              const fieldName = `answers.Q${question.id}`;
-              const hasError = errors.answers?.[`Q${question.id}`];
+    <Sheet>
+      <header>
+        <h1 className="text-h1">{survey.name}</h1>
+        <p className="mt-2 text-small text-ink-muted">
+          {total === 1 ? "1 pregunta" : `${total} preguntas`} · Las marcadas con
+          * son obligatorias.
+        </p>
+        <StrongRule className="mt-6" />
+      </header>
 
-              return (
-                <div
-                  key={question.id}
-                  className="space-y-3 p-4 rounded-lg bg-muted/30 border border-border/20"
+      <form noValidate onSubmit={handleSubmit(onValid, onInvalid)}>
+        <Progress
+          answered={answered}
+          total={total}
+          className="sticky top-0 z-10 -mx-4 border-b border-rule bg-paper px-4 py-2.5 md:hidden"
+        />
+
+        <div className="divide-y divide-rule">
+          {questions.map((question, index) => {
+            const key = answerKey(question.id);
+            const name = `answers.${key}` as const;
+            const legendId = `${key}-legend`;
+            const errorId = `${key}-error`;
+            const error = errors.answers?.[key];
+
+            return (
+              <div key={question.id} className="py-8">
+                <fieldset
+                  id={`${key}-fieldset`}
+                  className="relative min-w-0"
+                  aria-invalid={error ? true : undefined}
+                  aria-describedby={error ? errorId : undefined}
                 >
-                  <div className="flex justify-between items-start">
-                    <Label className="text-sm font-semibold text-foreground">
-                      {question.name}{" "}
+                  <legend
+                    id={legendId}
+                    className="flex w-full gap-3 text-h3 text-ink"
+                  >
+                    <span className="figures shrink-0 text-ink-muted lg:absolute lg:top-0 lg:-left-12 lg:w-8 lg:text-right">
+                      {index + 1}
+                    </span>{" "}
+                    <span className="min-w-0 text-balance wrap-anywhere">
+                      {question.name}
                       {question.isRequired && (
-                        <span className="text-destructive-text">*</span>
+                        <>
+                          {" "}
+                          <RequiredMark />
+                          <span className="sr-only"> (obligatoria)</span>
+                        </>
                       )}
-                    </Label>
-                    <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded font-medium">
-                      {question.type === "TEXT_ANSWER" && "Texto"}
-                      {question.type === "SINGLE_SELECT" && "Única opción"}
-                      {question.type === "MULTI_SELECT" && "Múltiple opción"}
                     </span>
-                  </div>
+                  </legend>
 
-                  {/* TEXT ANSWER */}
                   {question.type === "TEXT_ANSWER" && (
-                    <div className="space-y-1">
-                      <Textarea
-                        placeholder="Escribe tu respuesta aquí..."
-                        className="bg-background/80"
-                        {...register(fieldName as any, {
-                          required: question.isRequired
-                            ? "Esta pregunta es obligatoria"
-                            : false,
-                        })}
-                      />
-                      {hasError && (
-                        <p className="text-xs text-destructive-text mt-1">
-                          {hasError.message as string}
-                        </p>
-                      )}
-                    </div>
+                    <Textarea
+                      rows={4}
+                      placeholder="Escribe tu respuesta aquí..."
+                      aria-labelledby={legendId}
+                      aria-required={question.isRequired || undefined}
+                      aria-invalid={error ? true : undefined}
+                      className="mt-4 min-h-28 text-body-lg"
+                      {...register(name, requiredRule(question))}
+                    />
                   )}
 
-                  {/* SINGLE SELECT */}
                   {question.type === "SINGLE_SELECT" && (
-                    <div className="space-y-1">
-                      <Controller
-                        name={fieldName as any}
-                        control={control}
-                        rules={{
-                          required: question.isRequired
-                            ? "Esta pregunta es obligatoria"
-                            : false,
-                        }}
-                        render={({ field }) => (
-                          <RadioGroup
-                            value={
-                              field.value
-                                ? String((field.value as number[])[0])
-                                : ""
-                            }
-                            onValueChange={(val) =>
-                              field.onChange([parseInt(val, 10)])
-                            }
-                            className="flex flex-col gap-2 pt-2"
-                          >
-                            {question.options?.map((option) => (
-                              <div
-                                key={option.id}
-                                className="flex items-center space-x-2"
-                              >
-                                <RadioGroupItem
-                                  value={String(option.id)}
-                                  id={`q${question.id}-o${option.id}`}
-                                  className="cursor-pointer"
-                                />
-                                <Label
-                                  htmlFor={`q${question.id}-o${option.id}`}
-                                  className="font-normal cursor-pointer text-foreground"
-                                >
-                                  {option.content}
-                                </Label>
-                              </div>
-                            ))}
-                          </RadioGroup>
-                        )}
-                      />
-                      {hasError && (
-                        <p className="text-xs text-destructive-text mt-1">
-                          {hasError.message as string}
-                        </p>
+                    <Controller
+                      name={name}
+                      control={control}
+                      rules={requiredRule(question)}
+                      render={({ field }) => (
+                        <RadioGroup
+                          aria-labelledby={legendId}
+                          aria-required={question.isRequired || undefined}
+                          value={
+                            Array.isArray(field.value) && field.value.length > 0
+                              ? String(field.value[0])
+                              : ""
+                          }
+                          onValueChange={(value) =>
+                            field.onChange([Number(value)])
+                          }
+                          className="mt-4 gap-0.5"
+                        >
+                          {question.options?.map((option) => (
+                            <label key={option.id} className={OPTION_ROW}>
+                              <RadioGroupItem value={String(option.id)} />
+                              <span className="min-w-0 wrap-anywhere">
+                                {option.content}
+                              </span>
+                            </label>
+                          ))}
+                        </RadioGroup>
                       )}
-                    </div>
+                    />
                   )}
 
-                  {/* MULTI SELECT */}
                   {question.type === "MULTI_SELECT" && (
-                    <div className="space-y-1">
-                      <Controller
-                        name={fieldName as any}
-                        control={control}
-                        rules={{
-                          validate: (val) => {
-                            if (
-                              question.isRequired &&
-                              (!val || (val as number[]).length === 0)
-                            ) {
-                              return "Debes seleccionar al menos una opción";
-                            }
-                            return true;
-                          },
-                        }}
-                        render={({ field }) => {
-                          const selected = (field.value as number[]) || [];
-                          return (
-                            <div className="flex flex-col gap-2 pt-2">
-                              {question.options?.map((option) => (
-                                <div
-                                  key={option.id}
-                                  className="flex items-center space-x-2"
-                                >
-                                  <Checkbox
-                                    checked={selected.includes(option.id)}
-                                    className="cursor-pointer"
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        field.onChange([
-                                          ...selected,
-                                          option.id,
-                                        ]);
-                                      } else {
-                                        field.onChange(
-                                          selected.filter(
+                    <Controller
+                      name={name}
+                      control={control}
+                      rules={requiredRule(question)}
+                      render={({ field }) => {
+                        const selected = Array.isArray(field.value)
+                          ? field.value
+                          : [];
+                        return (
+                          <div className="mt-4 flex flex-col gap-0.5">
+                            {question.options?.map((option) => (
+                              <label key={option.id} className={OPTION_ROW}>
+                                <Checkbox
+                                  checked={selected.includes(option.id)}
+                                  onCheckedChange={(checked) =>
+                                    field.onChange(
+                                      checked === true
+                                        ? [...selected, option.id]
+                                        : selected.filter(
                                             (id) => id !== option.id,
                                           ),
-                                        );
-                                      }
-                                    }}
-                                    id={`q${question.id}-o${option.id}`}
-                                  />
-                                  <Label
-                                    htmlFor={`q${question.id}-o${option.id}`}
-                                    className="font-normal cursor-pointer text-foreground"
-                                  >
-                                    {option.content}
-                                  </Label>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        }}
-                      />
-                      {hasError && (
-                        <p className="text-xs text-destructive-text mt-1">
-                          {hasError.message as string}
-                        </p>
-                      )}
-                    </div>
+                                    )
+                                  }
+                                />
+                                <span className="min-w-0 wrap-anywhere">
+                                  {option.content}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        );
+                      }}
+                    />
                   )}
-                </div>
-              );
-            })}
 
-            <Button
-              type="submit"
-              className="w-full cursor-pointer"
-              disabled={submitAnswer.isPending}
-            >
-              {submitAnswer.isPending ? "Enviando..." : "Enviar respuestas"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-    </div>
+                  {error && (
+                    <FieldError id={errorId} className="mt-3">
+                      {error.message}
+                    </FieldError>
+                  )}
+                </fieldset>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-col gap-4 border-t border-rule pt-8 md:flex-row md:items-center md:justify-between">
+          <Progress
+            answered={answered}
+            total={total}
+            className="hidden w-48 md:flex"
+          />
+          <Button
+            type="submit"
+            loading={submitAnswer.isPending}
+            className="w-full md:w-auto"
+          >
+            {submitAnswer.isPending ? "Enviando..." : "Enviar respuestas"}
+          </Button>
+        </div>
+      </form>
+    </Sheet>
   );
 }

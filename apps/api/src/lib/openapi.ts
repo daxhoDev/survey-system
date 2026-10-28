@@ -6,6 +6,7 @@ import {
 import { z } from "zod";
 import {
   acceptInvitationSchema,
+  activeSurveyStatsSchema,
   answerSchema,
   answerWithSurveySchema,
   createAnswerSchema,
@@ -15,6 +16,7 @@ import {
   invitationSchema,
   invitationTokenInfoSchema,
   loginDataSchema,
+  surveyListItemSchema,
   surveySchema,
   surveyStatsSchema,
   surveySummarySchema,
@@ -97,6 +99,8 @@ const answerParams = slugParam.extend(idParamSchema.shape);
 registry.register("Survey", surveySchema);
 registry.register("SurveyStats", surveyStatsSchema);
 registry.register("SurveySummary", surveySummarySchema);
+registry.register("SurveyListItem", surveyListItemSchema);
+registry.register("ActiveSurveyStats", activeSurveyStatsSchema);
 registry.register("User", userSchema);
 
 // Users
@@ -254,6 +258,24 @@ registry.registerPath({
   },
 });
 
+registry.registerPath({
+  tags: ["Stats"],
+  method: "get",
+  path: "/api/v1/stats/surveys/active",
+  summary: "Answer counts of the most recently activated surveys",
+  description:
+    "The 8 most recently activated active surveys (newest activation first, tie-break name ascending) with their answer counts. Query parameters are ignored (REQ-STAT-009).",
+  operationId: "getActiveSurveyStats",
+  security: cookieAuth,
+  responses: {
+    200: json(
+      "Statistics of the most recently activated surveys",
+      data(z.array(activeSurveyStatsSchema)),
+    ),
+    ...problems(401),
+  },
+});
+
 // Surveys
 registry.registerPath({
   tags: ["Surveys"],
@@ -279,7 +301,7 @@ registry.registerPath({
     200: json(
       "Page of surveys",
       z.object({
-        data: z.array(surveySchema),
+        data: z.array(surveyListItemSchema),
         meta: z.object({
           results: z.number().int().openapi({ description: "Items in this page" }),
           total: z

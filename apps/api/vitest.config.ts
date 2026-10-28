@@ -20,6 +20,13 @@ if (!testDatabaseUrl) {
 }
 
 export default defineConfig({
+  // Resolve @survey-system/schemas to its TypeScript source; the rest are
+  // Vite's default server conditions.
+  ssr: {
+    resolve: {
+      conditions: ["source", "module", "node", "development|production"],
+    },
+  },
   test: {
     // The db project has no files when TEST_DATABASE_URL is unset.
     passWithNoTests: true,
