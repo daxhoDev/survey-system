@@ -485,7 +485,7 @@ describe("Active surveys small multiples on the dashboard (REQ-FE-032)", () => {
     expect(section.compareDocumentPosition(listSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("AC-FE-032-3: 71 completed and 12 incomplete on a scale of 100 draw teal 71 % and rust 12 %, with the numbers as text", async () => {
+  it("AC-FE-032-3: 71 completed and 12 incomplete on a scale of 100 draw teal 71% and rust 12%, with the numbers as text", async () => {
     mockApi({ counts: { all: 1, active: 1 }, active: [activeItem(1, 83, 71)] });
     renderDashboard();
 

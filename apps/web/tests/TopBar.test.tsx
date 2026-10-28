@@ -219,19 +219,27 @@ describe("TopBar (REQ-FE-016, REQ-FE-029, REQ-FE-031)", () => {
     expect(screen.queryByText("Redirecting...")).not.toBeInTheDocument();
   });
 
-  it("AC-BRAND-001-3 / AC-BRAND-021-1 / AC-FE-029-2: Sondix appears only as the Logo component, once in the bar and once in the sheet", async () => {
+  it("AC-BRAND-001-3 / AC-BRAND-021-4 / AC-FE-029-2: Sondix appears only as the default Logo component, once in the bar and once in the sheet", async () => {
     mockFetch(me);
     renderBar();
     await screen.findAllByText("owner");
 
-    const inBar = within(header()).getAllByText("Sondix");
-    expect(inBar).toHaveLength(1);
-    expect(inBar[0]).toHaveAttribute("data-slot", "logo");
+    const expectOneDefaultLogo = (scope: HTMLElement) => {
+      const logos = scope.querySelectorAll('[data-slot="logo"]');
+      expect(logos).toHaveLength(1);
+      expect(logos[0]).not.toHaveAttribute("data-variant");
+      const sondix = within(scope).getAllByText("Sondix");
+      expect(sondix).toHaveLength(1);
+      expect(sondix[0]!.closest('[data-slot="logo"]')).toBe(logos[0]);
+    };
+
+    expectOneDefaultLogo(header());
+    // The bar's logo is the link to /dashboard with its own accessible name.
+    const link = within(header()).getByRole("link", { name: "Sondix, ir a encuestas" });
+    expect(link.querySelector('[data-slot="logo"]')).not.toBeNull();
 
     await userEvent.setup().click(within(header()).getByRole("button", { name: "Abrir menú" }));
-    const inSheet = within(screen.getByRole("dialog")).getAllByText("Sondix");
-    expect(inSheet).toHaveLength(1);
-    expect(inSheet[0]).toHaveAttribute("data-slot", "logo");
+    expectOneDefaultLogo(screen.getByRole("dialog"));
   });
 
   it("AC-BRAND-017-1: every icon-only button of the bar has an accessible name", async () => {

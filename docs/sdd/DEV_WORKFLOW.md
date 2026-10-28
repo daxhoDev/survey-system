@@ -4,9 +4,9 @@
 
 - **Module:** Development workflow
 - **Module code:** DEVWF
-- **Version:** v2.0
+- **Version:** v2.1
 - **Status:** Approved
-- **Last updated:** 2026-10-27
+- **Last updated:** 2026-10-28
 
 ## Description
 
@@ -32,6 +32,8 @@ Related: [CONFIGURATION.md](CONFIGURATION.md), [CONVENTIONS.md](CONVENTIONS.md),
 | root | `docker build -f apps/api/Dockerfile -t sondix-api .` | Build the API image only |
 | root | `pnpm test` | Run the tests of every workspace (`pnpm -r test`) |
 | root | `bash scripts/preflight.sh` | Environment preflight: checks the runtimes and their versions, runs the tests without the API `db` project, prints a summary; exit `0` only if everything passed ([ENV.md](ENV.md)) |
+| root | `node scripts/brand-icons.ts` | Regenerate the PNG icons `favicon.png`, `favicon-16.png` and `apple-touch-icon.png` in `apps/web/public` from the logo geometry ([BRAND.md](BRAND.md), REQ-BRAND-034); an optional argument writes them to another directory |
+| root | `bash scripts/tests/<script>.test.sh` | Run the tests of a developer script (e.g. `preflight.test.sh`, `brand-icons.test.sh`); not part of `pnpm test` ([CONVENTIONS.md](CONVENTIONS.md) §Testing) |
 | root | `pnpm generate:api` | Run Orval: regenerate `apps/web/src/lib/api` from `http://localhost:3000/api/v1/docs-raw` (API must be running) |
 | `apps/api` | `pnpm exec prisma migrate dev` | Create/apply migrations |
 | `apps/api` | `pnpm seed` | Load the demo data into the development database (REQ-DEVWF-001) |

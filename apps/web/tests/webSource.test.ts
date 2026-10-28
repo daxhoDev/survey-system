@@ -96,17 +96,9 @@ describe("Spanish UI document (REQ-FE-006)", () => {
 });
 
 describe("semantic tokens only (REQ-BRAND-008, 009)", () => {
-  // ui/chart.tsx (recharts) is removed in PH-FE-4 (AC-FE-002-3); its
-  // attribute selectors match recharts' own default strokes.
   const raw = /#[0-9a-fA-F]{3,8}\b|\brgba?\(|\bhsla?\(|\boklch\(/;
 
-  it("AC-BRAND-008-1 (all but ui/chart.tsx): components and pages use no raw color values", () => {
-    const scope = componentsAndPages.filter((p) => !p.endsWith("ui/chart.tsx"));
-    expect(matches(scope, raw)).toEqual([]);
-  });
-
-  // Passes once ui/chart.tsx is removed (PH-FE-4).
-  it.skip("AC-BRAND-008-1 (full, PH-FE-4): no raw color values at all", () => {
+  it("AC-BRAND-008-1: components and pages use no raw color values", () => {
     expect(matches(componentsAndPages, raw)).toEqual([]);
   });
 
@@ -143,14 +135,168 @@ describe("icons (REQ-BRAND-017)", () => {
   });
 });
 
-describe("app icon and favicon (REQ-BRAND-026)", () => {
-  it("AC-BRAND-026-1: index.html links /favicon.svg and the 32 px /favicon.png", () => {
-    expect(indexHtml).toMatch(/<link rel="icon" type="image\/svg\+xml" href="\/favicon\.svg" \/>/);
-    expect(indexHtml).toMatch(
-      /<link rel="icon" type="image\/png" sizes="32x32" href="\/favicon\.png" \/>/,
+describe("former logo assets (REQ-BRAND-025)", () => {
+  const formerAssets = [
+    "isotype-gradient.svg",
+    "isotype-midnight.svg",
+    "isotype-white.svg",
+    "logo-light.svg",
+    "logo-dark.svg",
+    "logo-mono-midnight.svg",
+    "logo-mono-white.svg",
+  ];
+
+  it("AC-BRAND-025-1: the seven v1.0 logo files are gone and nothing references them", () => {
+    for (const name of formerAssets) {
+      expect(existsSync(join(root, "src/assets/brand", name)), name).toBe(false);
+    }
+    const names = new RegExp(formerAssets.map((n) => n.replace(/\./g, "\\.")).join("|"));
+    expect(matches(src, names)).toEqual([]);
+  });
+
+  it("AC-BRAND-025-2: no v1.0 logo color in src, public or index.html", () => {
+    const all = (function walk(dir: string): string[] {
+      const abs = join(root, dir);
+      return readdirSync(abs).flatMap((name) => {
+        const path = join(dir, name);
+        return statSync(join(root, path)).isDirectory() ? walk(path) : [path];
+      });
+    });
+    const users = [...all("src"), ...all("public"), "index.html"].filter((p) =>
+      /#(4AEEC8|12B2D6|2FDDB8|17C9AB|101827)/i.test(read(p)),
     );
-    expect(existsSync(join(root, "public/favicon.svg"))).toBe(true);
-    expect(existsSync(join(root, "public/favicon.png"))).toBe(true);
+    expect(users).toEqual([]);
+  });
+});
+
+describe("pages redesigned in PH-FE-5 (DEV-005)", () => {
+  it("AC-FE-002-3 (card, PH-FE-5 part): the login form, invitations and accept-invitation pages no longer use ui/card", () => {
+    for (const path of [
+      "src/components/login-form.tsx",
+      "src/pages/InvitationsPage.tsx",
+      "src/pages/AcceptInvitationPage.tsx",
+      "src/pages/LoginPage.tsx",
+      "src/pages/AuthPage.tsx",
+    ]) {
+      expect(read(path), path).not.toMatch(/ui\/card|\bCard\w*\b/);
+    }
+  });
+});
+
+describe("app icon and favicon (REQ-BRAND-026)", () => {
+  // Attributes of every <rect> of an SVG, in document order.
+  function rects(svg: string) {
+    return Array.from(svg.matchAll(/<rect\b([^>]*?)\/?>/g), ([, attrs]) =>
+      Object.fromEntries(Array.from(attrs!.matchAll(/([\w-]+)="([^"]*)"/g), ([, k, v]) => [k, v])),
+    ) as Record<string, string>[];
+  }
+  const geometry = (r: Record<string, string>) => [r.x, r.y, r.width, r.height].map(Number);
+
+  it("AC-BRAND-026-1: index.html holds the four icon links in order, and each linked file exists in public", () => {
+    const links = [
+      '<link rel="icon" type="image/svg+xml" href="/favicon.svg" />',
+      '<link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />',
+      '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />',
+      '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />',
+    ];
+    const positions = links.map((l) => indexHtml.indexOf(l));
+    expect(positions.every((p) => p >= 0), positions.join(",")).toBe(true);
+    expect([...positions].sort((a, b) => a - b)).toEqual(positions);
+    expect(indexHtml.match(/<link rel="(icon|apple-touch-icon)"/g)).toHaveLength(4);
+    for (const file of ["favicon.svg", "favicon.png", "favicon-16.png", "apple-touch-icon.png"]) {
+      expect(existsSync(join(root, "public", file)), file).toBe(true);
+    }
+  });
+
+  it("AC-BRAND-026-3: favicon.svg is the favicon 32 form in light colors with a dark-scheme rule, no ink bar and no background", () => {
+    const svg = read("public/favicon.svg");
+    expect(svg).toMatch(/<svg\b[^>]*viewBox="0 0 48 48"/);
+    expect(svg).toMatch(/<svg\b[^>]*role="img"/);
+    expect(svg).toMatch(/<svg\b[^>]*aria-label="Sondix"/);
+
+    const style = svg.match(/<style>([\s\S]*?)<\/style>/)?.[1] ?? "";
+    const media = style.indexOf("@media (prefers-color-scheme: dark)");
+    expect(media).toBeGreaterThan(0);
+    const lightCss = style.slice(0, media);
+    const darkCss = style.slice(media);
+    const rule = (css: string, cls: string) =>
+      css.match(new RegExp(`\\.${cls}\\s*\\{([^}]*)\\}`))?.[1]?.trim();
+
+    const r = rects(svg);
+    expect(r).toHaveLength(3);
+    const byClass = Object.fromEntries(r.map((x) => [x.class, x]));
+    expect(geometry(byClass.ink!)).toEqual([3, 3, 42, 42]);
+    expect(byClass.ink!.fill).toBe("none");
+    expect(byClass.ink!["stroke-width"]).toBe("4");
+    expect(geometry(byClass.track!)).toEqual([10, 26, 28, 12]);
+    expect(geometry(byClass.value!)).toEqual([10, 26, 19, 12]);
+    expect(r.every((x) => !x.rx && !x.ry)).toBe(true);
+
+    expect(rule(lightCss, "ink")).toMatch(/stroke:\s*#141414/i);
+    expect(rule(lightCss, "track")).toMatch(/fill:\s*#E4E7EA/i);
+    expect(rule(lightCss, "value")).toMatch(/fill:\s*#0E6E6E/i);
+    expect(rule(darkCss, "ink")).toMatch(/stroke:\s*#EDEFF1/i);
+    expect(rule(darkCss, "track")).toMatch(/fill:\s*#2E3236/i);
+    expect(rule(darkCss, "value")).toMatch(/fill:\s*#5CBDBD/i);
+  });
+
+  it("AC-BRAND-026-4: the light and dark app icons are a radius-24 tile with the stroke-3 isotype at translate(18 18) scale(76/48)", () => {
+    const cases = [
+      {
+        file: "src/assets/brand/app-icon-light.svg",
+        tile: "#FFFFFF",
+        border: true,
+        colors: { ink: "#141414", track: "#E4E7EA", fill: "#0E6E6E" },
+      },
+      {
+        file: "src/assets/brand/app-icon-dark.svg",
+        tile: "#141414",
+        border: false,
+        colors: { ink: "#EDEFF1", track: "#2E3236", fill: "#5CBDBD" },
+      },
+    ];
+    for (const { file, tile, border, colors } of cases) {
+      const svg = read(file);
+      expect(svg, file).toMatch(/<svg\b[^>]*viewBox="0 0 112 112"/);
+      expect(svg, file).toMatch(/<svg\b[^>]*role="img"/);
+      expect(svg, file).toMatch(/<svg\b[^>]*aria-label="Sondix"/);
+
+      const transform = svg.match(
+        /<g\b[^>]*transform="translate\(18 18\) scale\(([\d.]+)\)"[^>]*>([\s\S]*?)<\/g>/,
+      );
+      expect(transform, file).not.toBeNull();
+      expect(Math.abs(Number(transform![1]) - 76 / 48), file).toBeLessThan(1e-6);
+
+      const outside = rects(svg.replace(transform![0], ""));
+      expect(outside, file).toHaveLength(border ? 2 : 1);
+      expect(geometry(outside[0]!), file).toEqual([0, 0, 112, 112]);
+      expect(outside[0]!.rx, file).toBe("24");
+      expect(outside[0]!.fill?.toUpperCase(), file).toBe(tile);
+      if (border) {
+        expect(geometry(outside[1]!), file).toEqual([0.5, 0.5, 111, 111]);
+        expect(outside[1]!.rx, file).toBe("23.5");
+        expect(outside[1]!.fill, file).toBe("none");
+        expect(outside[1]!.stroke?.toUpperCase(), file).toBe("#E4E7EA");
+        expect(outside[1]!["stroke-width"], file).toBe("1");
+      }
+
+      const [outline, inkBar, track, value, ...rest] = rects(transform![2]!);
+      expect(rest, file).toEqual([]);
+      expect(geometry(outline!), file).toEqual([3, 3, 42, 42]);
+      expect(outline!.fill, file).toBe("none");
+      expect(outline!.stroke?.toUpperCase(), file).toBe(colors.ink);
+      expect(outline!["stroke-width"], file).toBe("3");
+      expect(geometry(inkBar!), file).toEqual([10, 12, 14, 5]);
+      expect(inkBar!.fill?.toUpperCase(), file).toBe(colors.ink);
+      expect(geometry(track!), file).toEqual([10, 28, 28, 8]);
+      expect(track!.fill?.toUpperCase(), file).toBe(colors.track);
+      expect(geometry(value!), file).toEqual([10, 28, 19, 8]);
+      expect(value!.fill?.toUpperCase(), file).toBe(colors.fill);
+    }
+  });
+
+  it("REQ-BRAND-026: the app does not reference the app icons", () => {
+    expect(matches(src, /app-icon-(light|dark)/)).toEqual([]);
   });
 });
 
@@ -185,16 +331,44 @@ describe("shared components (REQ-FE-002, REQ-BRAND-027)", () => {
     expect(users).toEqual([]);
   });
 
-  // Pass once the details page drops recharts and cards (PH-FE-4).
-  it.skip("AC-FE-002-3 (PH-FE-4): sidebar, card and chart primitives and recharts are gone", () => {
-    for (const f of ["sidebar.tsx", "card.tsx", "chart.tsx"]) {
+  it("AC-FE-002-3 (sidebar, chart, recharts): the sidebar and chart primitives and recharts are gone", () => {
+    for (const f of ["sidebar.tsx", "chart.tsx"]) {
       expect(existsSync(join(root, "src/components/ui", f)), f).toBe(false);
     }
     expect(deps.recharts).toBeUndefined();
   });
 
-  it.skip("AC-BRAND-028-3 (PH-FE-4): no recharts and no ui/chart", () => {
-    expect(deps.recharts).toBeUndefined();
+  // PH-FE-6 removes ui/card.tsx once no page uses it (DEV-005).
+  it("AC-FE-002-3 (card): the card primitive is gone and nothing imports it", () => {
+    expect(existsSync(join(root, "src/components/ui/card.tsx"))).toBe(false);
+    expect(matches(src, /ui\/card|\bCard(Header|Title|Content|Footer|Description|Action)?\b/)).toEqual([]);
+  });
+
+  it("AC-BRAND-021-5: Logo variant=\"footer\" is used only by the public answering page", () => {
+    const users = matches(src, /<Logo\b[^>]*variant=/).filter(
+      (p) => !p.endsWith("components/Logo.tsx"),
+    );
+    expect(users).toEqual(["src/pages/SurveyAnsweringPage.tsx"]);
+    expect(read("src/pages/SurveyAnsweringPage.tsx")).toMatch(/<Logo variant="footer" \/>/);
+  });
+
+  it("REQ-BRAND-019: checkboxes and radios fill with teal on Radix's checked state", () => {
+    for (const f of ["checkbox.tsx", "radio-group.tsx"]) {
+      const code = read(`src/components/ui/${f}`);
+      expect(code, f).toMatch(/data-\[state=checked\]:bg-teal/);
+      expect(code, f).not.toMatch(/\bdata-checked:/);
+    }
+  });
+
+  it("AC-FE-025-2: only ConfirmationDialog builds a DialogContent outside components/ui", () => {
+    const users = matches(componentsAndPages, /\bDialogContent\b/).filter(
+      (p) => !p.includes("components/ui/") && !p.endsWith("ConfirmationDialog.tsx"),
+    );
+    expect(users).toEqual([]);
+  });
+
+  it("AC-BRAND-028-3: no recharts and no ui/chart", () => {
+    expect(read("package.json")).not.toMatch(/recharts|ui\/chart/);
     expect(matches(src, /recharts|ui\/chart/)).toEqual([]);
   });
 });

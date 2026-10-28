@@ -149,6 +149,9 @@ export default function Surveys() {
     );
   };
 
+  // The details page's back link returns to the list as it is now (REQ-FE-021).
+  const detailsState = { listSearch: params.toString() };
+
   const columns: ColumnDef<SurveyListItem>[] = [
     {
       accessorKey: "name",
@@ -157,6 +160,7 @@ export default function Surveys() {
       cell: ({ row }) => (
         <Link
           to={`/dashboard/surveys/${row.original.slug}`}
+          state={detailsState}
           className="whitespace-normal text-ink underline decoration-rule-strong underline-offset-3 transition-colors duration-150 ease-out hover:decoration-ink"
         >
           {row.original.name}
@@ -207,7 +211,7 @@ export default function Surveys() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-40">
               <DropdownMenuItem asChild className="cursor-pointer gap-2">
-                <Link to={`/dashboard/surveys/${survey.slug}`}>
+                <Link to={`/dashboard/surveys/${survey.slug}`} state={detailsState}>
                   <Eye aria-hidden="true" className="size-3.5" />
                   <span>Ver detalles</span>
                 </Link>

@@ -1,4 +1,10 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { cn } from "@/lib/utils";
 
 const numberFormat = new Intl.NumberFormat("es-CU");
@@ -14,8 +20,10 @@ export interface BarProps {
   scaleMax: number;
   /** `rust` is only for incomplete answers (REQ-BRAND-010). */
   tone?: "teal" | "rust";
-  /** Optional percentage shown after the value, e.g. "25 (40 %)". */
+  /** Optional percentage shown after the value, e.g. "25 (40%)". */
   percent?: number;
+  /** Replaces the value text, e.g. "50 · 60%" in the statistics tab. */
+  valueText?: ReactNode;
   /** Width of the label column (any CSS length). */
   labelWidth?: string;
   /** Width of the value column; equal widths keep tracks equal in length. */
@@ -32,6 +40,7 @@ export default function Bar({
   scaleMax,
   tone = "teal",
   percent,
+  valueText,
   labelWidth = "7rem",
   valueWidth,
   className,
@@ -99,14 +108,52 @@ export default function Bar({
         )}
       </span>
       <span className="figures text-right text-caption text-ink">
-        {numberFormat.format(value)}
-        {hasPercent && (
+        {valueText ?? numberFormat.format(value)}
+        {valueText === undefined && hasPercent && (
           <span className="text-ink-muted">
             {" "}
-            ({percentFormat.format(percent)} %)
+            ({percentFormat.format(percent)}%)
           </span>
         )}
       </span>
     </div>
+  );
+}
+
+interface StackedBarProps {
+  /** The segments, in order; their labels are shown as text by the caller. */
+  segments: { key: string; value: number; tone: "teal" | "rust" }[];
+  /** The scale's maximum: each segment is `value / scaleMax` of the track. */
+  scaleMax: number;
+  className?: string;
+}
+
+// A full-width stacked bar (REQ-BRAND-028): one 8 px track with square ends
+// holding one fill per segment. Purely graphic: the caller shows each
+// segment's label and value as text.
+export function StackedBar({ segments, scaleMax, className }: StackedBarProps) {
+  return (
+    <span
+      data-slot="stacked-bar"
+      aria-hidden="true"
+      className={cn("flex h-2 w-full bg-rule", className)}
+    >
+      {segments.map((segment) => {
+        const ratio =
+          scaleMax > 0 ? Math.min(Math.max(segment.value / scaleMax, 0), 1) : 0;
+        if (ratio === 0) return null;
+        return (
+          <span
+            key={segment.key}
+            data-tone={segment.tone}
+            className={cn(
+              "block h-full",
+              segment.tone === "rust" ? "bg-rust" : "bg-teal",
+            )}
+            style={{ width: `${ratio * 100}%` }}
+          />
+        );
+      })}
+    </span>
   );
 }

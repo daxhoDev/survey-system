@@ -4,9 +4,9 @@
 
 - **Module:** Frontend
 - **Module code:** FE
-- **Version:** v2.1
+- **Version:** v4.0
 - **Status:** Approved
-- **Last updated:** 2026-10-27
+- **Last updated:** 2026-10-28
 
 ## Description
 
@@ -405,7 +405,7 @@ The table (REQ-BRAND-029) has the columns "Nombre" (the survey name as a link to
 
 Legacy ID: FE-18.
 
-The table is server-paginated, 10 per page, newest first by default (REQ-SURV-020). Above it, a toolbar: a search box ("Buscar por nombre", queried 300 ms after typing pauses) taking the free width, and status chips Todas / Activas / Inactivas (`aria-pressed`, REQ-BRAND-030); below `md` the search box takes a full line and the chips go under it. The "Nombre" and "Fecha de creación" headers sort ascending/descending (`aria-sort`, REQ-BRAND-029). Below it, `components/ListPagination.tsx`: "Mostrando 11–20 de 43", "Página 2 de 5", Anterior / Siguiente, using `meta.total` (REQ-SURV-007). Search, status, sort and page live in the URL (`?search=&active=&sort=&page=`, defaults omitted) so reload, links and returning from a survey keep them; changing search, status or sort goes back to page 1. The "Ver todas las activas" link of REQ-FE-032 sets the status to Activas the same way. While a new page loads the previous one stays visible (dimmed to 50 % opacity, without animation). Empty states: "Ninguna encuesta coincide con la búsqueda o el filtro." with filters, otherwise an invitation to create the first survey. The API's `date` filter is not exposed.
+The table is server-paginated, 10 per page, newest first by default (REQ-SURV-020). Above it, a toolbar: a search box ("Buscar por nombre", queried 300 ms after typing pauses) taking the free width, and status chips Todas / Activas / Inactivas (`aria-pressed`, REQ-BRAND-030); below `md` the search box takes a full line and the chips go under it. The "Nombre" and "Fecha de creación" headers sort ascending/descending (`aria-sort`, REQ-BRAND-029). Below it, `components/ListPagination.tsx`: "Mostrando 11–20 de 43", "Página 2 de 5", Anterior / Siguiente, using `meta.total` (REQ-SURV-007). Search, status, sort and page live in the URL (`?search=&active=&sort=&page=`, defaults omitted) so reload, links and returning from a survey keep them; changing search, status or sort goes back to page 1. The "Ver todas las activas" link of REQ-FE-032 sets the status to Activas the same way. While a new page loads the previous one stays visible (dimmed to 50% opacity, without animation). Empty states: "Ninguna encuesta coincide con la búsqueda o el filtro." with filters, otherwise an invitation to create the first survey. The API's `date` filter is not exposed.
 
 **Acceptance criteria**
 
@@ -618,7 +618,7 @@ A locked survey (`isLocked`) shows a "Bloqueada" label (lock icon and text, REQ-
 
 Legacy ID: FE-27.
 
-`pages/InvitationsPage.tsx` (`/dashboard/invitations`) is reached from "Invitaciones" in the side navigation (REQ-FE-031). A form with the email creates an invitation; on success it shows the link `${window.location.origin}/auth/invite/${token}` with a copy button and the note that it is shown only once and expires in 48 hours; `409` shows the API detail in a toast. Below, a table of invitations (email, status badge — Pendiente / Aceptada / Revocada / Caducada —, invited by, created and expiry dates) with a "Revocar" action on pending ones, confirmed with `ConfirmationDialog` (REQ-FE-025). The link of the last created invitation stays visible until another one is created or the page is left. Above the table, a status filter (Todas / Pendiente / Aceptada / Revocada / Caducada, default Todas, as status chips, REQ-BRAND-030) filters on the client: the API returns every invitation (REQ-AUTH-025).
+`pages/InvitationsPage.tsx` (`/dashboard/invitations`) is reached from "Invitaciones" in the section navigation (REQ-FE-031). A form with the email creates an invitation; on success it shows the link `${window.location.origin}/auth/invite/${token}` with a copy button and the note that it is shown only once and expires in 48 hours; `409` shows the API detail in a toast. Below, a table of invitations (email, status badge — Pendiente / Aceptada / Revocada / Caducada —, invited by, created and expiry dates) with a "Revocar" action on pending ones, confirmed with `ConfirmationDialog` (REQ-FE-025). The link of the last created invitation stays visible until another one is created or the page is left. Above the table, a status filter (Todas / Pendiente / Aceptada / Revocada / Caducada, default Todas, as status chips, REQ-BRAND-030) filters on the client: the API returns every invitation (REQ-AUTH-025).
 
 Layout: title "Invitaciones" (`text-h1`); the form as one line (the email field taking the free width and the primary button; stacked below `md`); the created link, when shown, as a ruled block (1 px `--rule-strong` rules above and below) holding the link in a read-only field, the icon-only "Copiar enlace" button and the note; then the chips and the table (REQ-BRAND-029; stacked rows below `md`), with status labels per REQ-BRAND-030 and "Revocar" as a `ghost` button in `--rust`.
 
@@ -690,7 +690,7 @@ Legacy ID: FE-28.
 
 Legacy ID: FE-29.
 
-The top bar offers the theme selector (REQ-BRAND-011): the "Tema" button from `md`, and the "Tema" radio group in the menu sheet below `md` (REQ-FE-016). The logo (REQ-BRAND-021) is shown in the top bar, the menu sheet, the auth page frame (REQ-FE-030) and the answering page footer (REQ-FE-034); no separate "Sondix" text is rendered next to it.
+The top bar offers the theme selector (REQ-BRAND-011): the "Tema" button from `md`, and the "Tema" radio group in the menu sheet below `md` (REQ-FE-016). The logo (REQ-BRAND-021) is shown in the top bar, the menu sheet, the auth page frame (REQ-FE-030) and, with its footer variant (16 px, muted, no teal), the answering page footer (REQ-FE-034); no separate "Sondix" text is rendered next to it.
 
 **Acceptance criteria**
 
@@ -757,7 +757,7 @@ On `/dashboard`, between the header row and the survey list, `components/ActiveS
 - **AC-FE-032-3**
   - **Given** a cell with 71 completed and 12 incomplete answers on a scale of 100
   - **When** it renders
-  - **Then** the "Completas" bar is teal at 71 % of the track and the "Incompletas" bar is rust at 12 %, each with its number as text
+  - **Then** the "Completas" bar is teal at 71% of the track and the "Incompletas" bar is rust at 12%, each with its number as text
 - **AC-FE-032-4**
   - **Given** 8 cells and a summary with `active: 11`
   - **When** "Ver todas las activas" is pressed
@@ -780,8 +780,8 @@ On `/dashboard`, between the header row and the survey list, `components/ActiveS
 The "Estadísticas" tab (`components/SurveyStatistics.tsx`, data from `GET /surveys/:slug/stats`, REQ-STAT-002) reads like a yearbook page:
 
 1. **Summary line:** "{totalAnswers} respuestas · {completedAnswers} completas · {incompleteAnswers} incompletas · {questionCount} preguntas" (`text-body`, tabular figures; singulars when a count is 1).
-2. **Completion bar:** one full-width stacked bar (8 px, square ends) whose teal segment is `completedAnswers / totalAnswers` and rust segment `incompleteAnswers / totalAnswers`, with the labels "Completas {n} ({p})" and "Incompletas {n} ({p})" under it as text (percentages with `Intl.NumberFormat("es-CU", { style: "percent" })`, rounded to integers).
-3. **Small multiples by question** (REQ-BRAND-027, 3 / 2 / 1 cells per line), one cell per select question in `optionStats` order: the title "{question number}. {question name}", a caption with the type ("Selección única" / "Selección múltiple"), and one bar per option (REQ-BRAND-028, teal) labelled with the option text and valued "{responseCount} · {p}", where `p = responseCount / totalAnswers`. Every bar of every cell uses the same scale, 0 to `totalAnswers`, so a bar's length is the share of respondents who chose that option. The caption under the row reads "Escala común: 0–{totalAnswers} respuestas (100 %)" and, when any question is a multiple choice, also "En selección múltiple los porcentajes pueden sumar más de 100 %".
+2. **Completion bar:** one full-width stacked bar (8 px, square ends) whose teal segment is `completedAnswers / totalAnswers` and rust segment `incompleteAnswers / totalAnswers`, with the labels "Completas {n} ({p})" and "Incompletas {n} ({p})" under it as text (percentages rounded to integers and written with no space before "%", e.g. "86%", as every percentage in the app, REQ-BRAND-028).
+3. **Small multiples by question** (REQ-BRAND-027, 3 / 2 / 1 cells per line), one cell per select question in `optionStats` order: the title "{question number}. {question name}", a caption with the type ("Selección única" / "Selección múltiple"), and one bar per option (REQ-BRAND-028, teal) labelled with the option text and valued "{responseCount} · {p}", where `p = responseCount / totalAnswers`. Every bar of every cell uses the same scale, 0 to `totalAnswers`, so a bar's length is the share of respondents who chose that option. The caption under the row reads "Escala común: 0–{totalAnswers} respuestas (100%)" and, when any question is a multiple choice, also "En selección múltiple los porcentajes pueden sumar más de 100%".
 4. **Text questions** are not charted: when the survey has any, a closing line reads "{n} preguntas de texto libre: consulta sus respuestas en la pestaña Respuestas." (singular for 1).
 
 With `totalAnswers = 0`, the tab shows only the line "Todavía no hay respuestas para esta encuesta." Loading and error follow REQ-BRAND-033.
@@ -791,15 +791,15 @@ With `totalAnswers = 0`, the tab shows only the line "Todavía no hay respuestas
 - **AC-FE-033-1**
   - **Given** stats with 83 answers, 71 completed, 12 incomplete and 5 questions
   - **When** the tab renders
-  - **Then** the summary line reads "83 respuestas · 71 completas · 12 incompletas · 5 preguntas" and the completion bar has a teal segment of 71/83 and a rust segment of 12/83, labelled "Completas 71 (86 %)" and "Incompletas 12 (14 %)"
+  - **Then** the summary line reads "83 respuestas · 71 completas · 12 incompletas · 5 preguntas" and the completion bar has a teal segment of 71/83 and a rust segment of 12/83, labelled "Completas 71 (86%)" and "Incompletas 12 (14%)"
 - **AC-FE-033-2**
   - **Given** a `SINGLE_SELECT` question whose options have 50 and 33 responses out of 83 answers
   - **When** its cell renders
-  - **Then** the bars are 50/83 and 33/83 of the track, valued "50 · 60 %" and "33 · 40 %", on the same scale as every other cell
+  - **Then** the bars are 50/83 and 33/83 of the track, valued "50 · 60%" and "33 · 40%", on the same scale as every other cell
 - **AC-FE-033-3**
   - **Given** a survey with a `MULTI_SELECT` question
   - **When** the tab renders
-  - **Then** the caption includes "En selección múltiple los porcentajes pueden sumar más de 100 %"
+  - **Then** the caption includes "En selección múltiple los porcentajes pueden sumar más de 100%"
 - **AC-FE-033-4**
   - **Given** a survey with 2 `TEXT_ANSWER` questions
   - **When** the tab renders
@@ -823,7 +823,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 - **Thank-you state:** the form is replaced by the survey name, a 2 px `--rule-strong` rule, "¡Muchas gracias!" (`text-h2`) and "Tus respuestas a la encuesta {name} han sido enviadas correctamente."; focus moves to the heading.
 - **Not found:** the same frame with "Encuesta no encontrada" (`text-h1`) and "La encuesta que estás intentando acceder no existe o no está disponible." (REQ-FE-024).
 - **Loading:** the frame with skeleton rules in the shape of the header and two questions (REQ-BRAND-033).
-- **Footer:** the logo (REQ-BRAND-021) at the bottom of the column, `--ink-muted`, small.
+- **Footer:** the logo at the bottom of the column, as `components/Logo.tsx` with `variant="footer"`: the 16 px isotype in `--ink-muted` on a `--rule` track, with no teal, and "Sondix" in Work Sans 700 at 16 px in `--ink-muted` (REQ-BRAND-021, DEV-006). This is the only place that uses the footer variant.
 
 **Acceptance criteria**
 
@@ -850,7 +850,7 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 - **AC-FE-034-6**
   - **Given** the page
   - **When** it renders
-  - **Then** the logo is shown once, in the footer
+  - **Then** the logo is shown once, in the footer, as `components/Logo.tsx` with `variant="footer"`: the 16 px muted isotype and "Sondix" in Work Sans 700 at 16 px in `--ink-muted` (as verified by AC-BRAND-021-3)
 
 ## Implementation phases
 
@@ -858,8 +858,10 @@ The public answering page (`/surveys/:slug`) is a calm questionnaire sheet, desi
 |---|---|---|---|
 | PH-FE-1 | Existing implementation (migrated) | Done | REQ-FE-001, REQ-FE-002, REQ-FE-003, REQ-FE-004, REQ-FE-005, REQ-FE-007, REQ-FE-008, REQ-FE-009, REQ-FE-010, REQ-FE-011, REQ-FE-012, REQ-FE-014, REQ-FE-015, REQ-FE-017, REQ-FE-018, REQ-FE-019, REQ-FE-020, REQ-FE-021, REQ-FE-022, REQ-FE-023, REQ-FE-024, REQ-FE-025, REQ-FE-026, REQ-FE-027, REQ-FE-028, REQ-FE-029, REQ-FE-030, REQ-FE-031 |
 | PH-FE-3 | Redesign: dashboard (summary line, active-survey small multiples, survey list) | Done | REQ-FE-017, REQ-FE-018, REQ-FE-026, REQ-FE-032 |
-| PH-FE-4 | Redesign: create survey and survey details (header, tabs, answers, statistics) | Planned | REQ-FE-019, REQ-FE-021, REQ-FE-022, REQ-FE-033, REQ-BRAND-019 |
-| PH-FE-5 | Redesign: invitations, login and accept invitation | Planned | REQ-FE-015, REQ-FE-027, REQ-FE-028, REQ-FE-030, REQ-BRAND-023, REQ-BRAND-025 |
-| PH-FE-6 | Redesign: public answering page | Planned | REQ-FE-023, REQ-FE-024, REQ-FE-034 |
+| PH-FE-4 | Redesign: create survey and survey details (header, tabs, answers, statistics) | Done | REQ-FE-002, REQ-FE-019, REQ-FE-021, REQ-FE-022, REQ-FE-033, REQ-BRAND-019, REQ-BRAND-028 |
+| PH-FE-5 | Redesign: invitations, login and accept invitation | Done | REQ-FE-015, REQ-FE-027, REQ-FE-028, REQ-FE-030, REQ-BRAND-023, REQ-BRAND-025 |
+| PH-FE-6 | Redesign: public answering page | Done | REQ-FE-002, REQ-FE-023, REQ-FE-024, REQ-FE-029, REQ-FE-034, REQ-BRAND-021 |
 
 The former PH-FE-2 (Spanish loading texts "Cargando panel..." and "Redirigiendo...") is delivered by PH-BRAND-3, which rewrites the files involved; REQ-FE-001, REQ-FE-002, REQ-FE-006, REQ-FE-013, REQ-FE-016, REQ-FE-029 and REQ-FE-031 are covered there ([BRAND.md](BRAND.md)). The redesign task's phase order is in [BRAND.md](BRAND.md), Implementation phases.
+
+REQ-FE-002 is completed in two steps (DEV-005): PH-FE-4 removes `ui/chart.tsx` and the `recharts` dependency (the `chart.tsx` and `recharts` part of AC-FE-002-3, and AC-BRAND-028-3) and applies the percentage format of REQ-BRAND-028 to `Bar` (DEV-004); PH-FE-5 and PH-FE-6 stop using `ui/card.tsx` in the pages they redesign (`login-form.tsx`, `InvitationsPage.tsx` and `AcceptInvitationPage.tsx` in PH-FE-5, `SurveyAnsweringPage.tsx` in PH-FE-6), and PH-FE-6 deletes `ui/card.tsx` (the `card.tsx` part of AC-FE-002-3).

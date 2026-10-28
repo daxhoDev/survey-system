@@ -9,6 +9,8 @@ export interface SmallMultipleCell {
   title: string;
   /** Optional destination: the title becomes a link to it. */
   href?: string;
+  /** Optional caption under the title, e.g. the question type. */
+  subtitle?: ReactNode;
   /** Optional headline figure of the cell (text-figure). */
   figure?: ReactNode;
   /** One labelled bar per measure, all on the row's common scale. */
@@ -111,12 +113,16 @@ export default function SmallMultiples({
                 cell.title
               )}
             </h3>
+            {cell.subtitle !== undefined && (
+              <p className="-mt-2 text-caption text-ink-muted">{cell.subtitle}</p>
+            )}
             {cell.figure !== undefined && (
               <p className="figures text-figure text-ink">{cell.figure}</p>
             )}
             <div className="flex flex-col gap-2">
-              {cell.bars.map((bar) => (
-                <Bar key={bar.label} {...bar} scaleMax={scaleMax} />
+              {/* Labels may repeat (two options with the same text). */}
+              {cell.bars.map((bar, i) => (
+                <Bar key={`${i}:${bar.label}`} {...bar} scaleMax={scaleMax} />
               ))}
             </div>
           </li>

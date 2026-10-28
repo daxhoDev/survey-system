@@ -1,13 +1,24 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate, useParams } from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import type { ColumnDef } from "@tanstack/react-table";
+import { toast } from "sonner";
+import {
+  ArrowLeft,
+  Check,
+  Copy,
+  ExternalLink,
+  Eye,
+  Pause,
+  Play,
+  Trash2,
+} from "lucide-react";
 import {
   useGetSurveyBySlug,
-  useGetSurveyStatsBySlug,
   useUpdateSurveyBySlug,
   useDeleteSurveyBySlug,
   getGetAllSurveysQueryKey,
   getGetSurveyBySlugQueryKey,
-  getGetSurveyStatsBySlugQueryKey,
 } from "@/lib/api/surveys/surveys";
 import {
   useGetAllSurveyAnswers,
@@ -15,121 +26,82 @@ import {
   getGetAllSurveyAnswersQueryKey,
 } from "@/lib/api/answers/answers";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
+  getGetActiveSurveyStatsQueryKey,
+  getGetSurveySummaryQueryKey,
+} from "@/lib/api/stats/stats";
+import type {
+  Answer,
+  Survey,
+  SurveyQuestionsItem,
+  SurveyQuestionsItemType,
+} from "@/lib/api/sondixAPI.schemas";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { DataTable } from "@/components/ui/data-table";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
+  SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/components/ui/chart";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
-import {
-  ArrowLeft,
-  Copy,
-  Check,
-  Trash2,
-  Lock,
-  Unlock,
-  ExternalLink,
-  Eye,
-  BarChart3,
-  ListCollapse,
-  Settings,
-} from "lucide-react";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
-import type { Answer } from "@/lib/api/sondixAPI.schemas";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import ConfirmationDialog from "@/components/ConfirmationDialog";
 import LockedBadge from "@/components/LockedBadge";
+import StatusLabel from "@/components/StatusLabel";
+import SurveyStatistics from "@/components/SurveyStatistics";
 import {
-  getGetActiveSurveyStatsQueryKey,
-  getGetSurveySummaryQueryKey,
-} from "@/lib/api/stats/stats";
+  EmptyState,
+  ErrorState,
+  LoadingLine,
+  SkeletonRules,
+} from "@/components/DataStates";
 
+const typeLabel: Record<SurveyQuestionsItemType, string> = {
+  TEXT_ANSWER: "Respuesta de texto",
+  SINGLE_SELECT: "Selección única",
+  MULTI_SELECT: "Selección múltiple",
+};
+
+const dateTime = (iso: string) => new Date(iso).toLocaleString("es-CU");
+
+/** Location state set by the survey list: its query string, to go back to it. */
+interface SurveyDetailsLocationState {
+  listSearch?: string;
+}
+
+// Survey details (REQ-FE-021, REQ-FE-022): back link, header with status and
+// actions, and the tabs "Detalles", "Respuestas" and "Estadísticas". Tab
+// panels mount only while open, so answers and statistics load lazily.
 export default function SurveyDetailsPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const { slug = "" } = useParams<{ slug: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const queryClient = useQueryClient();
+  const [activeTab, setActiveTab] = useState("details");
 
-  const [activeTab, setActiveTab] = useState("overview");
-  const [copied, setCopied] = useState(false);
-  const [selectedAnswer, setSelectedAnswer] = useState<Answer | null>(null);
+  const listSearch = (location.state as SurveyDetailsLocationState | null)
+    ?.listSearch;
+  const backTo = listSearch ? `/dashboard?${listSearch}` : "/dashboard";
 
-  // Queries
-  const {
-    data: surveyData,
-    isLoading: isSurveyLoading,
-    isError: isSurveyError,
-  } = useGetSurveyBySlug(slug || "", {
-    query: {
-      enabled: !!slug,
-      queryKey: getGetSurveyBySlugQueryKey(slug || ""),
-    },
-  });
+  const { data, isPending, isError, isFetching, refetch } = useGetSurveyBySlug(
+    slug,
+    { query: { enabled: !!slug, queryKey: getGetSurveyBySlugQueryKey(slug) } },
+  );
+  const survey = data?.data;
 
-  const { data: statsData, isLoading: isStatsLoading } =
-    useGetSurveyStatsBySlug(slug || "", {
-      query: {
-        enabled: !!slug && activeTab === "stats",
-        queryKey: getGetSurveyStatsBySlugQueryKey(slug || ""),
-      },
-    });
-
-  const {
-    data: answersData,
-    isLoading: isAnswersLoading,
-    refetch: refetchAnswers,
-  } = useGetAllSurveyAnswers(slug || "", {
-    query: {
-      enabled: !!slug && activeTab === "answers",
-      queryKey: getGetAllSurveyAnswersQueryKey(slug || ""),
-    },
-  });
-
-  const survey = surveyData?.data;
-  const stats = statsData?.data;
-  const answers = answersData?.data;
-
-  // Mutations
   const updateSurvey = useUpdateSurveyBySlug({
     mutation: {
       onSuccess() {
-        queryClient.invalidateQueries({
-          queryKey: getGetSurveyBySlugQueryKey(slug || ""),
-        });
-        queryClient.invalidateQueries({
-          queryKey: getGetAllSurveysQueryKey(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: getGetSurveySummaryQueryKey(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: getGetActiveSurveyStatsQueryKey(),
-        });
+        for (const queryKey of [
+          getGetSurveyBySlugQueryKey(slug),
+          getGetAllSurveysQueryKey(),
+          getGetSurveySummaryQueryKey(),
+          getGetActiveSurveyStatsQueryKey(),
+        ]) {
+          queryClient.invalidateQueries({ queryKey });
+        }
         toast.success("Estado de la encuesta actualizado");
       },
       onError(err) {
@@ -141,15 +113,13 @@ export default function SurveyDetailsPage() {
   const deleteSurvey = useDeleteSurveyBySlug({
     mutation: {
       onSuccess() {
-        queryClient.invalidateQueries({
-          queryKey: getGetAllSurveysQueryKey(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: getGetSurveySummaryQueryKey(),
-        });
-        queryClient.invalidateQueries({
-          queryKey: getGetActiveSurveyStatsQueryKey(),
-        });
+        for (const queryKey of [
+          getGetAllSurveysQueryKey(),
+          getGetSurveySummaryQueryKey(),
+          getGetActiveSurveyStatsQueryKey(),
+        ]) {
+          queryClient.invalidateQueries({ queryKey });
+        }
         toast.success("Encuesta eliminada correctamente");
         navigate("/dashboard");
       },
@@ -159,10 +129,243 @@ export default function SurveyDetailsPage() {
     },
   });
 
+  const backLink = (
+    <Link
+      to={backTo}
+      className="inline-flex w-fit items-center gap-2 text-body text-ink-muted transition-colors duration-150 ease-out hover:text-ink"
+    >
+      <ArrowLeft aria-hidden="true" className="size-4" />
+      Encuestas
+    </Link>
+  );
+
+  if (isPending && !!slug) {
+    return (
+      <div className="flex flex-col gap-6 py-8">
+        {backLink}
+        <LoadingLine>Cargando encuesta...</LoadingLine>
+      </div>
+    );
+  }
+
+  if (isError || !survey) {
+    return (
+      <div className="flex flex-col gap-6 py-8">
+        {backLink}
+        <ErrorState onRetry={() => refetch()} retrying={isFetching}>
+          No se pudo cargar la encuesta.
+        </ErrorState>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-8 py-8">
+      <div className="flex flex-col gap-4">
+        {backLink}
+        <header className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div className="flex min-w-0 flex-col gap-2">
+            <h1 className="text-h1 text-balance break-words">{survey.name}</h1>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <StatusLabel status={survey.isActive ? "Activa" : "Inactiva"} />
+              {survey.isLocked && <LockedBadge />}
+              <span className="figures text-small break-all text-ink-muted">
+                {survey.slug}
+              </span>
+            </div>
+          </div>
+
+          <div className="grid shrink-0 grid-cols-2 gap-3 md:flex">
+            <Button
+              variant="outline"
+              onClick={() =>
+                updateSurvey.mutate({
+                  slug: survey.slug,
+                  data: { isActive: !survey.isActive },
+                })
+              }
+              loading={updateSurvey.isPending}
+            >
+              {survey.isActive ? (
+                <>
+                  {!updateSurvey.isPending && <Pause aria-hidden="true" />}
+                  <span>Desactivar</span>
+                </>
+              ) : (
+                <>
+                  {!updateSurvey.isPending && <Play aria-hidden="true" />}
+                  <span>Activar</span>
+                </>
+              )}
+            </Button>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="destructive" disabled={deleteSurvey.isPending}>
+                  <Trash2 aria-hidden="true" />
+                  <span>Eliminar</span>
+                </Button>
+              </DialogTrigger>
+              <ConfirmationDialog
+                confirmText="Eliminar"
+                description={`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}
+                onConfirm={() => deleteSurvey.mutate({ slug: survey.slug })}
+                isPending={deleteSurvey.isPending}
+              />
+            </Dialog>
+          </div>
+        </header>
+      </div>
+
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList aria-label="Secciones de la encuesta">
+          <TabsTrigger value="details">Detalles</TabsTrigger>
+          <TabsTrigger value="answers">Respuestas</TabsTrigger>
+          <TabsTrigger value="stats">Estadísticas</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="details">
+          <DetailsTab survey={survey} />
+        </TabsContent>
+        <TabsContent value="answers">
+          <AnswersTab survey={survey} />
+        </TabsContent>
+        <TabsContent value="stats">
+          <SurveyStatistics survey={survey} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// "Detalles": the public link and the numbered, ruled list of questions.
+function DetailsTab({ survey }: { survey: Survey }) {
+  const [copied, setCopied] = useState(false);
+  const publicUrl = `${window.location.origin}/surveys/${survey.slug}`;
+
+  useEffect(() => {
+    if (!copied) return;
+    const timer = setTimeout(() => setCopied(false), 2000);
+    return () => clearTimeout(timer);
+  }, [copied]);
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(publicUrl);
+    setCopied(true);
+    toast.success("¡Enlace copiado al portapapeles!");
+  };
+
+  return (
+    <div className="flex flex-col gap-10">
+      <section aria-labelledby="public-link" className="flex flex-col gap-2">
+        <h2 id="public-link" className="text-h2 text-balance">
+          Compartir encuesta
+        </h2>
+        <p className="text-small text-ink-muted">
+          Copia este enlace para enviarlo a los encuestados.
+        </p>
+        <div className="flex items-center gap-2">
+          <p
+            title={publicUrl}
+            className="figures flex h-11 min-w-0 flex-1 items-center truncate rounded-control border border-input-border bg-paper px-3 text-body text-ink select-all md:h-10"
+          >
+            <span className="truncate">{publicUrl}</span>
+          </p>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={handleCopy}
+            aria-label="Copiar enlace"
+            title="Copiar enlace"
+          >
+            {copied ? (
+              <Check aria-hidden="true" className="text-teal" />
+            ) : (
+              <Copy aria-hidden="true" />
+            )}
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            asChild
+            aria-label="Abrir enlace"
+            title="Abrir enlace"
+          >
+            <a href={publicUrl} target="_blank" rel="noreferrer">
+              <ExternalLink aria-hidden="true" />
+            </a>
+          </Button>
+        </div>
+      </section>
+
+      <section aria-labelledby="questions" className="flex flex-col gap-2">
+        <h2 id="questions" className="text-h2 text-balance">
+          Preguntas
+        </h2>
+        <p className="figures text-small text-ink-muted">
+          {survey.questions.length === 1
+            ? "Esta encuesta contiene 1 pregunta."
+            : `Esta encuesta contiene ${survey.questions.length} preguntas.`}
+        </p>
+        <ol className="mt-2 border-y border-rule-strong">
+          {survey.questions.map((question, idx) => (
+            <QuestionRow key={question.id} question={question} number={idx + 1} />
+          ))}
+        </ol>
+      </section>
+    </div>
+  );
+}
+
+function QuestionRow({
+  question,
+  number,
+}: {
+  question: SurveyQuestionsItem;
+  number: number;
+}) {
+  return (
+    <li className="grid grid-cols-[2rem_minmax(0,1fr)] gap-x-2 border-rule py-4 not-first:border-t">
+      <span className="figures text-body font-semibold text-ink-muted">
+        {number}.
+      </span>
+      <div className="flex min-w-0 flex-col gap-2">
+        <p className="text-body font-semibold break-words text-ink">
+          {question.name}
+        </p>
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-small text-ink-muted">
+          <span>{typeLabel[question.type]}</span>
+          {question.isRequired && (
+            <span className="font-semibold text-ink">Obligatoria</span>
+          )}
+        </p>
+        {question.options && question.options.length > 0 && (
+          <ul className="flex list-disc flex-col gap-1 pl-5 text-body text-ink marker:text-ink-muted">
+            {question.options.map((option) => (
+              <li key={option.id} className="break-words">
+                {option.content}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </li>
+  );
+}
+
+// "Respuestas": the answers table and the side sheet with one answer.
+function AnswersTab({ survey }: { survey: Survey }) {
+  const queryClient = useQueryClient();
+  const [selected, setSelected] = useState<Answer | null>(null);
+
+  const { data, isPending, isError, isFetching, refetch } =
+    useGetAllSurveyAnswers(survey.slug, {
+      query: { queryKey: getGetAllSurveyAnswersQueryKey(survey.slug) },
+    });
+
   const deleteAnswer = useDeleteSurveyAnswerById({
     mutation: {
       onSuccess() {
-        refetchAnswers();
+        refetch();
         // The list and the active-survey statistics count answers.
         queryClient.invalidateQueries({
           queryKey: getGetAllSurveysQueryKey(),
@@ -171,7 +374,7 @@ export default function SurveyDetailsPage() {
           queryKey: getGetActiveSurveyStatsQueryKey(),
         });
         toast.success("Respuesta eliminada");
-        setSelectedAnswer(null);
+        setSelected(null);
       },
       onError(err) {
         toast.error(err.detail || "Error al eliminar la respuesta");
@@ -179,519 +382,112 @@ export default function SurveyDetailsPage() {
     },
   });
 
-  const handleToggleActive = () => {
-    if (!survey) return;
-    updateSurvey.mutate({
-      slug: survey.slug,
-      data: { isActive: !survey.isActive },
-    });
-  };
+  if (isPending) {
+    return <SkeletonRules label="Cargando respuestas..." widths={Array(5).fill("100%")} />;
+  }
 
-  const handleDeleteSurvey = () => {
-    if (!survey) return;
-    deleteSurvey.mutate({ slug: survey.slug });
-  };
-
-  const handleCopyLink = () => {
-    if (!survey) return;
-    const shareUrl = `${window.location.origin}/surveys/${survey.slug}`;
-    navigator.clipboard.writeText(shareUrl);
-    setCopied(true);
-    toast.success("¡Enlace copiado al portapapeles!");
-  };
-
-  useEffect(() => {
-    if (copied) {
-      const timer = setTimeout(() => setCopied(false), 2000);
-      return () => clearTimeout(timer);
-    }
-  }, [copied]);
-
-  if (isSurveyLoading) {
+  if (isError) {
     return (
-      <div className="space-y-6 py-8">
-        <div className="flex gap-2 items-center">
-          <Skeleton className="h-8 w-8" />
-          <Skeleton className="h-8 w-48" />
-        </div>
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-64 w-full" />
-      </div>
+      <ErrorState onRetry={() => refetch()} retrying={isFetching}>
+        Error al cargar las respuestas
+      </ErrorState>
     );
   }
 
-  if (isSurveyError || !survey) {
+  const answers = data.data;
+  if (answers.length === 0) {
     return (
-      <div className="py-8">
-        <Card className="border-destructive/20 bg-destructive/5 text-center p-8">
-          <CardTitle className="text-rust">
-            Error al cargar detalles
-          </CardTitle>
-          <CardDescription className="mt-2">
-            No pudimos encontrar la encuesta seleccionada.
-          </CardDescription>
-          <Button
-            onClick={() => navigate("/dashboard")}
-            className="mt-4 cursor-pointer"
-          >
-            Volver al panel
-          </Button>
-        </Card>
-      </div>
+      <EmptyState>No hay respuestas enviadas aún para esta encuesta.</EmptyState>
     );
   }
 
-  const publicUrl = `${window.location.origin}/surveys/${survey.slug}`;
+  const columns: ColumnDef<Answer>[] = [
+    {
+      id: "id",
+      header: "ID de respuesta",
+      cell: ({ row }) => (
+        <span className="figures">{row.original.id.slice(0, 8)}</span>
+      ),
+    },
+    {
+      id: "createdAt",
+      header: "Fecha de envío",
+      meta: { numeric: true },
+      cell: ({ row }) => dateTime(row.original.createdAt),
+    },
+    {
+      id: "originIp",
+      header: "Dirección IP",
+      cell: ({ row }) => (
+        <span className="figures">{row.original.originIp}</span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="sr-only">Acciones</span>,
+      meta: { actions: true },
+      cell: ({ row }) => (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSelected(row.original)}
+        >
+          <Eye aria-hidden="true" />
+          <span>Ver respuestas</span>
+        </Button>
+      ),
+    },
+  ];
 
   return (
-    <div className="space-y-6 py-8">
-      {/* Header */}
-      <Dialog>
-        <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
-          <div className="flex gap-3 items-center">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => navigate("/dashboard")}
-              aria-label="Volver a encuestas"
-              className="cursor-pointer"
-            >
-              <ArrowLeft className="size-4" />
-            </Button>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-h1">
-                  {survey.name}
-                </h1>
-                {survey.isLocked && <LockedBadge />}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                slug: {survey.slug}
-              </p>
-            </div>
-          </div>
+    <>
+      <DataTable columns={columns} data={answers} />
 
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={handleToggleActive}
-              disabled={updateSurvey.isPending}
-              className="cursor-pointer gap-2"
-            >
-              {survey.isActive ? (
-                <>
-                  <Lock className="size-4" />
-                  <span>Desactivar</span>
-                </>
-              ) : (
-                <>
-                  <Unlock className="size-4" />
-                  <span>Activar</span>
-                </>
-              )}
-            </Button>
-            <DialogTrigger asChild>
-              <Button
-                variant="destructive"
-                disabled={deleteSurvey.isPending}
-                className="cursor-pointer gap-2"
-              >
-                <Trash2 className="size-4" />
-                <span>Eliminar</span>
-              </Button>
-            </DialogTrigger>
-          </div>
-        </div>
-        <ConfirmationDialog
-          confirmText="Eliminar"
-          description={`¿Estás seguro de que deseas eliminar la encuesta "${survey.name}"?`}
-          onConfirm={handleDeleteSurvey}
-        />
-      </Dialog>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-md bg-muted/60">
-          <TabsTrigger value="overview" className="cursor-pointer gap-1.5">
-            <Settings className="size-3.5" />
-            <span>Detalles</span>
-          </TabsTrigger>
-          <TabsTrigger value="answers" className="cursor-pointer gap-1.5">
-            <ListCollapse className="size-3.5" />
-            <span>Respuestas</span>
-          </TabsTrigger>
-          <TabsTrigger value="stats" className="cursor-pointer gap-1.5">
-            <BarChart3 className="size-3.5" />
-            <span>Estadísticas</span>
-          </TabsTrigger>
-        </TabsList>
-
-        {/* OVERVIEW TAB */}
-        <TabsContent value="overview" className="space-y-6 mt-4">
-          <Card className="border-border/60 bg-card/60 shadow-sm">
-            <CardHeader>
-              <CardTitle>Compartir Encuesta</CardTitle>
-              <CardDescription>
-                Copia este enlace para enviarlo a los encuestados.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2">
-                <div className="flex-1 bg-muted/50 p-2.5 rounded border border-border/80 text-xs font-mono select-all truncate">
-                  {publicUrl}
-                </div>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={handleCopyLink}
-                  className="cursor-pointer"
-                  title="Copiar enlace"
-                  aria-label="Copiar enlace"
-                >
-                  {copied ? (
-                    <Check className="size-4 text-teal" />
-                  ) : (
-                    <Copy className="size-4" />
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => window.open(publicUrl, "_blank")}
-                  className="cursor-pointer"
-                  title="Abrir enlace"
-                  aria-label="Abrir enlace"
-                >
-                  <ExternalLink className="size-4" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border/60 bg-card/60 shadow-sm">
-            <CardHeader>
-              <CardTitle>
-                Preguntas de la Encuesta
-              </CardTitle>
-              <CardDescription>
-                Esta encuesta contiene {survey.questions.length} preguntas en
-                total.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {survey.questions.map((question, idx) => (
-                <div
-                  key={question.id}
-                  className="pb-4 border-b border-border/40 last:border-b-0 last:pb-0 space-y-2"
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-muted-foreground bg-muted p-1 px-2 rounded">
-                      #{idx + 1}
-                    </span>
-                    <span className="font-semibold text-sm text-foreground">
-                      {question.name}
-                    </span>
-                    {question.isRequired && (
-                      <span className="text-xs border border-destructive/20 text-rust bg-destructive/5 px-2 py-0.5 rounded font-medium uppercase">
-                        Requerido
-                      </span>
-                    )}
-                    <span className="text-xs border border-primary/20 text-primary bg-primary/5 px-2 py-0.5 rounded font-medium uppercase">
-                      {question.type}
-                    </span>
-                  </div>
-
-                  {(question.type === "SINGLE_SELECT" ||
-                    question.type === "MULTI_SELECT") && (
-                    <div className="pl-8 space-y-1">
-                      <p className="text-xs font-bold text-muted-foreground uppercase">
-                        Opciones:
-                      </p>
-                      <ul className="list-disc list-inside pl-2 text-xs text-muted-foreground space-y-0.5">
-                        {question.options?.map((o) => (
-                          <li key={o.id}>{o.content}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* ANSWERS TAB */}
-        <TabsContent value="answers" className="mt-4">
-          <Card className="border-border/60 bg-card/60 shadow-sm">
-            <CardHeader>
-              <CardTitle>Respuestas Recibidas</CardTitle>
-              <CardDescription>
-                Lista de todas las participaciones registradas en esta encuesta.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isAnswersLoading ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-20 w-full" />
-                </div>
-              ) : !answers || answers.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-6">
-                  No hay respuestas enviadas aún para esta encuesta.
-                </p>
-              ) : (
-                <div className="border border-border rounded-md overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>ID de Respuesta</TableHead>
-                        <TableHead>Fecha de Envío</TableHead>
-                        <TableHead>Dirección IP</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {answers.map((ans) => (
-                        <TableRow key={ans.id}>
-                          <TableCell className="font-mono text-xs text-muted-foreground">
-                            {ans.id.slice(0, 8)}...
-                          </TableCell>
-                          <TableCell className="text-xs">
-                            {new Date(ans.createdAt).toLocaleString("es-CU")}
-                          </TableCell>
-                          <TableCell className="text-xs text-muted-foreground font-mono">
-                            {ans.originIp}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              variant="outline"
-                              size="xs"
-                              onClick={() => setSelectedAnswer(ans)}
-                              className="cursor-pointer gap-1.5"
-                            >
-                              <Eye className="size-3.5" />
-                              <span>Ver respuestas</span>
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* STATS TAB */}
-        <TabsContent value="stats" className="space-y-6 mt-4">
-          {isStatsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <Skeleton className="h-32 w-full" />
-              <Skeleton className="h-64 w-full" />
-            </div>
-          ) : !stats ? (
-            <p className="text-sm text-muted-foreground">
-              No hay estadísticas disponibles.
-            </p>
-          ) : (
-            <>
-              {/* Summary Cards */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                <Card className="py-4 px-6 border-border/60 bg-card/60 shadow-xs">
-                  <CardHeader className="p-0 pb-2">
-                    <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Total Respuestas
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <span className="text-3xl font-bold tracking-tight">
-                      {stats.totalAnswers}
-                    </span>
-                  </CardContent>
-                </Card>
-                <Card className="py-4 px-6 border-border/60 bg-card/60 shadow-xs">
-                  <CardHeader className="p-0 pb-2">
-                    <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Respuestas Completadas
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <span className="text-3xl font-bold tracking-tight text-teal">
-                      {stats.completedAnswers}
-                    </span>
-                  </CardContent>
-                </Card>
-                <Card className="py-4 px-6 border-border/60 bg-card/60 shadow-xs">
-                  <CardHeader className="p-0 pb-2">
-                    <CardTitle className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                      Respuestas Incompletas
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <span className="text-3xl font-bold tracking-tight text-rust">
-                      {stats.incompleteAnswers}
-                    </span>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Chart Option lists */}
-              <div className="space-y-6">
-                {stats.optionStats.map((optStat) => {
-                  const chartData = optStat.options.map((opt) => ({
-                    option: opt.optionContent,
-                    respuestas: opt.responseCount,
-                  }));
-
-                  const chartConfig = {
-                    respuestas: {
-                      label: "Respuestas",
-                      color: "var(--teal)",
-                    },
-                  };
-
-                  return (
-                    <Card
-                      key={optStat.questionId}
-                      className="border-border/60 bg-card/60 shadow-sm"
-                    >
-                      <CardHeader>
-                        <CardTitle className="text-sm font-semibold">
-                          {optStat.questionName}
-                        </CardTitle>
-                        <CardDescription>
-                          Frecuencia de las respuestas de los usuarios
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent>
-                        {chartData.length > 0 ? (
-                          <ChartContainer
-                            config={chartConfig}
-                            className="min-h-[180px] w-full max-h-[260px]"
-                          >
-                            <BarChart
-                              data={chartData}
-                              layout="vertical"
-                              margin={{
-                                left: 30,
-                                right: 20,
-                                top: 10,
-                                bottom: 10,
-                              }}
-                            >
-                              <CartesianGrid
-                                strokeDasharray="3 3"
-                                horizontal={false}
-                              />
-                              <YAxis
-                                dataKey="option"
-                                type="category"
-                                tickLine={false}
-                                axisLine={false}
-                                width={100}
-                                className="text-xs"
-                              />
-                              <XAxis type="number" hide />
-                              <Bar
-                                dataKey="respuestas"
-                                fill="var(--color-respuestas)"
-                                radius={4}
-                              />
-                              <ChartTooltip content={<ChartTooltipContent />} />
-                            </BarChart>
-                          </ChartContainer>
-                        ) : (
-                          <p className="text-xs text-muted-foreground">
-                            Sin datos de opciones para graficar.
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </TabsContent>
-      </Tabs>
-
-      {/* Answer detail slide drawer Sheet */}
-      <Sheet
-        open={!!selectedAnswer}
-        onOpenChange={(open) => !open && setSelectedAnswer(null)}
-      >
-        <SheetContent className="sm:max-w-lg overflow-y-auto">
-          <SheetHeader className="border-b border-border/40 pb-4">
-            <SheetTitle>Detalle de Respuesta</SheetTitle>
-            <SheetDescription className="font-mono text-xs">
-              ID: {selectedAnswer?.id}
+      <Sheet open={!!selected} onOpenChange={(open) => !open && setSelected(null)}>
+        <SheetContent className="w-full overflow-y-auto sm:max-w-lg" closeLabel="Cerrar detalle">
+          <SheetHeader className="border-b border-rule pr-14">
+            <SheetTitle className="text-h3">Detalle de respuesta</SheetTitle>
+            <SheetDescription className="figures break-all">
+              ID: {selected?.id}
             </SheetDescription>
           </SheetHeader>
 
-          {selectedAnswer && survey && (
-            <div className="py-6 space-y-6">
-              <div className="flex justify-between items-center bg-muted/30 border border-border/20 p-3 rounded text-xs text-muted-foreground">
-                <p>IP: {selectedAnswer.originIp}</p>
-                <p>
-                  {new Date(selectedAnswer.createdAt).toLocaleString("es-CU")}
-                </p>
-              </div>
-
-              <div className="space-y-4">
-                {survey.questions.map((question) => {
-                  const matchingResponse = selectedAnswer.responses.find(
-                    (r) => r.id === question.id,
-                  );
-
-                  let responseText = "Sin responder";
-
-                  if (matchingResponse) {
-                    if (question.type === "TEXT_ANSWER") {
-                      responseText = matchingResponse.content as string;
-                    } else if (
-                      question.type === "SINGLE_SELECT" ||
-                      question.type === "MULTI_SELECT"
-                    ) {
-                      const selectedIds =
-                        (matchingResponse.content as number[]) || [];
-                      const matchingOptionContents = question.options
-                        ?.filter((opt) => selectedIds.includes(opt.id))
-                        .map((opt) => opt.content);
-
-                      responseText =
-                        matchingOptionContents &&
-                        matchingOptionContents.length > 0
-                          ? matchingOptionContents.join(", ")
-                          : "Opción no encontrada";
-                    }
-                  }
-
+          {selected && (
+            <>
+              <p className="figures flex flex-wrap justify-between gap-x-4 gap-y-1 px-4 pt-4 text-small text-ink-muted">
+                <span>IP: {selected.originIp}</span>
+                <span>{dateTime(selected.createdAt)}</span>
+              </p>
+              <dl className="flex flex-col px-4">
+                {survey.questions.map((question, idx) => {
+                  const text = responseText(question, selected);
                   return (
                     <div
                       key={question.id}
-                      className="space-y-1.5 p-3.5 rounded border border-border/30 bg-card"
+                      className="flex flex-col gap-1 border-rule py-4 not-first:border-t"
                     >
-                      <Label className="text-xs font-semibold text-foreground">
+                      <dt className="text-body font-semibold break-words text-ink">
+                        <span className="figures text-ink-muted">{idx + 1}.</span>{" "}
                         {question.name}
-                      </Label>
-                      <p className="text-xs text-muted-foreground bg-muted/30 p-2.5 rounded font-medium">
-                        {responseText}
-                      </p>
+                      </dt>
+                      <dd
+                        className={
+                          text === undefined
+                            ? "text-body text-ink-muted"
+                            : "text-body break-words whitespace-pre-wrap text-ink"
+                        }
+                      >
+                        {text ?? "Sin responder"}
+                      </dd>
                     </div>
                   );
                 })}
-              </div>
-
-              <div className="pt-6 border-t border-border/40 flex justify-end">
+              </dl>
+              <SheetFooter className="border-t border-rule sm:flex-row sm:justify-end">
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      disabled={deleteAnswer.isPending}
-                      className="cursor-pointer gap-2"
-                    >
-                      <Trash2 className="size-4" />
+                    <Button variant="destructive" disabled={deleteAnswer.isPending}>
+                      <Trash2 aria-hidden="true" />
                       <span>Eliminar respuesta</span>
                     </Button>
                   </DialogTrigger>
@@ -699,18 +495,32 @@ export default function SurveyDetailsPage() {
                     confirmText="Eliminar"
                     description="¿Seguro que deseas eliminar esta respuesta?"
                     onConfirm={() =>
-                      deleteAnswer.mutate({
-                        slug: survey.slug,
-                        id: selectedAnswer.id,
-                      })
+                      deleteAnswer.mutate({ slug: survey.slug, id: selected.id })
                     }
+                    isPending={deleteAnswer.isPending}
                   />
                 </Dialog>
-              </div>
-            </div>
+              </SheetFooter>
+            </>
           )}
         </SheetContent>
       </Sheet>
-    </div>
+    </>
   );
+}
+
+// The response to `question` as text: the written text, or the contents of
+// the chosen options. `undefined` when the question was not answered.
+function responseText(
+  question: SurveyQuestionsItem,
+  answer: Answer,
+): string | undefined {
+  const response = answer.responses.find((r) => r.id === question.id);
+  if (!response) return undefined;
+  if (question.type === "TEXT_ANSWER") return String(response.content);
+  const ids = Array.isArray(response.content) ? response.content : [];
+  const contents = (question.options ?? [])
+    .filter((option) => ids.includes(option.id))
+    .map((option) => option.content);
+  return contents.length > 0 ? contents.join(", ") : "Opción no encontrada";
 }

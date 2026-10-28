@@ -17,12 +17,12 @@ The full specification lives in [`docs/sdd/`](docs/sdd/MAIN.md); start at
 - No public signup: accounts are created from single-use invitation links (48 h) or with the `create-user` command.
 - Surveys with free-text, single-choice and multiple-choice questions, required or optional.
 - Survey lifecycle: draft → active ⇄ inactive; a survey is locked for editing once activated.
-- Public answering page; answers validated against the survey's questions.
+- Public answering page, designed mobile-first as a single-column questionnaire sheet: numbered questions, large tap targets for options, a running "answered" count with a progress bar (kept at the top of the screen on mobile), required questions checked before sending, and a thank-you confirmation. Answers are validated against the survey's questions.
 - Dashboard with survey counters (total, active, inactive) and the most recently activated active surveys side by side: answer totals with completed/incomplete bars on a common scale.
 - Survey list with each survey's answer and completed counts, search by name, status filter, sortable columns and pagination.
-- Per-survey statistics (completed/incomplete answers, votes per option) with charts.
+- Per-survey statistics: a summary line (answers, completed, incomplete, questions), a completed/incomplete bar with percentages, and one small chart per choice question with each option's votes and share of respondents, all on a common scale.
 - Interactive API documentation (Swagger UI).
-- Sondix visual identity: light and dark themes (Claro / Oscuro / Sistema), a sober palette with tabular figures in Work Sans, dense ruled tables and a top navigation bar.
+- Sondix visual identity: a logo drawn as a ruled cell holding a value bar, light and dark themes (Claro / Oscuro / Sistema), a sober palette with tabular figures in Work Sans, dense ruled tables and a top navigation bar. The favicon follows the browser's light or dark scheme, and the site has a home-screen icon for iOS.
 
 ### Tech stack
 
@@ -108,6 +108,17 @@ runs the tests without the database tests, and prints a summary. It exits `0` on
 everything passed. It installs nothing: run `pnpm install` and
 `pnpm exec prisma generate` (in `apps/api`) first. Its own tests:
 `bash scripts/tests/preflight.test.sh`.
+
+### Brand icons
+
+```bash
+node scripts/brand-icons.ts
+```
+
+Regenerates the PNG icons (`favicon.png`, `favicon-16.png`, `apple-touch-icon.png`) in
+`apps/web/public` from the logo geometry, using only Node.js built-in modules. An optional
+argument writes them to another directory. Its tests, which also check that the committed
+icons match the script's output: `bash scripts/tests/brand-icons.test.sh`.
 
 ### API client
 
