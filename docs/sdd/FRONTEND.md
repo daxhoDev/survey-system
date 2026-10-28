@@ -923,7 +923,7 @@ When the answering page opens, it checks whether the visitor's IP has already an
 | PH-FE-4 | Redesign: create survey and survey details (header, tabs, answers, statistics) | Done | REQ-FE-002, REQ-FE-019, REQ-FE-021, REQ-FE-022, REQ-FE-033, REQ-BRAND-019, REQ-BRAND-028 |
 | PH-FE-5 | Redesign: invitations, login and accept invitation | Done | REQ-FE-015, REQ-FE-027, REQ-FE-028, REQ-FE-030, REQ-BRAND-023, REQ-BRAND-025 |
 | PH-FE-6 | Redesign: public answering page | Done | REQ-FE-002, REQ-FE-023, REQ-FE-024, REQ-FE-029, REQ-FE-034, REQ-BRAND-021 |
-| PH-FE-7 | Answering page: answered-IP guard | Planned | REQ-FE-023, REQ-FE-024, REQ-FE-034, REQ-FE-035 |
+| PH-FE-7 | Answering page: answered-IP guard | Done | REQ-FE-023, REQ-FE-024, REQ-FE-034, REQ-FE-035 |
 
 The former PH-FE-2 (Spanish loading texts "Cargando panel..." and "Redirigiendo...") is delivered by PH-BRAND-3, which rewrites the files involved; REQ-FE-001, REQ-FE-002, REQ-FE-006, REQ-FE-013, REQ-FE-016, REQ-FE-029 and REQ-FE-031 are covered there ([BRAND.md](BRAND.md)). The redesign task's phase order is in [BRAND.md](BRAND.md), Implementation phases.
 
