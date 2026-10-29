@@ -1,0 +1,13 @@
+# Kept out of every Vercel CLI upload (docs/sdd/DEV_WORKFLOW.md, REQ-DEVWF-013)
+.env
+.env.*
+!.env.example
+node_modules
+dist
+coverage
+logs
+.vercel
+apps/api/src/generated
+.impeccable
+apps/web/PRODUCT.md
+apps/web/DESIGN.md
