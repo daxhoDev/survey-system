@@ -257,14 +257,17 @@ fi
 end_case
 
 # --- AC-DEVWF-011-1 ----------------------------------------------------------
-new_case "AC-DEVWF-011-1: vercel.json declares exactly the services api and web with their roots and builds"
+new_case "AC-DEVWF-011-1: vercel.json declares exactly the services api and web with their roots, frameworks, entrypoint and builds"
 [[ "$(json 'c["$schema"]')" == "https://openapi.vercel.sh/vercel.json" ]] || fail "\$schema is $(json 'c["$schema"]')"
 [[ "$(json 'Object.keys(c.services ?? {}).sort().join(",")')" == "api,web" ]] ||
   fail "services are $(json 'Object.keys(c.services ?? {})')"
 [[ "$(json 'c.services?.api?.root')" == "apps/api" ]] || fail "api root is $(json 'c.services?.api?.root')"
+[[ "$(json 'c.services?.api?.framework')" == "express" ]] || fail "api framework is $(json 'c.services?.api?.framework')"
+[[ "$(json 'c.services?.api?.entrypoint')" == "src/server.ts" ]] || fail "api entrypoint is $(json 'c.services?.api?.entrypoint')"
 api_build="$(json 'c.services?.api?.buildCommand ?? ""')"
 [[ "$api_build" =~ ^pnpm\ (run\ )?vercel-build$ ]] || fail "api build command is '$api_build'"
 [[ "$(json 'c.services?.web?.root')" == "apps/web" ]] || fail "web root is $(json 'c.services?.web?.root')"
+[[ "$(json 'c.services?.web?.framework')" == "vite" ]] || fail "web framework is $(json 'c.services?.web?.framework')"
 [[ "$(json 'c.services?.web?.buildCommand')" == "pnpm build" ]] || fail "web build command is $(json 'c.services?.web?.buildCommand')"
 [[ "$(json 'c.services?.web?.outputDirectory')" == "dist" ]] || fail "web output directory is $(json 'c.services?.web?.outputDirectory')"
 end_case
@@ -288,13 +291,21 @@ regions="$(json '[c.regions, c.services?.api?.regions, c.services?.api?.function
 [[ "$regions" == '[["iad1"]]' ]] || fail "region settings found: $regions (expected only regions [\"iad1\"])"
 end_case
 
-new_case "REQ-DEVWF-011: vercel.json holds nothing else (no Git rules, firewall rules or headers)"
+# --- AC-DEVWF-011-5 ----------------------------------------------------------
+# The region (top-level `regions`) and the SPA fallback (web `rewrites`) are
+# where the Implementer placed them (AC-DEVWF-011-3).
+new_case "AC-DEVWF-011-5: vercel.json holds only the specified top-level and per-service keys, and no bindings"
 [[ "$(json 'Object.keys(c).sort().join(",")')" == '$schema,regions,rewrites,services' ]] ||
   fail "top-level keys are $(json 'Object.keys(c)')"
-[[ "$(json 'Object.keys(c.services?.api ?? {}).sort().join(",")')" == "buildCommand,root" ]] ||
+for key in framework entrypoint buildCommand outputDirectory; do
+  [[ "$(json "Object.hasOwn(c, \"$key\")")" == "false" ]] || fail "top level declares $key"
+done
+[[ "$(json 'Object.keys(c.services?.api ?? {}).sort().join(",")')" == "buildCommand,entrypoint,framework,root" ]] ||
   fail "api service keys are $(json 'Object.keys(c.services?.api ?? {})')"
-[[ "$(json 'Object.keys(c.services?.web ?? {}).sort().join(",")')" == "buildCommand,outputDirectory,rewrites,root" ]] ||
+[[ "$(json 'Object.keys(c.services?.web ?? {}).sort().join(",")')" == "buildCommand,framework,outputDirectory,rewrites,root" ]] ||
   fail "web service keys are $(json 'Object.keys(c.services?.web ?? {})')"
+[[ "$(json 'Object.values(c.services ?? {}).filter((s) => Object.hasOwn(s, "bindings")).length')" == "0" ]] ||
+  fail "a service declares bindings"
 end_case
 
 # --- AC-DEVWF-011-4 ----------------------------------------------------------
