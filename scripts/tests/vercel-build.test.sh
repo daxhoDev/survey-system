@@ -5,7 +5,7 @@
 # generates (docs/sdd/ARCHITECTURE.md, REQ-ARCH-008). Run from the repository root:
 #   bash scripts/tests/vercel-build.test.sh
 # The behaviour cases run `pnpm run vercel-build` in apps/api for real under
-# the VERCEL_ENV / DIRECT_DATABASE_URL cases of the acceptance criteria. They
+# the VERCEL_ENV / DATABASE_URL_UNPOOLED cases of the acceptance criteria. They
 # delete packages/schemas/dist and apps/api/src/generated/prisma first, so
 # both are backed up and put back as they were when the script exits. The
 # case that needs a database (AC-DEVWF-012-3) uses TEST_DATABASE_URL from the
@@ -23,7 +23,7 @@ PNPM_BIN="$(command -v pnpm)"
 NODE_BIN="$(command -v node)"
 
 # Hosts that do not answer (connection refused).
-DEAD_DIRECT="postgresql://spike:spike@127.0.0.1:1/dead_direct"
+DEAD_UNPOOLED="postgresql://spike:spike@127.0.0.1:1/dead_unpooled"
 DEAD_POOLED="postgresql://spike:spike@127.0.0.1:2/dead_pooled"
 
 WORK="$(mktemp -d)"
@@ -87,10 +87,10 @@ clean_outputs() {
 }
 
 # run_build [VAR=value ...]: runs `pnpm run vercel-build` in apps/api with
-# VERCEL_ENV, DIRECT_DATABASE_URL and DATABASE_URL removed from the
+# VERCEL_ENV, DATABASE_URL_UNPOOLED and DATABASE_URL removed from the
 # environment, then the given assignments; sets OUT and CODE.
 run_build() {
-  OUT="$(cd "$API" && env -u VERCEL_ENV -u DIRECT_DATABASE_URL -u DATABASE_URL "$@" \
+  OUT="$(cd "$API" && env -u VERCEL_ENV -u DATABASE_URL_UNPOOLED -u DATABASE_URL "$@" \
     timeout 300 "$PNPM_BIN" run vercel-build 2>&1)"
   CODE=$?
 }
@@ -125,12 +125,12 @@ cd "$REPO_ROOT" || exit 1
 # --- AC-DEVWF-012-1 ----------------------------------------------------------
 for vercel_env in "" preview; do
   label="${vercel_env:-unset}"
-  new_case "AC-DEVWF-012-1: VERCEL_ENV $label, no build outputs, DIRECT_DATABASE_URL not answering → exit 0, outputs built, no migration"
+  new_case "AC-DEVWF-012-1: VERCEL_ENV $label, no build outputs, DATABASE_URL_UNPOOLED not answering → exit 0, outputs built, no migration"
   clean_outputs
   if [[ -n "$vercel_env" ]]; then
-    run_build VERCEL_ENV="$vercel_env" DIRECT_DATABASE_URL="$DEAD_DIRECT"
+    run_build VERCEL_ENV="$vercel_env" DATABASE_URL_UNPOOLED="$DEAD_UNPOOLED"
   else
-    run_build DIRECT_DATABASE_URL="$DEAD_DIRECT"
+    run_build DATABASE_URL_UNPOOLED="$DEAD_UNPOOLED"
   fi
   [[ "$CODE" -eq 0 ]] || fail "exit code $CODE, expected 0"
   expect_outputs
@@ -141,7 +141,7 @@ done
 # --- REQ-DEVWF-012: step 3 only when VERCEL_ENV is exactly "production" ------
 for vercel_env in development Production; do
   new_case "REQ-DEVWF-012: VERCEL_ENV=$vercel_env skips the migration and exits 0"
-  run_build VERCEL_ENV="$vercel_env" DIRECT_DATABASE_URL="$DEAD_DIRECT" DATABASE_URL="$DEAD_POOLED"
+  run_build VERCEL_ENV="$vercel_env" DATABASE_URL_UNPOOLED="$DEAD_UNPOOLED" DATABASE_URL="$DEAD_POOLED"
   [[ "$CODE" -eq 0 ]] || fail "exit code $CODE, expected 0"
   expect_outputs
   expect_no_migration
@@ -149,21 +149,29 @@ for vercel_env in development Production; do
 done
 
 # --- AC-DEVWF-012-2 ----------------------------------------------------------
-new_case "AC-DEVWF-012-2: VERCEL_ENV=production, DIRECT_DATABASE_URL unset → exit non-zero after the schemas build and prisma generate"
+new_case "AC-DEVWF-012-2: VERCEL_ENV=production, DATABASE_URL_UNPOOLED unset → exit non-zero after the schemas build and prisma generate"
 clean_outputs
 run_build VERCEL_ENV=production DATABASE_URL="$DEAD_POOLED"
 [[ "$CODE" -ne 0 ]] || fail "exit code 0, expected non-zero"
-printf '%s\n' "$OUT" | grep -q 'DIRECT_DATABASE_URL' || fail "the failure does not name DIRECT_DATABASE_URL"
+printf '%s\n' "$OUT" | grep -q 'DATABASE_URL_UNPOOLED' || fail "the failure does not name DATABASE_URL_UNPOOLED"
 expect_outputs
 expect_no_migration
 end_case
 
-new_case "AC-DEVWF-012-2: VERCEL_ENV=production, DIRECT_DATABASE_URL not answering → exit non-zero, migrate deploy went to DIRECT_DATABASE_URL"
+new_case "REQ-DEVWF-012: VERCEL_ENV=production, DATABASE_URL_UNPOOLED empty → exit non-zero naming DATABASE_URL_UNPOOLED, before prisma migrate deploy runs"
+run_build VERCEL_ENV=production DATABASE_URL_UNPOOLED= DATABASE_URL="$DEAD_POOLED"
+[[ "$CODE" -ne 0 ]] || fail "exit code 0, expected non-zero"
+printf '%s\n' "$OUT" | grep -q 'DATABASE_URL_UNPOOLED' || fail "the failure does not name DATABASE_URL_UNPOOLED"
+expect_outputs
+expect_no_migration
+end_case
+
+new_case "AC-DEVWF-012-2: VERCEL_ENV=production, DATABASE_URL_UNPOOLED not answering → exit non-zero, migrate deploy went to DATABASE_URL_UNPOOLED"
 clean_outputs
-run_build VERCEL_ENV=production DIRECT_DATABASE_URL="$DEAD_DIRECT" DATABASE_URL="$DEAD_POOLED"
+run_build VERCEL_ENV=production DATABASE_URL_UNPOOLED="$DEAD_UNPOOLED" DATABASE_URL="$DEAD_POOLED"
 [[ "$CODE" -ne 0 ]] || fail "exit code 0, expected non-zero"
 expect_outputs
-printf '%s\n' "$OUT" | grep -q '127.0.0.1:1' || fail "migrate deploy did not target the DIRECT_DATABASE_URL host (127.0.0.1:1)"
+printf '%s\n' "$OUT" | grep -q '127.0.0.1:1' || fail "migrate deploy did not target the DATABASE_URL_UNPOOLED host (127.0.0.1:1)"
 if printf '%s\n' "$OUT" | grep -q '127.0.0.1:2'; then
   fail "migrate deploy targeted the DATABASE_URL host (127.0.0.1:2)"
 fi
@@ -180,7 +188,7 @@ exit 7
 EOF
 chmod +x "$STUB_BIN/pnpm"
 clean_outputs
-run_build PATH="$STUB_BIN:$PATH" VERCEL_ENV=production DIRECT_DATABASE_URL="$DEAD_DIRECT" DATABASE_URL="$DEAD_POOLED"
+run_build PATH="$STUB_BIN:$PATH" VERCEL_ENV=production DATABASE_URL_UNPOOLED="$DEAD_UNPOOLED" DATABASE_URL="$DEAD_POOLED"
 [[ "$CODE" -ne 0 ]] || fail "exit code 0, expected non-zero"
 printf '%s\n' "$OUT" | grep -q 'stub pnpm: schemas build fails' || fail "the schemas build step did not run through pnpm"
 [[ ! -d "$PRISMA_OUT" ]] || fail "prisma generate ran after the failing schemas build"
@@ -191,13 +199,13 @@ end_case
 if [[ -z "${TEST_DATABASE_URL:-}" ]]; then
   skip_case "AC-DEVWF-012-3: TEST_DATABASE_URL is not set in the environment"
 else
-  new_case "AC-DEVWF-012-3: VERCEL_ENV=production, DATABASE_URL not answering, DIRECT_DATABASE_URL = test database → exit 0, every migration recorded"
+  new_case "AC-DEVWF-012-3: VERCEL_ENV=production, DATABASE_URL not answering, DATABASE_URL_UNPOOLED = test database → exit 0, every migration recorded"
   db_name="${TEST_DATABASE_URL##*/}"
   db_name="${db_name%%\?*}"
   if [[ "$db_name" != *test* ]]; then
     fail "refusing to run: the TEST_DATABASE_URL database name '$db_name' does not contain 'test'"
   else
-    run_build VERCEL_ENV=production DIRECT_DATABASE_URL="$TEST_DATABASE_URL" DATABASE_URL="$DEAD_POOLED"
+    run_build VERCEL_ENV=production DATABASE_URL_UNPOOLED="$TEST_DATABASE_URL" DATABASE_URL="$DEAD_POOLED"
     [[ "$CODE" -eq 0 ]] || fail "exit code $CODE, expected 0"
     expected="$(cd "$API/prisma/migrations" && find . -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort)"
     recorded="$(cd "$API" && "$NODE_BIN" -e '
@@ -232,8 +240,8 @@ new_case "AC-DEVWF-012-4: schemas build, then prisma generate, then (last) prism
 ' "$SCRIPT_TEXT" || fail "script text: $SCRIPT_TEXT"
 end_case
 
-new_case "REQ-DEVWF-012: migrate deploy runs only for VERCEL_ENV = production, with DATABASE_URL from DIRECT_DATABASE_URL for that command only"
-printf '%s' "$SCRIPT_TEXT" | grep -qE 'if \[ "\$VERCEL_ENV" = "?production"? \]; then DATABASE_URL="\$\{DIRECT_DATABASE_URL:\?[^}]*\}" prisma migrate deploy' ||
+new_case "REQ-DEVWF-012: migrate deploy runs only for VERCEL_ENV = production, with DATABASE_URL from DATABASE_URL_UNPOOLED for that command only"
+printf '%s' "$SCRIPT_TEXT" | grep -qE 'if \[ "\$VERCEL_ENV" = "?production"? \]; then DATABASE_URL="\$\{DATABASE_URL_UNPOOLED:\?[^}]*\}" prisma migrate deploy' ||
   fail "unexpected step 3: $SCRIPT_TEXT"
 if printf '%s' "$SCRIPT_TEXT" | grep -qE '\bexport\b'; then
   fail "the script exports a variable"
@@ -246,14 +254,22 @@ if printf '%s' "$SCRIPT_TEXT" | grep -qE '\btsc\b|(^|&&\s*)pnpm (run )?build'; t
 fi
 end_case
 
-new_case "REQ-DEVWF-012 / REQ-CFG-008: prisma.config.ts reads DATABASE_URL from process.env and no runtime code reads DIRECT_DATABASE_URL"
+new_case "REQ-DEVWF-012 / REQ-CFG-008: prisma.config.ts reads DATABASE_URL from process.env and no runtime code reads DATABASE_URL_UNPOOLED"
 grep -q 'process.env\["DATABASE_URL"\]' "$API/prisma.config.ts" || fail "prisma.config.ts does not read process.env[\"DATABASE_URL\"]"
-if grep -qE 'config/env|DIRECT_DATABASE_URL' "$API/prisma.config.ts"; then
-  fail "prisma.config.ts imports the runtime config or reads DIRECT_DATABASE_URL"
+if grep -qE 'config/env|DATABASE_URL_UNPOOLED' "$API/prisma.config.ts"; then
+  fail "prisma.config.ts imports the runtime config or reads DATABASE_URL_UNPOOLED"
 fi
-if grep -rlq 'DIRECT_DATABASE_URL' "$API/src" --exclude-dir=generated 2>/dev/null; then
-  fail "apps/api/src reads DIRECT_DATABASE_URL: $(grep -rl 'DIRECT_DATABASE_URL' "$API/src" --exclude-dir=generated)"
+if grep -rlq 'DATABASE_URL_UNPOOLED' "$API/src" --exclude-dir=generated 2>/dev/null; then
+  fail "apps/api/src reads DATABASE_URL_UNPOOLED: $(grep -rl 'DATABASE_URL_UNPOOLED' "$API/src" --exclude-dir=generated)"
 fi
+end_case
+
+# The old variable name is assembled so that this file does not contain it.
+OLD_DIRECT_VAR="DIRECT_""DATABASE_URL"
+new_case "DEV-012: no file outside docs/ names the old direct-connection variable"
+old="$(git -C "$REPO_ROOT" ls-files --cached --others --exclude-standard -- ':!docs/' |
+  while read -r f; do [[ -f "$REPO_ROOT/$f" ]] && grep -lF "$OLD_DIRECT_VAR" "$REPO_ROOT/$f"; done)"
+[[ -z "$old" ]] || fail "files containing $OLD_DIRECT_VAR: $old"
 end_case
 
 # --- AC-DEVWF-011-1 ----------------------------------------------------------

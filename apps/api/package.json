@@ -8,7 +8,7 @@
     "dev": "tsx watch --conditions=source src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "vercel-build": "pnpm --filter @survey-system/schemas build && prisma generate && if [ \"$VERCEL_ENV\" = production ]; then DATABASE_URL=\"${DIRECT_DATABASE_URL:?DIRECT_DATABASE_URL is required to migrate in production}\" prisma migrate deploy; fi",
+    "vercel-build": "pnpm --filter @survey-system/schemas build && prisma generate && if [ \"$VERCEL_ENV\" = production ]; then DATABASE_URL=\"${DATABASE_URL_UNPOOLED:?DATABASE_URL_UNPOOLED is required to migrate in production}\" prisma migrate deploy; fi",
     "seed": "prisma db seed",
     "test": "vitest run",
     "test:watch": "vitest",
