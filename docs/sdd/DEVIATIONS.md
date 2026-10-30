@@ -104,3 +104,11 @@ Entry template:
 - **Reason:** the user prefers to work only in the Vercel dashboard, and a dashboard deployment needs a pushed commit.
 - **Affected files:** DEV_WORKFLOW.md, CONVENTIONS.md, DEVIATIONS.md (DEV-009 wording), MAIN.md
 - **CHANGELOG ref:** 2026-10-29 · DEV_WORKFLOW.md → v4.0 · task build/vercel-deployment / PH-DEVWF-4 · DEV-008, DEV-009, DEV-010
+
+### DEV-011 — Vercel services declare their framework and the API its entrypoint
+- **Date:** 2026-10-30
+- **Spec said:** DEV_WORKFLOW.md, REQ-DEVWF-011 (AC-DEVWF-011-1), v4.0: the API runs with Vercel's zero-configuration Express support, which finds `src/server.ts` as the entry itself, and the services declare only their root and build settings (also DEV-008, "started zero-config from `src/server.ts`").
+- **User decided:** in the root `vercel.json`, the `api` service also declares `"framework": "express"` and `"entrypoint": "src/server.ts"`, and the `web` service declares `"framework": "vite"`. Service names, roots, public rewrites and the absence of bindings stay as they are.
+- **Reason:** Vercel's import flow for Services sets `framework`, `entrypoint` and `buildCommand` per service; declaring the entry explicitly removes the guess between `src/server.ts` and `src/app.ts` that REQ-DEVWF-014 S1/S2 watch for.
+- **Affected files:** DEV_WORKFLOW.md, MAIN.md
+- **CHANGELOG ref:** 2026-10-30 · DEV_WORKFLOW.md → v5.0 · task build/vercel-deployment (sdd: false) · DEV-011

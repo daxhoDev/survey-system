@@ -4,9 +4,9 @@
 
 - **Module:** Development workflow
 - **Module code:** DEVWF
-- **Version:** v4.0
+- **Version:** v5.0
 - **Status:** Approved
-- **Last updated:** 2026-10-29
+- **Last updated:** 2026-10-30
 
 ## Description
 
@@ -230,10 +230,12 @@ A code comment that cites the documentation names an existing spec file in `docs
 
 Legacy ID: none (task build/vercel-deployment).
 
-The repository root `vercel.json` (`$schema` `https://openapi.vercel.sh/vercel.json`) configures one Vercel project with two **services** (Vercel Services, beta). Each service has its own root and its own build settings:
+The repository root `vercel.json` (`$schema` `https://openapi.vercel.sh/vercel.json`) configures one Vercel project with two **services** (Vercel Services, beta). Each service has its own root, relative to the repository root (the directory that holds `vercel.json`), and declares its own framework and build settings. These keys are set per service: in services mode they are not valid at the top level.
 
-- `api`: root `apps/api`. Its build command runs the API's `vercel-build` script (REQ-DEVWF-012). Vercel runs the Express app with its zero-configuration Express support, taking `src/server.ts` as the entry. The whole app becomes one function. There is no separate entry file, and the import order of `src/server.ts` is unchanged (REQ-ARCH-003, REQ-CFG-001).
-- `web`: root `apps/web`. Build command `pnpm build`, output directory `dist` (Vite).
+- `api`: root `apps/api`, framework `express`, entrypoint `src/server.ts`. Its build command runs the API's `vercel-build` script (REQ-DEVWF-012). Vercel runs the Express app with its Express support, starting from the declared entrypoint, so it does not have to detect the entry itself ([DEVIATIONS.md](DEVIATIONS.md) DEV-011). The whole app becomes one function. There is no separate entry file, and the import order of `src/server.ts` is unchanged (REQ-ARCH-003, REQ-CFG-001).
+- `web`: root `apps/web`, framework `vite`. Build command `pnpm build`, output directory `dist`.
+
+No service calls another internally: the services declare no bindings. The browser reaches each service only through the public rewrites below.
 
 Top-level rewrites, in this order:
 
@@ -242,14 +244,14 @@ Top-level rewrites, in this order:
 
 In the web service, a path that matches no file in `dist` is answered with `dist/index.html` (client-side routing; this used to be in `apps/web/vercel.json`). A path that matches a file (e.g. `/favicon.png`) is served as that file. The API function runs in region `iad1`, next to the Neon database in `aws-us-east-1`.
 
-The configuration holds nothing else yet: no Git deployment rules, firewall rules or headers. Those are specified after the spike. Where the `vercel.json` schema allows a setting (per-service build, SPA fallback, region) in more than one place, the Implementer picks one and reports it, and the spike confirms that it works (REQ-DEVWF-014).
+The configuration holds nothing else yet: no Git deployment rules, firewall rules or headers, and no other key in either service. Those are specified after the spike. Where the `vercel.json` schema allows a setting (per-service build, SPA fallback, region) in more than one place, the Implementer picks one and reports it, and the spike confirms that it works (REQ-DEVWF-014).
 
 **Acceptance criteria**
 
 - **AC-DEVWF-011-1**
   - **Given** the root `vercel.json`
   - **When** it is read
-  - **Then** it declares the services `api` (root `apps/api`, build running the `vercel-build` script) and `web` (root `apps/web`, build `pnpm build`, output `dist`), and no other service
+  - **Then** it declares the services `api` (root `apps/api`, framework `express`, entrypoint `src/server.ts`, build running the `vercel-build` script) and `web` (root `apps/web`, framework `vite`, build `pnpm build`, output `dist`), and no other service
 - **AC-DEVWF-011-2**
   - **Given** the root `vercel.json`
   - **When** its top-level rewrites are read
@@ -262,6 +264,10 @@ The configuration holds nothing else yet: no Git deployment rules, firewall rule
   - **Given** `apps/api`
   - **When** it is searched for a Vercel entry file other than `src/server.ts` (e.g. `index.ts`, `app.js`, `api/`)
   - **Then** there is none, and `src/server.ts` keeps the import order of AC-ARCH-003-1
+- **AC-DEVWF-011-5**
+  - **Given** the root `vercel.json`
+  - **When** its top-level keys and each service's keys are read
+  - **Then** besides the region setting and the SPA fallback (wherever the Implementer placed them, REQ-DEVWF-011), the top level holds only `$schema`, `services` and `rewrites`, `api` holds only `root`, `framework`, `entrypoint` and `buildCommand`, and `web` holds only `root`, `framework`, `buildCommand` and `outputDirectory`; no service declares bindings
 
 ### REQ-DEVWF-012 — API `vercel-build` script
 
@@ -350,7 +356,7 @@ Before the rest of the deployment is specified, the user deploys the pushed task
 | # | Check | Expected (`PASS`) |
 |---|---|---|
 | S1 | Deployment → Build Logs | The build completes. The log shows the schemas build and `prisma generate` of the `api` service, no migration step, and the web's `vite build`. Record which file the log names as the API's entrypoint |
-| S2 | `GET <url>/api/v1/docs-raw` | `200` with the OpenAPI JSON (`info.title` "Sondix API"). If not, Runtime Logs show why (e.g. `Invalid environment configuration` naming `NODE_ENV`, a missing `@survey-system/schemas` or `bcrypt` module). Record which source file the deployment's function (Deployment → Functions or Resources) is built from; the expected entry is `src/server.ts` |
+| S2 | `GET <url>/api/v1/docs-raw` | `200` with the OpenAPI JSON (`info.title` "Sondix API"). If not, Runtime Logs show why (e.g. `Invalid environment configuration` naming `NODE_ENV`, a missing `@survey-system/schemas` or `bcrypt` module). Record which source file the deployment's function (Deployment → Functions or Resources) is built from; the expected entry is `src/server.ts`, the entrypoint `vercel.json` declares |
 | S3 | `GET <url>/api/v1/does-not-exist` | `404` `application/problem+json` whose `detail` names `/api/v1/does-not-exist` (the path reached Express unchanged), with no `stack` field (production mode, REQ-API-013) |
 | S4 | `GET <url>/api/v1/docs/` | The Swagger UI page renders with its styles and the endpoint list (its JS/CSS files load) |
 | S5 | `GET <url>/` and `GET <url>/surveys/spike-check` | Both return the web app (the `index.html` page, not a Vercel `404`) |
@@ -366,7 +372,7 @@ Before the rest of the deployment is specified, the user deploys the pushed task
 
 - S1, S2, S3, S5, S6, S7 or S8 `FAIL`: Services is not used as specified. The Specifier brings it back as a decision; the fallback the user already saw is two Vercel projects, with the web rewriting `/api/*` to the API project.
 - S4 `FAIL`: Swagger UI is served only in development, and `/api/v1/docs-raw` stays everywhere (decided 2026-10-29; written into [API.md](API.md) after the spike, as a new deviation).
-- S1 or S2 shows an entrypoint other than `src/server.ts` (e.g. `src/app.ts`, which also exports the Express app): the Specifier brings it back as a decision. That case contradicts REQ-DEVWF-011 (AC-DEVWF-011-4) and REQ-ARCH-003, because `src/app.ts` does not import `config/env` and `lib/zod-setup` first.
+- S1 or S2 shows an entrypoint other than `src/server.ts` (e.g. `src/app.ts`, which also exports the Express app), although `vercel.json` declares it: the Specifier brings it back as a decision. That case contradicts REQ-DEVWF-011 (AC-DEVWF-011-4) and REQ-ARCH-003, because `src/app.ts` does not import `config/env` and `lib/zod-setup` first.
 - S2 `FAIL` only because `NODE_ENV` is missing at runtime: the Specifier brings it back as a decision.
 - S9 is input for the `TRUST_PROXY` measurement on the first real deployment (REQ-ANS-007).
 - S10 `FAIL`: reported as a finding.
