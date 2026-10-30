@@ -128,7 +128,10 @@ After changing the API contract, regenerate the web client with `pnpm generate:a
 ### Deployment
 
 The repository is set up for one [Vercel](https://vercel.com) project that serves both the
-web and the API. PostgreSQL runs on [Neon](https://neon.tech).
+web and the API. PostgreSQL runs on [Neon](https://neon.tech), added to the Vercel project through
+Vercel's Neon integration, which sets the database variables (`DATABASE_URL`,
+`DATABASE_URL_UNPOOLED` and others) in the project. The project's Node.js Version
+setting must be `24.x`.
 
 - **`vercel.json`** (repository root) declares two services: `api` (`apps/api`) and
   `web` (`apps/web`). Requests to `/api/*` go to the API and every other path goes to the
@@ -136,7 +139,8 @@ web and the API. PostgreSQL runs on [Neon](https://neon.tech).
   to one origin, so the session cookies work.
 - **API build on Vercel**: `pnpm run vercel-build` in `apps/api`. It builds
   `packages/schemas` and generates the Prisma client. On production builds only, it
-  then applies pending migrations through `DIRECT_DATABASE_URL`. `.vercelignore` keeps
+  then applies pending migrations through `DATABASE_URL_UNPOOLED` (Neon's direct
+  connection string), and fails if it is not set. `.vercelignore` keeps
   `.env` files and generated output out of deployments. Its tests:
   `bash scripts/tests/vercel-build.test.sh` (the database case runs only when
   `TEST_DATABASE_URL` is set).
