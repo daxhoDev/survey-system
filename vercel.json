@@ -4,10 +4,13 @@
   "services": {
     "api": {
       "root": "apps/api",
+      "framework": "express",
+      "entrypoint": "src/server.ts",
       "buildCommand": "pnpm run vercel-build"
     },
     "web": {
       "root": "apps/web",
+      "framework": "vite",
       "buildCommand": "pnpm build",
       "outputDirectory": "dist",
       "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
