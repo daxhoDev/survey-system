@@ -2,7 +2,7 @@
 
 # Conventions
 
-**Version:** v0.3
+**Version:** v0.5
 
 Project-wide conventions, filled in as the user decides them.
 
@@ -25,7 +25,7 @@ pnpm workspaces monorepo (details: [ARCHITECTURE.md](ARCHITECTURE.md)).
 | Shared schemas | `packages/schemas` | Zod schemas used for validation and OpenAPI generation (REQ-ARCH-002, REQ-ARCH-012) |
 | Database | — | PostgreSQL (local: `postgres:18-alpine` through Docker Compose; deployed: Neon) |
 | Tooling | root | pnpm `11.5.3` (root `devEngines`), Vitest, Orval, Docker |
-| Deployment | — | API as a Docker image on Render, web on Vercel, PostgreSQL on Neon, all free tiers ([DEV_WORKFLOW.md](DEV_WORKFLOW.md)) |
+| Deployment | — | Web and API on one Vercel project (Hobby, Vercel Services, API on Vercel Functions), PostgreSQL on Neon (free); root `vercel.json` and `.vercelignore`. Being moved from the earlier Render target ([DEV_WORKFLOW.md](DEV_WORKFLOW.md) §Deployment, [DEVIATIONS.md](DEVIATIONS.md) DEV-008) |
 
 ## Code style
 
@@ -33,7 +33,7 @@ pnpm workspaces monorepo (details: [ARCHITECTURE.md](ARCHITECTURE.md)).
 - The web app is linted with ESLint (`apps/web/eslint.config.js`, `pnpm lint` in `apps/web`).
 - Identifiers, code comments and API messages are in English; the web UI copy is in Spanish ([FRONTEND.md](FRONTEND.md), REQ-FE-006; [BRAND.md](BRAND.md), REQ-BRAND-024).
 - Database columns are snake_case and domain objects camelCase (REQ-DATA-005, REQ-ARCH-006).
-- Generated code is never edited by hand: the Prisma client in `apps/api/src/generated/prisma` (REQ-ARCH-008) and the Orval output in `apps/web/src/lib/api`, except the hand-written `mutator/customInstance.ts` (REQ-FE-008, REQ-FE-009).
+- Generated code is never edited by hand: the Prisma client in `apps/api/src/generated/prisma` (REQ-ARCH-008) and the Orval output in `apps/web/src/lib/api`, except the hand-written `mutator/customInstance.ts` (REQ-FE-008, REQ-FE-009). The Prisma client is git-ignored and generated wherever it is needed (REQ-ARCH-008). The Orval output is committed on purpose.
 
 ## Project structure
 
@@ -51,6 +51,8 @@ scripts/            developer scripts (environment preflight: preflight.sh; PNG 
   tests/            script tests (see Testing)
 docs/sdd/           specification (this folder)
 docs/brand/         brand reference artwork
+vercel.json         Vercel project configuration (services, rewrites)
+.vercelignore       files kept out of Vercel deployments
 ```
 
 ## Testing
@@ -60,7 +62,8 @@ docs/brand/         brand reference artwork
   - API: `apps/api/tests/unit` (Vitest project `unit`, no database), `apps/api/tests/db` (Vitest project `db`, real PostgreSQL through `TEST_DATABASE_URL`) and shared helpers in `apps/api/tests/helpers`.
   - Web: `apps/web/tests` (jsdom + Testing Library), shared helpers in `apps/web/tests/helpers.tsx` and `apps/web/tests/setup.ts`.
   - Scripts: `scripts/tests`. Each test script runs the script under test and checks its output and exit code: with stub executables (e.g. fake `node` and `pnpm`) placed first on a temporary `PATH` when the script calls other tools (e.g. the preflight's summary lines), or for real into a temporary directory when it only writes files (e.g. `brand-icons.test.sh` compares the generated icons byte-for-byte with the committed ones and checks the PNG sizes). Run from the repository root, e.g. `bash scripts/tests/preflight.test.sh`; it exits `0` only if every case passed. These tests are not part of `pnpm test`, so the preflight (whose check 3 runs `pnpm test`) never runs its own tests.
-- **Naming:** `<Subject>.test.ts` or `<Subject>.test.tsx`, named after the unit, component or page under test (e.g. `authService.test.ts`, `LoginPage.test.tsx`). Script tests: `<script>.test.sh`, named after the script under test without its extension (e.g. `preflight.test.sh` for `scripts/preflight.sh`, `brand-icons.test.sh` for `scripts/brand-icons.ts`).
+  - The API's `vercel-build` package script (REQ-DEVWF-012) is tested the same way by `scripts/tests/vercel-build.test.sh`, which runs `pnpm run vercel-build` in `apps/api` for real under the `VERCEL_ENV` / `DIRECT_DATABASE_URL` cases of its acceptance criteria. The case that needs a database uses the test database and is skipped with a message when `TEST_DATABASE_URL` is not set in the environment; it only applies migrations, so the test database is left empty.
+- **Naming:** `<Subject>.test.ts` or `<Subject>.test.tsx`, named after the unit, component or page under test (e.g. `authService.test.ts`, `LoginPage.test.tsx`). Script tests: `<script>.test.sh`, named after the script under test without its extension (e.g. `preflight.test.sh` for `scripts/preflight.sh`, `brand-icons.test.sh` for `scripts/brand-icons.ts`), or after the package script under test (`vercel-build.test.sh`).
 - **Test database:** the API `db` project leaves the test database (`TEST_DATABASE_URL`) empty when it finishes, whether its tests passed or failed. It applies migrations with `prisma migrate deploy` and never uses `prisma migrate reset` ([DEV_WORKFLOW.md](DEV_WORKFLOW.md), REQ-DEVWF-002).
 - **Requirement references:** each test names the requirement IDs it covers. Existing tests use the legacy IDs (e.g. `AUTH-30`), which resolve through the "Legacy ID" line of each requirement; new tests use `REQ-<CODE>-NNN` / `AC-<CODE>-NNN-k`.
 

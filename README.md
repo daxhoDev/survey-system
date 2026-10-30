@@ -127,24 +127,26 @@ After changing the API contract, regenerate the web client with `pnpm generate:a
 
 ### Deployment
 
-Free tiers: the API runs as a Docker image on [Render](https://render.com), the web on
-[Vercel](https://vercel.com) and PostgreSQL on [Neon](https://neon.tech).
+The repository is set up for one [Vercel](https://vercel.com) project that serves both the
+web and the API. PostgreSQL runs on [Neon](https://neon.tech).
 
-- **API image**: `apps/api/Dockerfile`, built from the repository root. It applies pending
-  migrations (`prisma migrate deploy`) every time it starts. Try it locally with
+- **`vercel.json`** (repository root) declares two services: `api` (`apps/api`) and
+  `web` (`apps/web`). Requests to `/api/*` go to the API and every other path goes to the
+  web app, which serves `index.html` for its client-side routes. The browser only talks
+  to one origin, so the session cookies work.
+- **API build on Vercel**: `pnpm run vercel-build` in `apps/api`. It builds
+  `packages/schemas` and generates the Prisma client. On production builds only, it
+  then applies pending migrations through `DIRECT_DATABASE_URL`. `.vercelignore` keeps
+  `.env` files and generated output out of deployments. Its tests:
+  `bash scripts/tests/vercel-build.test.sh` (the database case runs only when
+  `TEST_DATABASE_URL` is set).
+- **API image**: `apps/api/Dockerfile`, built from the repository root. It applies
+  pending migrations (`prisma migrate deploy`) every time it starts. Try it locally with
   `docker compose -f docker-compose.prod.yml up --build`.
-- **Render**: Docker web service with Dockerfile path `apps/api/Dockerfile` and the
-  repository root as build context. Environment: `NODE_ENV=production`, `DATABASE_URL`
-  (the direct Neon connection string), `JWT_SECRET`, `ACCESS_TOKEN_TTL_MINUTES`,
-  `REFRESH_TOKEN_TTL_DAYS`, `CORS_ORIGIN` (the Vercel URL) and `TRUST_PROXY`.
-- **Vercel**: project with root directory `apps/web` and `VITE_API_URL` set to the
-  project's own Vercel URL. `apps/web/vercel.json` forwards `/api/*` to Render, so the
-  browser only talks to Vercel and the session cookies work.
 - **Migrations by hand**: `DATABASE_URL=<Neon URL> pnpm exec prisma migrate deploy` in
   `apps/api`.
 
-On the free plan Render stops the API when idle: the first request afterwards can take
-about a minute. See [`docs/sdd/DEV_WORKFLOW.md`](docs/sdd/DEV_WORKFLOW.md).
+See [`docs/sdd/DEV_WORKFLOW.md`](docs/sdd/DEV_WORKFLOW.md).
 
 ### Documentation
 

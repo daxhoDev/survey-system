@@ -71,3 +71,36 @@ Entry template:
 - **Reason:** the same outcome whether the duplicate is detected by the answered-status check on load or by the server on submit, with no English message in the Spanish UI.
 - **Affected files:** FRONTEND.md, MAIN.md
 - **CHANGELOG ref:** 2026-10-28 · FRONTEND.md → v5.0 · task feat/answer-ip-guard / PH-FE-7 · DEV-007
+
+### DEV-008 — API deployed on Vercel instead of Render
+- **Date:** 2026-10-29
+- **Spec said:** DEV_WORKFLOW.md, §Deployment and REQ-DEVWF-008 (AC-DEVWF-008-1), v2.1: the API is deployed as a Docker image on Render; the web is a Vercel project rooted at `apps/web`, whose `apps/web/vercel.json` rewrites `/api/*` to `https://sondix-api.onrender.com`. Also REQ-DEVWF-003, REQ-DEVWF-007 and REQ-DEVWF-009 (v2.1), CONFIGURATION.md REQ-CFG-010 and REQ-CFG-011 (v1.1), ANSWERS.md REQ-ANS-007 (v1.1), OVERVIEW.md (v1.1) and CONVENTIONS.md §Stack (v0.3) describe the Render target.
+- **User decided:** web and API run on one new Vercel project, on the Hobby plan (non-commercial use), using Vercel Services. The API is an Express app on Vercel Functions in region `iad1`, started zero-config from `src/server.ts`, and PostgreSQL is a standalone Neon database in `aws-us-east-1`. Feasibility is checked first with a throwaway spike deployment, with two projects plus a rewrite as the fallback (PH-DEVWF-4). After the spike:
+  - the database pool is pooled through `attachDatabasePool`, with `DATABASE_URL` (pooled) at runtime and `DIRECT_DATABASE_URL` (direct) only for migrations;
+  - migrations run in the build only for production, under an expand-then-contract rule;
+  - there are no preview deployments, and variables are set in the dashboard, Production scope only, with secrets marked Sensitive;
+  - the global limit of 40 requests per minute also becomes the Vercel firewall's rate-limit rule, on top of the app's in-memory limiters, which stay;
+  - `TRUST_PROXY=1`, verified on the first deployment with a written checklist;
+  - logs keep Vercel's one-hour retention;
+  - the Dockerfile and `docker-compose.prod.yml` stay as a local production-mode trial;
+  - every Render mention is removed;
+  - Swagger UI is served only in development if the spike shows it cannot be served on Vercel.
+- **Reason:** run the whole product on one platform and origin, without the free Render service's cold start, and keep the session cookies first-party.
+- **Affected files:** DEV_WORKFLOW.md, CONVENTIONS.md, MAIN.md (PH-DEVWF-4); the other files listed under "Spec said" when the deployment is specified after the spike
+- **CHANGELOG ref:** 2026-10-29 · DEV_WORKFLOW.md → v4.0 · task build/vercel-deployment / PH-DEVWF-4 · DEV-008, DEV-009, DEV-010; 2026-10-29 · CONVENTIONS.md → v0.5 · task build/vercel-deployment / PH-DEVWF-4 · DEV-008, DEV-009; 2026-10-29 · apps/web/vercel.json (Render rewrite) · task build/vercel-deployment / PH-DEVWF-4 · DEV-008
+
+### DEV-009 — Generated Prisma client no longer committed
+- **Date:** 2026-10-29
+- **Spec said:** ARCHITECTURE.md, REQ-ARCH-008 (AC-ARCH-008-1), v1.0: after `prisma generate` in a clean checkout, `apps/api/src/generated/prisma` has no differences from "the committed version", so the client was versioned. The 13 files under it were tracked because the root `.gitignore` rule `src/generated` matches only `<root>/src/generated`. DEV_WORKFLOW.md REQ-DEVWF-012 (v3.0) already called it git-ignored.
+- **User decided:** the generated Prisma client is not versioned. The root `.gitignore` ignores `apps/api/src/generated`, its tracked files are removed from the index (`git rm --cached`), and the client is generated locally, in the tests' environment, in the API image build and in the Vercel build. It is also kept out of Vercel deployments (REQ-DEVWF-013).
+- **Reason:** found by the Reviewer in PH-DEVWF-4. Generated code that every build regenerates should not be committed, and the docs contradicted each other about it.
+- **Affected files:** ARCHITECTURE.md, DEV_WORKFLOW.md, CONVENTIONS.md, MAIN.md
+- **CHANGELOG ref:** 2026-10-29 · ARCHITECTURE.md → v2.0 · task build/vercel-deployment / PH-DEVWF-4 · DEV-009; 2026-10-29 · DEV_WORKFLOW.md → v4.0 · task build/vercel-deployment / PH-DEVWF-4 · DEV-008, DEV-009, DEV-010; 2026-10-29 · CONVENTIONS.md → v0.5 · task build/vercel-deployment / PH-DEVWF-4 · DEV-008, DEV-009
+
+### DEV-010 — Spike deployed from the Vercel dashboard, after the close
+- **Date:** 2026-10-29
+- **Spec said:** DEV_WORKFLOW.md, REQ-DEVWF-014 (procedure, AC-DEVWF-014-2) and the PH-DEVWF-4 notes, v3.1: the user deploys the local working tree with the Vercel CLI (`pnpm dlx vercel link` / `vercel deploy`) before STOP 2, and the results are recorded at the close of PH-DEVWF-4.
+- **User decided:** no Vercel CLI. PH-DEVWF-4 closes with the reviewed files, is committed, and the branch is pushed. The user then imports the repository in the dashboard as the throwaway project `sondix-spike` and deploys `build/vercel-deployment` as a Preview with Preview-only dummy variables. S8 checks the deployment's Git source. The results are recorded at the start of the next phase and drive its specs.
+- **Reason:** the user prefers to work only in the Vercel dashboard, and a dashboard deployment needs a pushed commit.
+- **Affected files:** DEV_WORKFLOW.md, CONVENTIONS.md, DEVIATIONS.md (DEV-009 wording), MAIN.md
+- **CHANGELOG ref:** 2026-10-29 · DEV_WORKFLOW.md → v4.0 · task build/vercel-deployment / PH-DEVWF-4 · DEV-008, DEV-009, DEV-010
