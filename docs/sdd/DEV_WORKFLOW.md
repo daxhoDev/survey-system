@@ -4,7 +4,7 @@
 
 - **Module:** Development workflow
 - **Module code:** DEVWF
-- **Version:** v5.0
+- **Version:** v6.0
 - **Status:** Approved
 - **Last updated:** 2026-10-30
 
@@ -41,7 +41,7 @@ Related: [CONFIGURATION.md](CONFIGURATION.md), [CONVENTIONS.md](CONVENTIONS.md),
 | `apps/api` | `DATABASE_URL=<url> pnpm exec prisma migrate deploy` | Apply pending migrations to a deployed database by hand (REQ-DEVWF-007) |
 | `apps/api` | `pnpm exec prisma generate` | Generate the Prisma client in `src/generated/prisma` (git-ignored, so needed after every fresh `pnpm install`, REQ-ARCH-008) |
 | `apps/api` | `pnpm build` / `pnpm start` | `tsc` → `dist/`, run `node dist/server.js` |
-| `apps/api` | `pnpm run vercel-build` | The API's build on Vercel: build `packages/schemas`, generate the Prisma client and, only when `VERCEL_ENV=production`, apply pending migrations through `DIRECT_DATABASE_URL` (REQ-DEVWF-012) |
+| `apps/api` | `pnpm run vercel-build` | The API's build on Vercel: build `packages/schemas`, generate the Prisma client and, only when `VERCEL_ENV=production`, apply pending migrations through `DATABASE_URL_UNPOOLED` (REQ-DEVWF-012) |
 | `apps/api` | `pnpm test` / `pnpm test:watch` / `pnpm test:coverage` | Vitest: one run / watch mode / one run with a v8 coverage report (`coverage/`) |
 | `packages/schemas` | `pnpm build` | `tsc` → `dist/`, used only by the production image (REQ-ARCH-012) |
 | `apps/web` | `pnpm build` / `pnpm preview` / `pnpm lint` | `tsc -b && vite build`, preview, ESLint |
@@ -58,7 +58,11 @@ Dev URLs: API `http://localhost:3000` (Swagger at `/api/v1/docs`), web `http://l
 
 ### Deployment
 
-Target: web and API on **one Vercel project** (Hobby plan, non-commercial use) using Vercel Services, with the API as an Express app on Vercel Functions in region `iad1`, and PostgreSQL on **Neon** (free, `aws-us-east-1`). Decided 2026-10-29, replacing the earlier target of the API as a Docker image on Render ([DEVIATIONS.md](DEVIATIONS.md) DEV-008). Nothing is deployed yet: there is no Vercel project, Render service or Neon database.
+Target: web and API on **one Vercel project** (Hobby plan, non-commercial use) using Vercel Services, with the API as an Express app on Vercel Functions in region `iad1`, and PostgreSQL on **Neon** (free, `aws-us-east-1`), created from the Vercel Marketplace Neon integration rather than as a standalone Neon account ([DEVIATIONS.md](DEVIATIONS.md) DEV-012). Decided 2026-10-29, replacing the earlier target of the API as a Docker image on Render ([DEVIATIONS.md](DEVIATIONS.md) DEV-008). Nothing is deployed yet: the Vercel project and its Neon database exist, but the first production build (2026-10-30) stopped at the migration step of REQ-DEVWF-012 because the direct connection variable it then expected was not set. There is no Render service.
+
+The Neon integration injects the database variables into the Vercel project; they are not set by hand: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `POSTGRES_URL`, `POSTGRES_PRISMA_URL`, `POSTGRES_URL_NO_SSL`, `POSTGRES_URL_NON_POOLING`, `POSTGRES_HOST`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DATABASE`, `PGHOST`, `PGHOST_UNPOOLED`, `PGUSER`, `PGDATABASE` and `NEON_PROJECT_ID`. `DATABASE_URL` is the pooled connection string and `DATABASE_URL_UNPOOLED` the direct (non-pooled) one. The build uses only `DATABASE_URL_UNPOOLED`, for migrations (REQ-DEVWF-012); how the runtime uses `DATABASE_URL` is specified with the database pool, after the spike. The other injected variables are not used.
+
+The Vercel project's **Node.js Version** setting (Project → Settings → Build and Deployment) must be `24.x`, the Node.js major version of the stack ([CONVENTIONS.md](CONVENTIONS.md) §Stack, §Environment preflight) and of `engines.node` in `apps/api/package.json`. Vercel installs and builds with that setting, not with `engines`: on the first production build it was `26.x`, the install ran on Node.js 26, and Prisma warned that it supports only Node.js 20, 22 and 24.
 
 The move is done in two steps. First, PH-DEVWF-4 adds the Vercel configuration (REQ-DEVWF-011 to REQ-DEVWF-013). Once it is pushed, a throwaway deployment from the dashboard checks that Vercel Services can build this pnpm workspace (REQ-DEVWF-014). The rest of the deployment is specified after its results: the real project, its variables, the database pool, the rate limits at the Vercel firewall, migrations on deploy, the `TRUST_PROXY` measurement and the free-tier limits. Until then, REQ-DEVWF-003, REQ-DEVWF-007 and REQ-DEVWF-009, and the deployment text of [CONFIGURATION.md](CONFIGURATION.md) (REQ-CFG-010, REQ-CFG-011), [ANSWERS.md](ANSWERS.md) (REQ-ANS-007) and [OVERVIEW.md](OVERVIEW.md), still describe the Render target.
 
@@ -277,24 +281,24 @@ Legacy ID: none (task build/vercel-deployment).
 
 1. Build `packages/schemas` (`tsc` → `packages/schemas/dist`), so that plain Node resolves `@survey-system/schemas` to `dist/` (REQ-ARCH-012).
 2. Generate the Prisma client (`prisma generate` → `src/generated/prisma`, which is git-ignored and not committed, REQ-ARCH-008).
-3. Only when `VERCEL_ENV` is exactly `production`: `prisma migrate deploy`, with `DATABASE_URL` set to the value of `DIRECT_DATABASE_URL` (Neon's direct, non-pooled connection string) for that command only.
+3. Only when `VERCEL_ENV` is exactly `production`: `prisma migrate deploy`, with `DATABASE_URL` set to the value of `DATABASE_URL_UNPOOLED` (Neon's direct, non-pooled connection string, injected by the Neon integration, §Deployment) for that command only.
 
-Migrations are the last step, so a build that fails never migrates the database, and a failing migration fails the build. With any other `VERCEL_ENV` value (`preview`, `development`) or none, step 3 is skipped and nothing connects to a database. If `VERCEL_ENV` is `production` and `DIRECT_DATABASE_URL` is missing, step 3 fails and so does the build. The script does not compile the API with `tsc`: Vercel compiles `src` itself. `prisma.config.ts` is unchanged (REQ-CFG-008). `DIRECT_DATABASE_URL` is read only by this script, never by the runtime configuration schema (REQ-CFG-001). The project's variables are specified in [CONFIGURATION.md](CONFIGURATION.md) after the spike.
+Migrations are the last step, so a build that fails never migrates the database, and a failing migration fails the build. With any other `VERCEL_ENV` value (`preview`, `development`) or none, step 3 is skipped and nothing connects to a database. If `VERCEL_ENV` is `production` and `DATABASE_URL_UNPOOLED` is unset or empty, step 3 fails with a message that names `DATABASE_URL_UNPOOLED`, before `prisma migrate deploy` runs, and so does the build. The script does not compile the API with `tsc`: Vercel compiles `src` itself. `prisma.config.ts` is unchanged (REQ-CFG-008). `DATABASE_URL_UNPOOLED` is read only by this script, never by the runtime configuration schema (REQ-CFG-001). The project's variables are specified in [CONFIGURATION.md](CONFIGURATION.md) after the spike.
 
 **Acceptance criteria**
 
 - **AC-DEVWF-012-1**
-  - **Given** dependencies installed, no `packages/schemas/dist` and no `apps/api/src/generated/prisma`, `VERCEL_ENV` unset or `preview`, and `DIRECT_DATABASE_URL` pointing to a host that does not answer
+  - **Given** dependencies installed, no `packages/schemas/dist` and no `apps/api/src/generated/prisma`, `VERCEL_ENV` unset or `preview`, and `DATABASE_URL_UNPOOLED` pointing to a host that does not answer
   - **When** `pnpm run vercel-build` runs in `apps/api`
   - **Then** it exits `0`, `packages/schemas/dist/index.js` and `apps/api/src/generated/prisma` exist, and no migration is attempted
 - **AC-DEVWF-012-2**
-  - **Given** `VERCEL_ENV=production` and `DIRECT_DATABASE_URL` pointing to a host that does not answer, or unset
+  - **Given** `VERCEL_ENV=production` and `DATABASE_URL_UNPOOLED` pointing to a host that does not answer, or unset
   - **When** `pnpm run vercel-build` runs in `apps/api`
-  - **Then** it exits non-zero
+  - **Then** it exits non-zero; when `DATABASE_URL_UNPOOLED` is unset, its output names `DATABASE_URL_UNPOOLED`
 - **AC-DEVWF-012-3**
-  - **Given** `VERCEL_ENV=production`, `DATABASE_URL` pointing to a host that does not answer, and `DIRECT_DATABASE_URL` set to the test database (`TEST_DATABASE_URL`)
+  - **Given** `VERCEL_ENV=production`, `DATABASE_URL` pointing to a host that does not answer, and `DATABASE_URL_UNPOOLED` set to the test database (`TEST_DATABASE_URL`)
   - **When** `pnpm run vercel-build` runs in `apps/api`
-  - **Then** it exits `0` and every migration in `apps/api/prisma/migrations` is recorded in that database's `_prisma_migrations`, applied through `DIRECT_DATABASE_URL`
+  - **Then** it exits `0` and every migration in `apps/api/prisma/migrations` is recorded in that database's `_prisma_migrations`, applied through `DATABASE_URL_UNPOOLED`
 - **AC-DEVWF-012-4**
   - **Given** the `vercel-build` script
   - **When** it is read
@@ -346,7 +350,7 @@ Before the rest of the deployment is specified, the user deploys the pushed task
    - `TRUST_PROXY=1`
    - `VITE_API_URL=https://example.com`
 
-   Do **not** set `NODE_ENV`. Set at build time, it can make the install skip development dependencies. Whether the runtime sets it is check S2. Do not set `DIRECT_DATABASE_URL`: a preview build skips migrations.
+   Do **not** set `NODE_ENV`. Set at build time, it can make the install skip development dependencies. Whether the runtime sets it is check S2. Do not connect a Neon database or set `DATABASE_URL_UNPOOLED`: a preview build skips migrations.
 4. Project → Deployments → **Create Deployment**: enter the branch `build/vercel-deployment` and create it. It is built as a Preview, because it is not the production branch, so it uses the Preview variables of step 3. If the dashboard offers no way to deploy that branch, tell the Manager. Note the deployment URL and open it in the browser where you are logged in to Vercel (previews are behind Vercel Authentication).
 5. Run the checks S1–S10 and fill in the results table below. Report the table to the Manager, with the build log lines of S1 and the request log line of S9.
 6. Delete the throwaway project (Settings → Delete Project). The Vercel GitHub app can stay installed: the real project uses it later.

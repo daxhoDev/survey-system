@@ -50,6 +50,8 @@ All notable changes to this project are recorded here, following the [Keep a Cha
 - 2026-10-29 · ARCHITECTURE.md → v2.0 · task build/vercel-deployment / PH-DEVWF-4 · DEV-009
 - 2026-10-29 · CONVENTIONS.md → v0.5 (Stack, Code style: generated code, Project structure, Testing: vercel-build test) · task build/vercel-deployment / PH-DEVWF-4 · DEV-008, DEV-009
 - 2026-10-30 · DEV_WORKFLOW.md → v5.0 · task build/vercel-deployment (sdd: false) · DEV-011
+- 2026-10-30 · DEV_WORKFLOW.md → v6.0 · task build/vercel-deployment (sdd: false) · DEV-012
+- 2026-10-30 · CONVENTIONS.md → v0.6 (Stack, Testing: vercel-build test) · task build/vercel-deployment (sdd: false) · DEV-012
 - 2026-10-27 · DEV_WORKFLOW.md → v2.0 · task chore/sdd-bootstrap / PH-ENV-1 · DEV-001
 - 2026-10-27 · DEV_WORKFLOW.md v2.0 · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002
 - 2026-10-27 · CONFIGURATION.md → v1.1 · task chore/sdd-bootstrap / PH-DEVWF-3 · DEV-002

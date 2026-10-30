@@ -75,8 +75,8 @@ Entry template:
 ### DEV-008 — API deployed on Vercel instead of Render
 - **Date:** 2026-10-29
 - **Spec said:** DEV_WORKFLOW.md, §Deployment and REQ-DEVWF-008 (AC-DEVWF-008-1), v2.1: the API is deployed as a Docker image on Render; the web is a Vercel project rooted at `apps/web`, whose `apps/web/vercel.json` rewrites `/api/*` to `https://sondix-api.onrender.com`. Also REQ-DEVWF-003, REQ-DEVWF-007 and REQ-DEVWF-009 (v2.1), CONFIGURATION.md REQ-CFG-010 and REQ-CFG-011 (v1.1), ANSWERS.md REQ-ANS-007 (v1.1), OVERVIEW.md (v1.1) and CONVENTIONS.md §Stack (v0.3) describe the Render target.
-- **User decided:** web and API run on one new Vercel project, on the Hobby plan (non-commercial use), using Vercel Services. The API is an Express app on Vercel Functions in region `iad1`, started zero-config from `src/server.ts`, and PostgreSQL is a standalone Neon database in `aws-us-east-1`. Feasibility is checked first with a throwaway spike deployment, with two projects plus a rewrite as the fallback (PH-DEVWF-4). After the spike:
-  - the database pool is pooled through `attachDatabasePool`, with `DATABASE_URL` (pooled) at runtime and `DIRECT_DATABASE_URL` (direct) only for migrations;
+- **User decided:** web and API run on one new Vercel project, on the Hobby plan (non-commercial use), using Vercel Services. The API is an Express app on Vercel Functions in region `iad1`, started zero-config from `src/server.ts`, and PostgreSQL is a Neon database in `aws-us-east-1` (a standalone Neon account at first; created from the Vercel Marketplace Neon integration since DEV-012). Feasibility is checked first with a throwaway spike deployment, with two projects plus a rewrite as the fallback (PH-DEVWF-4). After the spike:
+  - the database pool is pooled through `attachDatabasePool`, with `DATABASE_URL` (pooled) at runtime and the direct connection string only for migrations (`DIRECT_DATABASE_URL` at first; `DATABASE_URL_UNPOOLED`, injected by the Neon integration, since DEV-012);
   - migrations run in the build only for production, under an expand-then-contract rule;
   - there are no preview deployments, and variables are set in the dashboard, Production scope only, with secrets marked Sensitive;
   - the global limit of 40 requests per minute also becomes the Vercel firewall's rate-limit rule, on top of the app's in-memory limiters, which stay;
@@ -112,3 +112,11 @@ Entry template:
 - **Reason:** Vercel's import flow for Services sets `framework`, `entrypoint` and `buildCommand` per service; declaring the entry explicitly removes the guess between `src/server.ts` and `src/app.ts` that REQ-DEVWF-014 S1/S2 watch for.
 - **Affected files:** DEV_WORKFLOW.md, MAIN.md
 - **CHANGELOG ref:** 2026-10-30 · DEV_WORKFLOW.md → v5.0 · task build/vercel-deployment (sdd: false) · DEV-011
+
+### DEV-012 — Neon from the Vercel integration, migrations through `DATABASE_URL_UNPOOLED`
+- **Date:** 2026-10-30
+- **Spec said:** DEV_WORKFLOW.md, REQ-DEVWF-012 (AC-DEVWF-012-1 to AC-DEVWF-012-3), §Deployment and REQ-DEVWF-014 (procedure step 3), v5.0: production builds run `prisma migrate deploy` with `DATABASE_URL` taken from `DIRECT_DATABASE_URL`, and fail if it is missing; PostgreSQL is a standalone Neon database (DEV-008). CONVENTIONS.md §Stack and §Testing (vercel-build test), v0.5, name the standalone Neon target and `DIRECT_DATABASE_URL`.
+- **User decided:** the Neon database is created from the Vercel Marketplace Neon integration, which injects the database variables into the project (`DATABASE_URL` pooled, `DATABASE_URL_UNPOOLED` direct, and others). The `vercel-build` migration step uses `DATABASE_URL_UNPOOLED`: production builds run `prisma migrate deploy` with `DATABASE_URL="$DATABASE_URL_UNPOOLED"` for that command only, and fail explicitly if it is unset. `DIRECT_DATABASE_URL` no longer exists anywhere. The Vercel project's Node.js Version setting must be `24.x`.
+- **Reason:** the first production build (2026-10-30) stopped at the migration step because `DIRECT_DATABASE_URL` was not set; the integration already manages the direct connection string, so a hand-set copy of it is avoided. The same build ran on Node.js 26 because the project setting was `26.x`.
+- **Affected files:** DEV_WORKFLOW.md, CONVENTIONS.md, DEVIATIONS.md (DEV-008 wording), MAIN.md, README.md
+- **CHANGELOG ref:** 2026-10-30 · DEV_WORKFLOW.md → v6.0 · task build/vercel-deployment (sdd: false) · DEV-012; 2026-10-30 · CONVENTIONS.md → v0.6 (Stack, Testing: vercel-build test) · task build/vercel-deployment (sdd: false) · DEV-012
