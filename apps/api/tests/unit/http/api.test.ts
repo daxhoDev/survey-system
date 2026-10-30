@@ -377,6 +377,100 @@ describe("answer endpoints", () => {
   });
 });
 
+describe("GET /api/v1/surveys/:slug/answered (REQ-ANS-013)", () => {
+  const surveyPath = "/api/v1/surveys/employee-satisfaction-survey";
+  const answeredPath = `${surveyPath}/answered`;
+  const body = { responses: [{ id: 1, content: [1] }] };
+
+  async function activate(jwt: string, path = surveyPath) {
+    await request(app).patch(path).set("Cookie", jwt).send({ isActive: true });
+  }
+
+  it("AC-ANS-013-1: the IP that answered gets 200 { data: { answered: true } }", async () => {
+    const { jwt } = await signup();
+    await createSurvey(jwt);
+    await activate(jwt);
+    expect((await request(app).post(`${surveyPath}/answers`).send(body)).status).toBe(201);
+
+    const res = await request(app).get(answeredPath);
+    expect(res.status).toBe(200);
+    expect(res.headers["content-type"]).toMatch(/^application\/json/);
+    expect(res.body).toEqual({ data: { answered: true } });
+  });
+
+  it("AC-ANS-013-2: answers from other IPs, or to another survey, do not count", async () => {
+    const { jwt } = await signup();
+    await createSurvey(jwt);
+    await activate(jwt);
+    await createSurvey(jwt, "Another survey name");
+    await activate(jwt, "/api/v1/surveys/another-survey-name");
+    const other = await request(app).post("/api/v1/surveys/another-survey-name/answers").send(body);
+    expect(other.status).toBe(201);
+    const survey = store.surveys.find((s) => s.slug === "employee-satisfaction-survey")!;
+    store.answers.push({
+      id: v7(),
+      surveyId: survey.id,
+      responses: body.responses,
+      originIp: "198.51.100.77",
+      createdAt: new Date(),
+      deletedAt: null,
+    });
+
+    const res = await request(app).get(answeredPath);
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: { answered: false } });
+  });
+
+  it("AC-ANS-013-4: unknown, deleted and inactive surveys get the identical 404, with or without a session", async () => {
+    const { jwt } = await signup();
+    await createSurvey(jwt, "Inactive survey");
+    await createSurvey(jwt, "Deleted survey");
+    await activate(jwt, "/api/v1/surveys/deleted-survey");
+    await request(app).delete("/api/v1/surveys/deleted-survey").set("Cookie", jwt);
+
+    const responses: request.Response[] = [];
+    for (const slug of ["does-not-exist", "deleted-survey", "inactive-survey"]) {
+      for (const cookie of [undefined, jwt]) {
+        const req = request(app).get(`/api/v1/surveys/${slug}/answered`);
+        responses.push(await (cookie ? req.set("Cookie", cookie) : req));
+      }
+    }
+    for (const res of responses) {
+      expect(res.status).toBe(404);
+      expect(res.headers["content-type"]).toMatch(/^application\/problem\+json/);
+      expect(res.body.title).toBe("Not found");
+      expect(res.body.detail).toBe("The requested survey doesn't exist");
+    }
+    const strip = (b: Record<string, unknown>) => ({ ...b, instance: undefined });
+    for (const res of responses) expect(strip(res.body)).toEqual(strip(responses[0]!.body));
+  });
+
+  it("REQ-ANS-013: the endpoint is public and ignores a jwt cookie, valid or not", async () => {
+    const { jwt } = await signup();
+    await createSurvey(jwt);
+    await activate(jwt);
+
+    for (const cookie of [jwt, "jwt=not-a-valid-token"]) {
+      const res = await request(app).get(answeredPath).set("Cookie", cookie);
+      expect(res.status, cookie).toBe(200);
+      expect(res.body).toEqual({ data: { answered: false } });
+    }
+  });
+
+  it("AC-ANS-013-6: the check creates or changes no answer or survey", async () => {
+    const { jwt } = await signup();
+    await createSurvey(jwt);
+    await activate(jwt);
+    await request(app).post(`${surveyPath}/answers`).send(body);
+    const before = JSON.stringify({ surveys: store.surveys, answers: store.answers });
+
+    await request(app).get(answeredPath);
+    await request(app).get("/api/v1/surveys/does-not-exist/answered");
+
+    expect(JSON.stringify({ surveys: store.surveys, answers: store.answers })).toBe(before);
+  });
+});
+
 describe("invitation endpoints", () => {
   const invitee = "new.user@example.com";
   const newAccount = {

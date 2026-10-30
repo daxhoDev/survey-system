@@ -7,6 +7,7 @@ import { z } from "zod";
 import {
   acceptInvitationSchema,
   activeSurveyStatsSchema,
+  answeredStatusSchema,
   answerSchema,
   answerWithSurveySchema,
   createAnswerSchema,
@@ -449,6 +450,21 @@ registry.registerPath({
   responses: {
     204: { description: "Answer deleted (soft)" },
     ...problems(401, 404, 422),
+  },
+});
+
+registry.registerPath({
+  tags: ["Answers"],
+  method: "get",
+  path: "/api/v1/surveys/{slug}/answered",
+  summary: "Check whether the requester's IP already answered a survey",
+  description:
+    "Public, no session. Unknown, deleted and inactive surveys return the same 404 (REQ-ANS-013).",
+  operationId: "getSurveyAnsweredStatus",
+  request: { params: slugParam },
+  responses: {
+    200: json("Answered status of the requester's IP", data(answeredStatusSchema)),
+    ...problems(404),
   },
 });
 

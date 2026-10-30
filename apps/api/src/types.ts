@@ -9,6 +9,7 @@ import {
   type createSurveySchema,
 } from "@survey-system/schemas";
 import type {
+  answeredStatusSchema,
   createAnswerSchema,
   responseSchema,
 } from "@survey-system/schemas";
@@ -118,6 +119,7 @@ export interface IAnswerService {
     slug: string,
     originIp: string,
   ): Promise<Answer>;
+  getAnsweredStatus(slug: string, originIp: string): Promise<AnsweredStatus>;
   validateAnswerCreation(
     survey: Survey,
     answer: CreateAnswerData,
@@ -202,6 +204,7 @@ export type Answer = CreateAnswerData & {
   originIp: string;
 };
 export type Response = z.infer<typeof responseSchema>;
+export type AnsweredStatus = z.infer<typeof answeredStatusSchema>;
 
 export type CreateUserData = z.infer<typeof createUserSchema>;
 export type User = Omit<CreateUserData, "passwordConfirm"> & {

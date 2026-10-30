@@ -17,7 +17,7 @@ The full specification lives in [`docs/sdd/`](docs/sdd/MAIN.md); start at
 - No public signup: accounts are created from single-use invitation links (48 h) or with the `create-user` command.
 - Surveys with free-text, single-choice and multiple-choice questions, required or optional.
 - Survey lifecycle: draft → active ⇄ inactive; a survey is locked for editing once activated.
-- Public answering page, designed mobile-first as a single-column questionnaire sheet: numbered questions, large tap targets for options, a running "answered" count with a progress bar (kept at the top of the screen on mobile), required questions checked before sending, and a thank-you confirmation. Answers are validated against the survey's questions.
+- Public answering page, designed mobile-first as a single-column questionnaire sheet: numbered questions, large tap targets for options, a running "answered" count with a progress bar (kept at the top of the screen on mobile), required questions checked before sending, and a thank-you confirmation. A visitor whose IP has already answered the survey is told so on opening the link, before the form, and also if a submission is rejected for that reason. Answers are validated against the survey's questions.
 - Dashboard with survey counters (total, active, inactive) and the most recently activated active surveys side by side: answer totals with completed/incomplete bars on a common scale.
 - Survey list with each survey's answer and completed counts, search by name, status filter, sortable columns and pagination.
 - Per-survey statistics: a summary line (answers, completed, incomplete, questions), a completed/incomplete bar with percentages, and one small chart per choice question with each option's votes and share of respondents, all on a common scale.
@@ -127,24 +127,26 @@ After changing the API contract, regenerate the web client with `pnpm generate:a
 
 ### Deployment
 
-Free tiers: the API runs as a Docker image on [Render](https://render.com), the web on
-[Vercel](https://vercel.com) and PostgreSQL on [Neon](https://neon.tech).
+The repository is set up for one [Vercel](https://vercel.com) project that serves both the
+web and the API. PostgreSQL runs on [Neon](https://neon.tech).
 
-- **API image**: `apps/api/Dockerfile`, built from the repository root. It applies pending
-  migrations (`prisma migrate deploy`) every time it starts. Try it locally with
+- **`vercel.json`** (repository root) declares two services: `api` (`apps/api`) and
+  `web` (`apps/web`). Requests to `/api/*` go to the API and every other path goes to the
+  web app, which serves `index.html` for its client-side routes. The browser only talks
+  to one origin, so the session cookies work.
+- **API build on Vercel**: `pnpm run vercel-build` in `apps/api`. It builds
+  `packages/schemas` and generates the Prisma client. On production builds only, it
+  then applies pending migrations through `DIRECT_DATABASE_URL`. `.vercelignore` keeps
+  `.env` files and generated output out of deployments. Its tests:
+  `bash scripts/tests/vercel-build.test.sh` (the database case runs only when
+  `TEST_DATABASE_URL` is set).
+- **API image**: `apps/api/Dockerfile`, built from the repository root. It applies
+  pending migrations (`prisma migrate deploy`) every time it starts. Try it locally with
   `docker compose -f docker-compose.prod.yml up --build`.
-- **Render**: Docker web service with Dockerfile path `apps/api/Dockerfile` and the
-  repository root as build context. Environment: `NODE_ENV=production`, `DATABASE_URL`
-  (the direct Neon connection string), `JWT_SECRET`, `ACCESS_TOKEN_TTL_MINUTES`,
-  `REFRESH_TOKEN_TTL_DAYS`, `CORS_ORIGIN` (the Vercel URL) and `TRUST_PROXY`.
-- **Vercel**: project with root directory `apps/web` and `VITE_API_URL` set to the
-  project's own Vercel URL. `apps/web/vercel.json` forwards `/api/*` to Render, so the
-  browser only talks to Vercel and the session cookies work.
 - **Migrations by hand**: `DATABASE_URL=<Neon URL> pnpm exec prisma migrate deploy` in
   `apps/api`.
 
-On the free plan Render stops the API when idle: the first request afterwards can take
-about a minute. See [`docs/sdd/DEV_WORKFLOW.md`](docs/sdd/DEV_WORKFLOW.md).
+See [`docs/sdd/DEV_WORKFLOW.md`](docs/sdd/DEV_WORKFLOW.md).
 
 ### Documentation
 

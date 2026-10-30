@@ -434,3 +434,113 @@ describe("answer counts in GET /api/v1/surveys (REQ-SURV-021)", () => {
     }
   });
 });
+
+describe("GET /api/v1/surveys/:slug/answered (REQ-ANS-013)", () => {
+  const answered = (slug: string) => `/api/v1/surveys/${slug}/answered`;
+  const responses = [{ id: 1, content: [1] }];
+  async function insertAnswerFrom(surveyId: string, ip: string, deleted = false) {
+    await prisma.answers.create({
+      data: {
+        id: v7(),
+        survey_id: surveyId,
+        origin_ip: ip,
+        responses,
+        deleted_at: deleted ? new Date() : null,
+      },
+    });
+  }
+
+  it("AC-ANS-013-1: the IP that answered gets answered: true", async () => {
+    await insertSurvey("Survey S", { is_active: true, activated_at: at(1) });
+    const posted = await request(app).post("/api/v1/surveys/survey-s/answers").send({ responses });
+    expect(posted.status).toBe(201);
+
+    const res = await request(app).get(answered("survey-s"));
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: { answered: true } });
+  });
+
+  it("AC-ANS-013-2: answers from other IPs to S, and the IP's answer to T, do not count", async () => {
+    const s = await insertSurvey("Survey S", { is_active: true, activated_at: at(1) });
+    await insertSurvey("Survey T", { is_active: true, activated_at: at(2) });
+    const posted = await request(app).post("/api/v1/surveys/survey-t/answers").send({ responses });
+    expect(posted.status).toBe(201);
+    await insertAnswerFrom(s, "198.51.100.1");
+    await insertAnswerFrom(s, "198.51.100.2");
+
+    const res = await request(app).get(answered("survey-s"));
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: { answered: false } });
+  });
+
+  it("AC-ANS-013-3: a soft-deleted answer of the IP does not count", async () => {
+    const s = await insertSurvey("Survey S", { is_active: true, activated_at: at(1) });
+    const posted = await request(app).post("/api/v1/surveys/survey-s/answers").send({ responses });
+    expect(posted.status).toBe(201);
+    await prisma.answers.updateMany({ where: { survey_id: s }, data: { deleted_at: new Date() } });
+
+    const res = await request(app).get(answered("survey-s"));
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: { answered: false } });
+  });
+
+  it("AC-ANS-013-4: unknown, soft-deleted and inactive surveys get the identical 404, with or without a session", async () => {
+    await insertSurvey("Inactive survey", { is_active: false });
+    await insertSurvey("Deleted survey", { is_active: true, activated_at: at(1), deleted_at: new Date() });
+    await createOwner();
+    const jwt = jwtOf(await login());
+
+    const results: request.Response[] = [];
+    for (const slug of ["does-not-exist", "deleted-survey", "inactive-survey"]) {
+      results.push(await request(app).get(answered(slug)));
+      results.push(await request(app).get(answered(slug)).set("Cookie", jwt));
+    }
+    for (const res of results) {
+      expect(res.status).toBe(404);
+      expect(res.body.title).toBe("Not found");
+      expect(res.body.detail).toBe("The requested survey doesn't exist");
+    }
+  });
+
+  it("AC-ANS-013-5: with TRUST_PROXY=1 the X-Forwarded-For client is evaluated; with TRUST_PROXY=0 the socket address", async () => {
+    const s = await insertSurvey("Survey S", { is_active: true, activated_at: at(1) });
+    const client = "203.0.113.7";
+    await insertAnswerFrom(s, client);
+
+    // TRUST_PROXY=0 (the test default): the header is not trusted.
+    const untrusted = await request(app).get(answered("survey-s")).set("X-Forwarded-For", client);
+    expect(untrusted.body).toEqual({ data: { answered: false } });
+
+    vi.stubEnv("TRUST_PROXY", "1");
+    vi.resetModules();
+    try {
+      const { default: proxiedApp } = await import("../../src/app.js");
+      const trusted = await request(proxiedApp).get(answered("survey-s")).set("X-Forwarded-For", client);
+      expect(trusted.status).toBe(200);
+      expect(trusted.body).toEqual({ data: { answered: true } });
+    } finally {
+      const { prisma: freshPrisma } = await import("../../src/lib/prisma.js");
+      await freshPrisma.$disconnect();
+      vi.unstubAllEnvs();
+      vi.resetModules();
+    }
+  });
+
+  it("AC-ANS-013-6: the check creates or changes no answer or survey row", async () => {
+    const s = await insertSurvey("Survey S", { is_active: true, activated_at: at(1) });
+    await insertSurvey("Inactive survey", { is_active: false });
+    await insertAnswerFrom(s, "198.51.100.1");
+    await insertAnswerFrom(s, "198.51.100.2", true);
+    const snapshot = async () => ({
+      surveys: await prisma.surveys.findMany({ orderBy: { id: "asc" } }),
+      answers: await prisma.answers.findMany({ orderBy: { id: "asc" } }),
+    });
+    const before = await snapshot();
+
+    for (const slug of ["survey-s", "inactive-survey", "does-not-exist"]) {
+      await request(app).get(answered(slug));
+    }
+
+    expect(await snapshot()).toEqual(before);
+  });
+});

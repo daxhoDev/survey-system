@@ -142,8 +142,11 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
 
-src/generated
+apps/api/src/generated/
 # Impeccable context files and tool state (AGENTS.md §6.8)
 apps/web/PRODUCT.md
 apps/web/DESIGN.md
 .impeccable/
+
+# Vercel CLI local project link (docs/sdd/DEV_WORKFLOW.md, REQ-DEVWF-013)
+.vercel
